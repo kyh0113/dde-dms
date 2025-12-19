@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE log4j:configuration PUBLIC "-//APACHE//DTD LOG4J 1.2//EN" "./log4j.dtd">
+<log4j:configuration xmlns:log4j="http://jakarta.apache.org/log4j/">
+
+	<!-- Appenders -->
+	<appender name="console" class="org.apache.log4j.ConsoleAppender">
+		<param name="Target" value="System.out" />
+		<param name="file" value="D:/vit_framework_log/vit_framework-console.log"/>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="&lt;%d&gt; [%t] [%-5p] %m%n" />
+		</layout>
+	</appender>
+	
+	<!-- Daily Logging Appenders -->
+	<appender name="vit_framework-total" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="encoding" value="UTF-8" />
+		<!-- @DEV -->
+ 		<param name="file" value="D:/vit_framework_log/total.log"/> 
+		
+		<!-- @PRD -->
+		<!--  <param name="file" value="../logs/batchlog/total.log"/> -->
+		
+		<param name="Append" value="true"/>
+		<param name="DatePattern" value="'.'yyMMdd"/>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="&lt;%d&gt; [%t] [%-5p] %m /* (%-30F:%-4L) */%n" />
+		</layout>
+	</appender>
+	
+	
+	<appender name="vit_framework-sql" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="encoding" value="UTF-8" />
+		<!-- @DEV -->
+<!-- 		<param name="file" value="D:/vit_framework_log/sql.log"/> -->
+		<!-- @PRD -->
+		<param name="file" value="../logs/batchlog/sql.log"/>
+		<param name="Append" value="true"/>
+		<param name="DatePattern" value="'.'yyMMdd"/>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="&lt;%d&gt; [%t] [%-5p] %m /* (%-30F:%-4L) */%n" />
+		</layout>
+	</appender>
+
+	<appender name="batch_result" class="org.apache.log4j.DailyRollingFileAppender">
+		<param name="encoding" value="UTF-8" />
+		<!-- @DEV -->
+<!-- 		<param name="file" value="D:/vit_framework_log/batch_result.log"/> -->
+		
+		<!-- @PRD -->
+		<param name="file" value="../logs/batchlog/batch_result.log"/>
+		<param name="Append" value="true"/>
+		<param name="DatePattern" value="'.'yyMMdd"/>
+		<layout class="org.apache.log4j.PatternLayout">
+			<param name="ConversionPattern" value="&lt;%d&gt; [%t] [%-5p] %m /* (%-30F:%-4L) */%n" />
+		</layout>
+	</appender>
+
+	
+	<!-- Query Loggers -->
+	<logger name="jdbc.sqlonly" additivity="false">
+		<level value="info" />
+		<appender-ref ref="vit_framework-sql"/>
+		<appender-ref ref="vit_framework-total"/>
+	</logger>
+	
+
+	
+	<!-- Application Loggers -->
+	<logger name="com.vicurus.it" additivity="false">
+		<level value="debug" />
+		<appender-ref ref="vit_framework-total" />
+		<appender-ref ref="console" />
+	</logger>
+	<logger name="com.yp" additivity="false">
+		<level value="debug" />
+		<appender-ref ref="vit_framework-total" />
+		<appender-ref ref="console" />
+	</logger>
+	<logger name="com.yp.batch" additivity="false">
+		<level value="debug" />
+		<appender-ref ref="batch_result" />
+		<appender-ref ref="console" />
+	</logger>
+
+	
+	<!-- Root Logger -->
+	<root>
+		<priority value="error" />
+		<appender-ref ref="vit_framework-sql"/>
+		<appender-ref ref="vit_framework-total" />
+		<appender-ref ref="console" />
+	</root>
+	
+</log4j:configuration>

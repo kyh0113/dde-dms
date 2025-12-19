@@ -1,0 +1,867 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_wr">
+
+	<select id="grid_wr_hist_list_cnt" resultType="double">
+		/* oracle.yp_fixture.grid_wr_hist_list_cnt */
+		SELECT COUNT(1)
+		FROM WR_LIST
+		WHERE 1=1
+		
+	    <if test='WR_EMP != null and !WR_EMP.equals("")'>
+	    AND WR_EMP LIKE  '%' || #{WR_EMP} || '%'
+	    </if>
+	    
+	    <if test='WR_SYS != null and !WR_SYS.equals("")'>
+	    AND WR_SYS LIKE  '%' || #{WR_SYS} || '%'
+	    </if>
+	    
+	    <if test='WR_NAME != null and !WR_NAME.equals("")'>
+	    AND WR_NAME LIKE  '%' || #{WR_NAME} || '%'
+	    </if>	
+	</select>
+	<resultMap id="map_wr_hist_select" type="HashMap">		
+			<result property="WR_CD" 		column="WR_CD"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_NAME" 		column="WR_NAME"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_EMP" 		column="WR_EMP"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_WORK" 		column="WR_WORK"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_CALL_DEPT" column="WR_CALL_DEPT"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			
+			<result property="WR_CALL_EMP"  column="WR_CALL_EMP"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_SYS" 		column="WR_SYS"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_TAB" 		column="WR_TAB"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			
+			<result property="WR_RE_DATE" 	column="WR_RE_DATE"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_DAY" 	column="WR_DAY"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			
+			<result property="WR_TESTD" 	column="WR_TESTD"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			
+			<result property="EDOC_STATUS" 	column="EDOC_STATUS"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="EDOC_NO" 	column="EDOC_NO"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			
+			<result property="WR_TYPE" 	column="WR_TYPE"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_CODES" 	column="WR_CODES"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			
+			<result property="WR_REPORT" 	column="WR_REPORT"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_WORKD" 	column="WR_WORKD"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="EDOC_STATUS_R" 	column="EDOC_STATUS_R"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_FINAL" 	column="WR_FINAL"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			
+			<result property="WR_WSDATE" 	column="WR_WSDATE"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_WEDATE" 	column="WR_WEDATE"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_TSDATE" 	column="WR_TSDATE"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_TEDATE" 	column="WR_TEDATE"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="EDOC_STATUS_F" 	column="EDOC_STATUS_F"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+	</resultMap>
+	<select id="grid_wr_hist_list" resultMap="map_wr_hist_select">
+		/* oracle.yp_fixture."grid_wr_hist_list" */
+			SELECT
+			    WR_CD,
+			    WR_NAME,
+			    WR_EMP,
+			    WR_WORK,
+			    WR_CALL_DEPT,
+			    
+			    WR_CALL_EMP,
+			    WR_SYS,
+			    WR_TAB,
+			    
+			    TO_CHAR(WR_RE_DATE, 'YYYY-MM-DD') as WR_RE_DATE,
+			    TO_CHAR(WR_DAY, 'YYYY-MM-DD') as WR_DAY,
+			    
+			    WR_TESTD,
+			    
+			    EDOC_STATUS,
+			    EDOC_NO,
+			    
+			    WR_TYPE,
+			    WR_CODES,
+			    
+			    WR_REPORT,
+			    WR_WORKD,
+			    EDOC_STATUS_R,
+			    WR_FINAL,
+			    
+			    TO_CHAR(WR_WSDATE, 'YYYY-MM-DD') as WR_WSDATE,
+				TO_CHAR(WR_WEDATE, 'YYYY-MM-DD') as WR_WEDATE,
+				TO_CHAR(WR_TSDATE, 'YYYY-MM-DD') as WR_TSDATE,
+				TO_CHAR(WR_TEDATE, 'YYYY-MM-DD') as WR_TEDATE,
+				EDOC_STATUS_F
+
+			FROM
+			    WR_LIST
+	
+			WHERE 1=1
+ 
+		    <if test='WR_EMP != null and !WR_EMP.equals("")'>
+		    AND WR_EMP LIKE  '%' || #{WR_EMP} || '%'
+		    </if>
+		    
+		    <if test='WR_SYS != null and !WR_SYS.equals("")'>
+		    AND WR_SYS LIKE  '%' || #{WR_SYS} || '%'
+		    </if>
+		    
+		    <if test='WR_NAME != null and !WR_NAME.equals("")'>
+		    AND WR_NAME LIKE  '%' || #{WR_NAME} || '%'
+		    </if>
+		    
+		    <if test="WR_DAY != null and WR_DAY != ''">
+			AND TO_CHAR(WR_DAY, 'YYYY/MM/DD') <![CDATA[>=]]> #{WR_DAY}
+			</if>
+		    
+		    <if test="WR_RE_DATE != null and WR_RE_DATE != ''">
+			AND TO_CHAR(WR_DAY, 'YYYY/MM/DD') <![CDATA[<=]]> #{WR_RE_DATE}
+			</if>
+
+		    AND WR_CD >='399'
+    
+			ORDER BY WR_CD DESC			
+	</select>
+	
+	
+	<select id="grid_wr_writehist_list_cnt" resultType="double">
+		/* oracle.yp_fixture.grid_wr_writehist_list_cnt */
+		SELECT COUNT(1)
+		FROM WR_WRITE
+		WHERE 1=1
+
+	    <if test='WR_EMP != null and !WR_EMP.equals("")'>
+	    AND WR_EMP LIKE  '%' || #{WR_EMP} || '%'
+	    </if>
+	    
+	    <if test='WR_SYS != null and !WR_SYS.equals("")'>
+	    AND WR_SYS LIKE  '%' || #{WR_SYS} || '%'
+	    </if>
+	    
+	    <if test='WR_NAME != null and !WR_NAME.equals("")'>
+	    AND WR_NAME LIKE  '%' || #{WR_NAME} || '%'
+	    </if>
+	    
+		AND WR_CD >='399'
+		
+	</select>
+	<resultMap id="map_wr_writehist_select" type="HashMap">		
+			<result property="WR_CD" 		column="WR_CD"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_NAME" 		column="WR_NAME"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_EMP" 		column="WR_EMP"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_WORK" 		column="WR_WORK"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_CALL_DEPT" column="WR_CALL_DEPT"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			
+			<result property="WR_CALL_EMP"  column="WR_CALL_EMP"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_SYS" 		column="WR_SYS"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_TAB" 		column="WR_TAB"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			
+			<result property="WR_RE_DATE" 	column="WR_RE_DATE"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_DAY" 	column="WR_DAY"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			
+			<result property="WR_TESTD" 	column="WR_TESTD"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			
+			<result property="EDOC_STATUS" 	column="EDOC_STATUS"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="EDOC_NO" 	column="EDOC_NO"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			
+			<result property="WR_TYPE" 	column="WR_TYPE"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_CODES" 	column="WR_CODES"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			
+			<result property="WR_WORKD" 	column="WR_WORKD"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			
+			<result property="WR_WSDATE" 	column="WR_WSDATE"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_WEDATE" 	column="WR_WEDATE"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_TSDATE" 	column="WR_TSDATE"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+			<result property="WR_TEDATE" 	column="WR_TEDATE"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+	</resultMap>
+	<select id="grid_wr_writehist_list" resultMap="map_wr_writehist_select">
+		/* oracle.yp_fixture."grid_wr_writehist_list" */
+			SELECT
+			    W.WR_CD,
+			    W.WR_NAME,
+			    W.WR_EMP,
+			    W.WR_WORK,
+			    W.WR_CALL_DEPT,
+			    W.WR_CALL_EMP,
+			    W.WR_SYS,
+			    W.WR_TAB,
+			    TO_CHAR(W.WR_RE_DATE, 'YYYY-MM-DD') AS WR_RE_DATE,
+			    TO_CHAR(W.WR_DAY, 'YYYY-MM-DD') AS WR_DAY,
+			    W.WR_TESTD,
+			    L.EDOC_STATUS,
+			    L.EDOC_NO,
+			    W.WR_TYPE,
+			    W.WR_CODES,
+			    W.WR_WORKD,
+			    TO_CHAR(W.WR_WSDATE, 'YYYY-MM-DD') AS WR_WSDATE,
+			    TO_CHAR(W.WR_WEDATE, 'YYYY-MM-DD') AS WR_WEDATE,
+			    TO_CHAR(W.WR_TSDATE, 'YYYY-MM-DD') AS WR_TSDATE,
+			    TO_CHAR(W.WR_TEDATE, 'YYYY-MM-DD') AS WR_TEDATE
+			FROM
+			    WR_WRITE W
+			JOIN
+			    WR_LIST L ON W.WR_CODES = L.WR_CODES
+		
+				WHERE 1=1
+ 
+			    <if test='WR_EMP != null and !WR_EMP.equals("")'>
+			    AND W.WR_EMP LIKE  '%' || #{WR_EMP} || '%'
+			    </if>
+			    
+			    <if test='WR_SYS != null and !WR_SYS.equals("")'>
+			    AND W.WR_SYS LIKE  '%' || #{WR_SYS} || '%'
+			    </if>
+			    
+			    <if test='WR_NAME != null and !WR_NAME.equals("")'>
+			    AND W.WR_NAME LIKE  '%' || #{WR_NAME} || '%'
+			    </if>
+			    
+			    <if test="WR_DAY != null and WR_DAY != ''">
+				AND TO_CHAR(W.WR_DAY, 'YYYY/MM/DD') <![CDATA[>=]]> #{WR_DAY}
+				</if>
+			    
+			    <if test="WR_RE_DATE != null and WR_RE_DATE != ''">
+				AND TO_CHAR(W.WR_DAY, 'YYYY/MM/DD') <![CDATA[<=]]> #{WR_RE_DATE}
+				</if>
+	
+				ORDER BY W.WR_CD DESC
+				
+	</select>
+	
+
+	<update id="wr_freport_insert" parameterType="java.util.HashMap">
+	/* oracle.yp_wr.wr_freport_insert */
+	INSERT INTO WR_LIST (
+		WR_CD,
+		WR_NAME,
+		WR_DEPT,
+		WR_EMP,
+		WR_WORK,
+		
+		WR_WSDATE,
+		WR_WEDATE,
+		WR_RE_DATE,
+		WR_SYS,
+		WR_TAB,
+		
+		WR_TSDATE,
+		WR_TEDATE,
+		WR_WORKD,
+		WR_TESTD,
+		WR_STS,
+		
+		WR_STS_TAB,
+		WR_CALL_DEPT,
+		WR_CALL_EMP,
+		WR_CK_DEPT,
+		WR_CK_EMP,
+		
+		WR_CK_TSDATE,
+		WR_CK_TESTD,
+		WR_TYPE,
+		WR_DAY,
+		WR_CODES,
+		
+		USERDEPTCD,
+		EMPCODE,
+		
+		WR_STS_D,
+		WR_STS_TAB_D
+		
+
+	)VALUES(
+		WR_CD.NEXTVAL,
+		#{WR_NAME},
+		#{WR_DEPT},
+		#{WR_EMP},
+		#{WR_WORK},
+		
+		#{WR_WSDATE},
+		#{WR_WEDATE},
+		#{WR_RE_DATE},
+		#{WR_SYS},
+		#{WR_TAB},
+		
+		#{WR_TSDATE},	
+		#{WR_TEDATE},
+		#{WR_WORKD},
+		#{WR_TESTD},
+		#{WR_STS},
+		
+		#{WR_STS_TAB},
+		#{WR_CALL_DEPT},
+		#{WR_CALL_EMP},
+		#{WR_CK_DEPT},
+		#{WR_CK_EMP},
+		
+		#{WR_CK_TSDATE},
+		#{WR_CK_TESTD},
+		#{WR_TYPE},
+		#{WR_DAY},
+		#{wr_codes},
+		
+		#{userDeptCd},
+		#{empCode},
+		
+		#{WR_STS_D},
+		#{WR_STS_TAB_D}
+		
+		
+	)
+	</update>
+	
+	<update id="wr_writepop_insert" parameterType="java.util.HashMap">
+	/* oracle.yp_wr.wr_writepop_insert */
+	INSERT INTO WR_WRITE (
+		WR_CD,
+		WR_NAME,
+		WR_DEPT,
+		WR_EMP,
+		WR_WORK,
+		
+		WR_WSDATE,
+		WR_WEDATE,
+		WR_RE_DATE,
+		WR_SYS,
+		WR_TAB,
+		
+		WR_TSDATE,
+		WR_TEDATE,
+		WR_WORKD,
+		WR_TESTD,
+		WR_STS,
+		
+		WR_STS_TAB,
+		WR_CALL_DEPT,
+		WR_CALL_EMP,
+		WR_CK_DEPT,
+		WR_CK_EMP,
+		
+		WR_CK_TSDATE,
+		WR_CK_TESTD,
+		WR_TYPE,
+		WR_DAY,
+		WR_CODES,
+		
+		USERDEPTCD,
+		EMPCODE,
+		
+		WR_STS_D,
+		WR_STS_TAB_D
+		
+	)VALUES(
+		WR_CD.NEXTVAL,
+		#{WR_NAME},
+		#{WR_DEPT},
+		#{WR_EMP},
+		#{WR_WORK},
+		
+		#{WR_WSDATE},
+		#{WR_WEDATE},
+		#{WR_RE_DATE},
+		#{WR_SYS},
+		#{WR_TAB},
+		
+		#{WR_TSDATE},	
+		#{WR_TEDATE},
+		#{WR_WORKD},
+		#{WR_TESTD},
+		#{WR_STS},
+		
+		#{WR_STS_TAB},
+		#{WR_CALL_DEPT},
+		#{WR_CALL_EMP},
+		#{WR_CK_DEPT},
+		#{WR_CK_EMP},
+		
+		#{WR_CK_TSDATE},
+		#{WR_CK_TESTD},
+		#{WR_TYPE},
+		#{WR_DAY},
+		#{wr_codes},
+		
+		#{userDeptCd},
+		#{empCode},
+		
+		#{WR_STS_D},
+		#{WR_STS_TAB_D}
+	)
+	</update>
+	
+	<update id="wr_writepop_insert2" parameterType="java.util.HashMap">
+	/* oracle.yp_wr.wr_writepop_insert2 */
+	INSERT INTO WR_LIST (
+		WR_CD,
+		WR_NAME,
+		WR_DEPT,
+		WR_EMP,
+		WR_WORK,
+		
+		WR_WSDATE,
+		WR_WEDATE,
+		WR_RE_DATE,
+		WR_SYS,
+		WR_TAB,
+		
+		WR_TSDATE,
+		WR_TEDATE,
+		WR_WORKD,
+		WR_TESTD,
+		WR_STS,
+		
+		WR_STS_TAB,
+		WR_CALL_DEPT,
+		WR_CALL_EMP,
+		WR_CK_DEPT,
+		WR_CK_EMP,
+		
+		WR_CK_TSDATE,
+		WR_CK_TESTD,
+		WR_TYPE,
+		WR_DAY,
+		WR_CODES,
+		
+		USERDEPTCD,
+		EMPCODE,
+		
+		WR_STS_D,
+		WR_STS_TAB_D,
+		
+		WR_REPORT,
+		WR_FINAL
+		
+	)VALUES(
+		WR_CD.NEXTVAL,
+		#{WR_NAME},
+		#{WR_DEPT},
+		#{WR_EMP},
+		#{WR_WORK},
+		
+		#{WR_WSDATE},
+		#{WR_WEDATE},
+		#{WR_RE_DATE},
+		#{WR_SYS},
+		#{WR_TAB},
+		
+		#{WR_TSDATE},	
+		#{WR_TEDATE},
+		#{WR_WORKD},
+		#{WR_TESTD},
+		#{WR_STS},
+		
+		#{WR_STS_TAB},
+		#{WR_CALL_DEPT},
+		#{WR_CALL_EMP},
+		#{WR_CK_DEPT},
+		#{WR_CK_EMP},
+		
+		#{WR_CK_TSDATE},
+		#{WR_CK_TESTD},
+		#{WR_TYPE},
+		#{WR_DAY},
+		#{wr_codes},
+		
+		#{userDeptCd},
+		#{empCode},
+		
+		#{WR_STS_D},
+		#{WR_STS_TAB_D},
+		
+		#{WR_REPORT},
+		#{WR_FINAL}
+	)
+	</update>
+	
+	<update id="wr_report_insert" parameterType="java.util.HashMap">
+	/* oracle.yp_wr.wr_freport_insert */
+	INSERT INTO WR_REPORT (
+		WR_CD,
+		WR_NAME,
+		WR_DEPT,
+		WR_EMP,
+		WR_WORK,
+		
+		WR_WSDATE,
+		WR_WEDATE,
+		WR_RE_DATE,
+		WR_SYS,
+		WR_TAB,
+		
+		WR_TSDATE,
+		WR_TEDATE,
+		WR_WORKD,
+		WR_TESTD,
+		WR_STS,
+		
+		WR_STS_TAB,
+		WR_CALL_DEPT,
+		WR_CALL_EMP,
+		WR_CK_DEPT,
+		WR_CK_EMP,
+		
+		WR_CK_TSDATE,
+		WR_CK_TESTD,
+		WR_TYPE,
+		WR_DAY,
+		WR_CODES,
+		
+		USERDEPTCD,
+		EMPCODE,
+		
+		WR_STS_D,
+		WR_STS_TAB_D
+
+
+	)VALUES(
+		WR_CD.NEXTVAL,
+		#{WR_NAME},
+		#{WR_DEPT},
+		#{WR_EMP},
+		#{WR_WORK},
+		
+		#{WR_WSDATE},
+		#{WR_WEDATE},
+		#{WR_RE_DATE},
+		#{WR_SYS},
+		#{WR_TAB},
+		
+		#{WR_TSDATE},	
+		#{WR_TEDATE},
+		#{WR_WORKD},
+		#{WR_TESTD},
+		#{WR_STS},
+		
+		#{WR_STS_TAB},
+		#{WR_CALL_DEPT},
+		#{WR_CALL_EMP},
+		#{WR_CK_DEPT},
+		#{WR_CK_EMP},
+		
+		#{WR_CK_TSDATE},
+		#{WR_CK_TESTD},
+		#{WR_TYPE},
+		#{WR_DAY},
+		#{WR_CODES},
+		
+		#{userDeptCd},
+		#{empCode},
+		
+		#{WR_STS_D},
+		#{WR_STS_TAB_D}
+	
+	)
+	</update>
+	
+	<update id="wr_report_list_update">
+		/* oracle.yp_wr.wr_report_list_update */
+		UPDATE WR_LIST
+		SET 
+		WR_REPORT = #{WR_REPORT},
+		WR_NAME = #{WR_NAME},
+		WR_EMP = #{WR_EMP},
+		WR_CALL_DEPT = #{WR_CALL_DEPT},
+		WR_DAY = #{WR_DAY},		
+		WR_WORK = #{WR_WORK},
+		WR_WSDATE = #{WR_WSDATE},
+		WR_WEDATE = #{WR_WEDATE},
+		WR_SYS = #{WR_SYS},
+		WR_TAB = #{WR_TAB},
+		WR_TSDATE = #{WR_TSDATE},
+		WR_TEDATE = #{WR_TEDATE},
+		WR_RE_DATE = #{WR_RE_DATE},
+		WR_TESTD = #{WR_TESTD},
+		WR_TYPE = #{WR_TYPE},
+		WR_WORKD = #{WR_WORKD}
+		
+		WHERE WR_CODES IN #{WR_CODES}
+	</update>
+	
+	<update id="wr_final_insert" parameterType="java.util.HashMap">
+	/* oracle.yp_wr.wr_final_insert */
+	INSERT INTO WR_FINAL (
+		WR_CD,
+		WR_NAME,
+		WR_DEPT,
+		WR_EMP,
+		WR_WORK,
+		
+		WR_WSDATE,
+		WR_WEDATE,
+		WR_RE_DATE,
+		WR_SYS,
+		WR_TAB,
+		
+		WR_TSDATE,
+		WR_TEDATE,
+		WR_WORKD,
+		WR_TESTD,
+		WR_STS,
+		
+		WR_STS_TAB,
+		WR_CALL_DEPT,
+		WR_CALL_EMP,
+		WR_CK_DEPT,
+		WR_CK_EMP,
+		
+		WR_CK_TSDATE,
+		WR_CK_TESTD,
+		WR_TYPE,
+		WR_DAY,
+		WR_CODES,
+		
+		USERDEPTCD,
+		EMPCODE,
+		
+		WR_STS_D,
+		WR_STS_TAB_D
+
+
+	)VALUES(
+		WR_CD.NEXTVAL,
+		#{WR_NAME},
+		#{WR_DEPT},
+		#{WR_EMP},
+		#{WR_WORK},
+		
+		#{WR_WSDATE},
+		#{WR_WEDATE},
+		#{WR_RE_DATE},
+		#{WR_SYS},
+		#{WR_TAB},
+		
+		#{WR_TSDATE},	
+		#{WR_TEDATE},
+		#{WR_WORKD},
+		#{WR_TESTD},
+		#{WR_STS},
+		
+		#{WR_STS_TAB},
+		#{WR_CALL_DEPT},
+		#{WR_CALL_EMP},
+		#{WR_CK_DEPT},
+		#{WR_CK_EMP},
+		
+		#{WR_CK_TSDATE},
+		#{WR_CK_TESTD},
+		#{WR_TYPE},
+		#{WR_DAY},
+		#{WR_CODES},
+		
+		#{userDeptCd},
+		#{empCode},
+		
+		#{WR_STS_D},
+		#{WR_STS_TAB_D}
+	
+	)
+	</update>
+	<update id="wr_final_list_update">
+		/* oracle.yp_wr.wr_final_list_update */
+		UPDATE WR_LIST
+		SET 
+		WR_FINAL = #{WR_FINAL},
+		WR_NAME = #{WR_NAME},
+		WR_EMP = #{WR_EMP},
+		WR_CALL_DEPT = #{WR_CALL_DEPT},
+		WR_SYS = #{WR_SYS},
+		WR_TAB = #{WR_TAB},
+		WR_DAY = #{WR_DAY},
+		WR_RE_DATE = #{WR_RE_DATE},
+		WR_TYPE = #{WR_TYPE}
+
+		WHERE WR_CODES IN #{WR_CODES}
+	</update>
+	
+	
+	<select id="wr_report_pop" resultType="java.util.HashMap">
+	/* oracle.yp_wr.wr_report_pop */
+		SELECT 
+			NVL(WR_NAME,' ') WR_NAME,
+			NVL(WR_DEPT,' ') WR_DEPT,
+			NVL(WR_EMP,' ') WR_EMP,
+			NVL(WR_CALL_DEPT,' ') WR_CALL_DEPT,
+			NVL(WR_CALL_EMP,' ') WR_CALL_EMP,
+			NVL(WR_SYS,' ') WR_SYS,
+			NVL(WR_TAB,' ') WR_TAB,
+			NVL(WR_WORKD,' ') WR_WORKD,
+			NVL(WR_TESTD,' ') WR_TESTD,
+			TO_CHAR (WR_CK_TSDATE,'YYYY/MM/DD') WR_CK_TSDATE	
+		FROM WR_LIST
+		
+		WHERE WR_CODES IN <foreach collection="WR_CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+ 		ORDER BY WR_DAY DESC
+    
+	</select>
+	
+	<select id="wr_req_list" resultType="java.util.HashMap">
+	/* oracle.yp_wr.wr_req_list */
+		SELECT 
+			NVL(WR_NAME,' ') WR_NAME,
+			NVL(WR_DEPT,' ') WR_DEPT,
+			NVL(WR_EMP,' ') WR_EMP,
+			NVL(WR_CALL_DEPT,' ') WR_CALL_DEPT,
+			NVL(WR_CALL_EMP,' ') WR_CALL_EMP,
+			NVL(WR_SYS,' ') WR_SYS,
+			NVL(WR_TAB,' ') WR_TAB,
+			NVL(WR_WORKD,' ') WR_WORKD,
+			NVL(WR_TESTD,' ') WR_TESTD,
+			TO_CHAR (WR_CK_TSDATE,'YYYY/MM/DD') WR_CK_TSDATE	
+		FROM WR_LIST
+		
+		WHERE WR_CODES IN <foreach collection="WR_CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+ 		ORDER BY WR_DAY DESC
+    
+	</select>
+	
+	<select id="wr_req_list_D" resultType="java.util.HashMap">
+	/* oracle.yp_wr.wr_req_list_D */
+		SELECT 
+			NVL(WR_NAME,' ') WR_NAME,
+			NVL(WR_DEPT,' ') WR_DEPT,
+			NVL(WR_EMP,' ') WR_EMP,
+			NVL(WR_CALL_DEPT,' ') WR_CALL_DEPT,
+			NVL(WR_CALL_EMP,' ') WR_CALL_EMP,
+			TO_CHAR (WR_CK_TSDATE,'YYYY/MM/DD') WR_CK_TSDATE,
+			NVL(WR_CK_TESTD,' ') WR_CK_TESTD,
+			NVL(WR_WORK,' ') WR_WORK,
+			TO_CHAR (WR_WSDATE,'YYYY/MM/DD') WR_WSDATE,
+			TO_CHAR (WR_WEDATE,'YYYY/MM/DD') WR_WEDATE,
+			TO_CHAR (WR_RE_DATE,'YYYY/MM/DD') WR_RE_DATE,
+			NVL(WR_SYS,' ') WR_SYS,
+			NVL(WR_TAB,' ') WR_TAB,
+			TO_CHAR (WR_TSDATE,'YYYY/MM/DD') WR_TSDATE,
+			TO_CHAR (WR_TEDATE,'YYYY/MM/DD') WR_TEDATE,
+			NVL(WR_WORKD,' ') WR_WORKD,
+			NVL(WR_TESTD,' ') WR_TESTD
+		FROM WR_REPORT
+		
+		WHERE WR_CODES IN <foreach collection="WR_CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+ 		ORDER BY WR_DAY DESC
+    
+	</select>
+	
+	<select id="wr_req_list_A" resultType="java.util.HashMap">
+	/* oracle.yp_wr.wr_req_list_A */
+		SELECT 
+			NVL(WR_NAME,' ') WR_NAME,
+			NVL(WR_DEPT,' ') WR_DEPT,
+			NVL(WR_EMP,' ') WR_EMP,
+			NVL(WR_WORK,' ') WR_WORK,
+			TO_CHAR (WR_WSDATE,'YYYY/MM/DD') WR_WSDATE,
+			TO_CHAR (WR_WEDATE,'YYYY/MM/DD') WR_WEDATE,
+			TO_CHAR (WR_RE_DATE,'YYYY/MM/DD') WR_RE_DATE,
+			NVL(WR_SYS,' ') WR_SYS,
+			NVL(WR_TAB,' ') WR_TAB,
+			TO_CHAR (WR_TSDATE,'YYYY/MM/DD') WR_TSDATE,
+			TO_CHAR (WR_TEDATE,'YYYY/MM/DD') WR_TEDATE,
+			NVL(WR_WORKD,' ') WR_WORKD,
+			NVL(WR_TESTD,' ') WR_TESTD,
+			NVL(WR_STS,'기타항목') WR_STS,
+			NVL(WR_STS_TAB,'기타내역') WR_STS_TAB,
+			NVL(WR_STS_D,' ') WR_STS_D,
+			NVL(WR_STS_TAB_D,' ') WR_STS_TAB_D,
+			NVL(WR_CALL_DEPT,' ') WR_CALL_DEPT,
+			NVL(WR_CALL_EMP,' ') WR_CALL_EMP,
+			NVL(WR_CK_DEPT,' ') WR_CK_DEPT,
+			NVL(WR_CK_EMP,' ') WR_CK_EMP,
+			TO_CHAR (WR_CK_TSDATE,'YYYY/MM/DD') WR_CK_TSDATE,
+			NVL(WR_CK_TESTD,' ') WR_CK_TESTD			
+		FROM WR_LIST
+		
+		WHERE WR_CODES IN <foreach collection="WR_CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+ 		ORDER BY WR_DAY DESC
+    
+	</select>
+	
+	<select id="wr_req_list_E" resultType="java.util.HashMap">
+	/* oracle.yp_wr.wr_req_list_E */
+		SELECT 
+			NVL(WR_NAME,' ') WR_NAME,
+			NVL(WR_DEPT,' ') WR_DEPT,
+			NVL(WR_EMP,' ') WR_EMP,
+			NVL(WR_WORK,' ') WR_WORK,
+			TO_CHAR (WR_WSDATE,'YYYY/MM/DD') WR_WSDATE,
+			TO_CHAR (WR_WEDATE,'YYYY/MM/DD') WR_WEDATE,
+			TO_CHAR (WR_RE_DATE,'YYYY/MM/DD') WR_RE_DATE,
+			NVL(WR_SYS,' ') WR_SYS,
+			NVL(WR_TAB,' ') WR_TAB,
+			TO_CHAR (WR_TSDATE,'YYYY/MM/DD') WR_TSDATE,
+			TO_CHAR (WR_TEDATE,'YYYY/MM/DD') WR_TEDATE,
+			NVL(WR_WORKD,' ') WR_WORKD,
+			NVL(WR_TESTD,' ') WR_TESTD			
+		FROM WR_LIST
+		
+		WHERE WR_CODES IN <foreach collection="WR_CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+ 		ORDER BY WR_DAY DESC
+    
+	</select>
+	
+	<select id="wr_req_list_B" resultType="java.util.HashMap">
+	/* oracle.yp_wr.wr_req_list_B */
+		SELECT 
+			NVL(WR_NAME,' ') WR_NAME,
+			NVL(WR_DEPT,' ') WR_DEPT,
+			NVL(WR_EMP,' ') WR_EMP,
+			NVL(WR_WORK,' ') WR_WORK,
+			TO_CHAR (WR_WSDATE,'YYYY/MM/DD') WR_WSDATE,
+			TO_CHAR (WR_WEDATE,'YYYY/MM/DD') WR_WEDATE,
+			TO_CHAR (WR_RE_DATE,'YYYY/MM/DD') WR_RE_DATE,
+			NVL(WR_SYS,' ') WR_SYS,
+			NVL(WR_TAB,' ') WR_TAB,
+			TO_CHAR (WR_TSDATE,'YYYY/MM/DD') WR_TSDATE,
+			TO_CHAR (WR_TEDATE,'YYYY/MM/DD') WR_TEDATE,
+			NVL(WR_WORKD,' ') WR_WORKD,
+			NVL(WR_TESTD,' ') WR_TESTD,
+			NVL(WR_STS,'기타항목') WR_STS,
+			NVL(WR_STS_TAB,'') WR_STS_TAB,
+			NVL(WR_STS_D,'기타내역') WR_STS_D,
+			NVL(WR_STS_TAB_D,' ') WR_STS_TAB_D
+		FROM WR_LIST
+		
+		WHERE WR_CODES IN <foreach collection="WR_CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+ 		ORDER BY WR_DAY DESC
+    
+	</select>
+	
+	
+	<select id="wr_cd_select" resultType="java.util.HashMap">
+	/* oracle.yp_wr.wr_cd_select */
+		SELECT WR_CD
+		FROM WR_LIST
+	</select>
+	
+	<select id="wr_req_get" resultType="java.util.HashMap">
+	/* oracle.yp_wr.wr_req_get */
+		SELECT MAX(WR_CD)+1 WR_CD
+		
+		FROM WR_LIST
+		WHERE USERDEPTCD = #{userDeptCd}
+<!-- 		AND EMPCODE = #{empCode} -->
+		
+	</select>
+	
+
+	<update id="wr_req_dtl_edoc_update">
+		/* oracle.yp_wr.wr_req_dtl_edoc_update */
+		UPDATE WR_LIST
+		SET EDOC_NO = #{EDOC_NO},
+			EDOC_STATUS = #{EDOC_STATUS}
+		WHERE WR_CODES IN <foreach collection="WR_CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+	</update>
+	
+	
+	<update id="wr_req_dtl_edoc_update_report">
+		/* oracle.yp_wr.wr_req_dtl_edoc_update_report */
+		UPDATE WR_LIST
+		SET EDOC_NO_R = #{EDOC_NO_R},
+			EDOC_STATUS_R = #{EDOC_STATUS_R}
+		WHERE WR_CODES IN <foreach collection="WR_CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+	</update>
+	
+	<update id="wr_req_dtl_edoc_update_final">
+		/* oracle.yp_wr.wr_req_dtl_edoc_update_final */
+		UPDATE WR_LIST
+		SET EDOC_NO_F = #{EDOC_NO_F},
+			EDOC_STATUS_F = #{EDOC_STATUS_F}
+		WHERE WR_CODES IN <foreach collection="WR_CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+	</update>
+	
+
+		    
+</mapper>
+

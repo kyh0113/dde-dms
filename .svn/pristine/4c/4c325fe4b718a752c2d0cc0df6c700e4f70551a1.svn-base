@@ -1,0 +1,33 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">
+    <title>영풍</title>
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+	<div id="wrapper">
+        <div class="login_img"></div>
+        <div class="login_wrap">
+            <div class="login_box">
+                <img src="images/login_img.png"><p><img src="images/logo_sub.png"> 도급관리 웹포탈 시스템 로그인</p>
+                <ul class="group">
+                    <li class="on">영풍</li>
+                    <li>계열사</li>
+                    <li>협력사</li>
+                </ul>
+                <ul>
+                    <li><input type="text" placeholder="User ID" class="login"></li>
+                    <li><input type="text" placeholder="Password" class="login"></li>
+                    <li><button class="btn_login" onclick="location.href='main.html'">LOGIN</button></li>
+                    <li class="rt"><input type="checkbox"> Save ID</li>
+                </ul>
+
+            </div>
+            <div class="copyright">Copyright (c) Young Poong All rights reserved.</div>
+        </div>
+    </div>
+</body>
+</html>

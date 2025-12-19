@@ -1,0 +1,779 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<jasperReport xmlns="http://jasperreports.sourceforge.net/jasperreports" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="http://jasperreports.sourceforge.net/jasperreports http://jasperreports.sourceforge.net/xsd/jasperreport.xsd" name="report1" language="groovy" pageWidth="842" pageHeight="595" orientation="Landscape" columnWidth="802" leftMargin="20" rightMargin="20" topMargin="20" bottomMargin="20" uuid="c897094a-871c-4cb4-9f59-89da832f8a5b">
+	<property name="ireport.zoom" value="1.5"/>
+	<property name="ireport.x" value="0"/>
+	<property name="ireport.y" value="0"/>
+	<parameter name="VENDOR_CODE" class="java.lang.String"/>
+	<parameter name="BASE_YYYY" class="java.lang.String"/>
+	<parameter name="p1" class="java.lang.String"/>
+	<parameter name="p2" class="java.lang.String"/>
+	<queryString>
+		<![CDATA[/* oracle.yp_zwc_ipt.select_tbl_working_monthly_report */
+SELECT
+   X.*,
+   /* 2021-03-03 jamerl - 조용래 : 지급액 재계산은 별도의 버튼 이벤트를 통해 산출하도록 변경 */
+   NVL(X.PAY_AMOUNT_VIEW, 0) AS PAY_AMOUNT
+   /*
+   NVL(X.PAY_AMOUNT_VIEW,
+      NVL(X.SUBCONTRACTING_COST, 0) +
+      NVL(EXTENSION_AMOUNT, 0) +
+      NVL(NIGHT_AMOUNT, 0) +
+      NVL(SATURDAY_AMOUNT, 0) +
+      NVL(HOLIDAY_AMOUNT, 0) +
+      NVL(REWARD_AMOUNT, 0) +
+      NVL(ADDITIONAL_AMOUNT, 0)
+      - NVL(PENALTY_AMOUNT, 0) -- 패널티는 빼기
+   ) AS PAY_AMOUNT
+   */
+FROM (
+   SELECT
+      B.TLC_YN, /* 2021-03-09 jamerl - 조용래 : 도급일보 승인받지 않은 데이터(TEAM_LEADER_CONFIRM : N) 존재시 조회제거 */
+      SUBSTR(TO_CHAR(SYSDATE,'YYYY/MM/DD'),0,4) AS PYYYY,
+      SUBSTR(TO_CHAR(SYSDATE,'YYYY/MM/DD'),6,2) AS PMM,
+      SUBSTR(TO_CHAR(SYSDATE,'YYYY/MM/DD'),9,2) AS PDD,
+     SUBSTR(Z.CHECK_YYYYMM,0,4)          AS CHECK_YYYY,
+      SUBSTR(Z.CHECK_YYYYMM,5,2)          AS CHECK_MM,
+      Z.CHECK_YYYYMM          AS CHECK_YYYYMM,
+      A.BASE_YYYY          AS BASE_YYYY,
+      A.VENDOR_CODE          AS VENDOR_CODE,
+      (SELECT S.CODE_NAME FROM TBL_WORKING_MASTER S WHERE SUBSTR(S.CODE, 1, 1) = 'V' AND S.CODE = A.VENDOR_CODE) AS VENDOR_NAME,
+      A.UNIT_CODE AS UNIT_CODE,
+      (SELECT S.CODE_NAME FROM TBL_WORKING_MASTER S WHERE SUBSTR(S.CODE, 1, 1) = 'U' AND S.CODE = A.UNIT_CODE) AS UNIT_NAME,
+      A.CONTRACT_CODE       AS CONTRACT_CODE,
+      A.CONTRACT_NAME       AS CONTRACT_NAME,
+      A.DEPT_CODE AS DEPT_CODE,
+      A.DEPT_NAME AS DEPT_NAME,
+      B.COLLECTION_MANHOUR    AS MANHOUR,
+      D.UNIT_PRICE          AS UNIT_PRICE,
+      NVL(Z.UNIT_PRICE, 0)    AS UNIT_PRICE_V, /* 2021-08-02 jamerl - 조용래 : 집계된 단가 출력 */
+      D.MONTH_STANDARD_AMOUNT AS MONTH_STANDARD_AMOUNT,
+      A.GUBUN_CODE         AS GUBUN_CODE,
+     NVL(Z.QUANTITY_CHANGED, CASE
+         WHEN A.GUBUN_CODE = '2' AND A.UNIT_CODE = 'U7' THEN B.COLLECTION_MANHOUR /* 2020-11-06 jamerl - 조용래 : 구분 인력, 단위 공 케이스에 [공수] 출력 적용 */
+         ELSE B.WORKLOAD /* 2020-11-06 jamerl - 조용래 : 나머지 케이스는 모두 [작업량] 출력 적용 */
+      END) AS QUANTITY1,
+      CASE
+         WHEN A.GUBUN_CODE = '2' AND A.UNIT_CODE = 'U7' THEN B.COLLECTION_MANHOUR /* 2020-11-06 jamerl - 조용래 : 구분 인력, 단위 공 케이스에 [공수] 출력 적용 */
+         ELSE B.WORKLOAD /* 2020-11-06 jamerl - 조용래 : 나머지 케이스는 모두 [작업량] 출력 적용 */
+      END AS QUANTITY,
+      Z.QUANTITY_CHANGED      AS QUANTITY_CHANGED,
+      /*
+      ROUND(NVL(Z.SUBCONTRACTING_COST, D.UNIT_PRICE *
+         CASE
+            WHEN A.GUBUN_CODE = '2' AND A.UNIT_CODE != 'U7' THEN D.MONTH_STANDARD_AMOUNT -- [단가 X 월도급비]
+            WHEN A.GUBUN_CODE = '2' AND A.UNIT_CODE = 'U7' THEN B.COLLECTION_MANHOUR -- 2020-11-06 jamerl - 조용래 : 구분 인력, 단위 공 케이스에 [단가 X 공수] 수식 적용
+            ELSE B.WORKLOAD -- [단가 * 작업량]
+         END
+      ), 0) AS SUBCONTRACTING_COST,
+      */
+      ROUND(NVL(Z.SUBCONTRACTING_COST, 0), 0) AS SUBCONTRACTING_COST_V, /* 2021-03-03 jamerl - 조용래 : 집계된 월도급비 출력 */
+      ROUND(
+         D.UNIT_PRICE *
+         CASE
+            WHEN A.GUBUN_CODE = '2' AND A.UNIT_CODE != 'U7' THEN D.MONTH_STANDARD_AMOUNT /* [단가 X 월도급비] */
+            WHEN A.GUBUN_CODE = '2' AND A.UNIT_CODE = 'U7' THEN B.COLLECTION_MANHOUR /* 2020-11-06 jamerl - 조용래 : 구분 인력, 단위 공 케이스에 [단가 X 공수] 수식 적용 */
+            ELSE B.WORKLOAD /* [단가 * 작업량] */
+         END
+      , 0) AS SUBCONTRACTING_COST, -- 2021-02-02 jamerl - 조용래 : 기초 데이터를 이용한 수식으로 값이 출력되도록 요청
+      B.EXTENSION_HOUR       AS EXTENSION_HOUR,
+      -- NVL(Z.EXTENSION_AMOUNT, B.EXTENSION_HOUR * D.OVERTIME_EXTENSION) AS EXTENSION_AMOUNT,
+      B.EXTENSION_HOUR * D.OVERTIME_EXTENSION AS EXTENSION_AMOUNT, -- 2021-02-02 jamerl - 조용래 : 기초 데이터를 이용한 수식으로 값이 출력되도록 요청
+      B.NIGHT_HOUR          AS NIGHT_HOUR,
+      -- NVL(Z.NIGHT_AMOUNT, B.NIGHT_HOUR * D.OVERTIME_NIGHT) AS NIGHT_AMOUNT,
+      B.NIGHT_HOUR * D.OVERTIME_NIGHT AS NIGHT_AMOUNT, -- 2021-02-02 jamerl - 조용래 : 기초 데이터를 이용한 수식으로 값이 출력되도록 요청
+      B.SATURDAY_HOUR       AS SATURDAY_MANHOUR,
+      -- NVL(Z.SATURDAY_AMOUNT, B.SATURDAY_HOUR * D.OVERTIME_SATURDAY) AS SATURDAY_AMOUNT,
+      B.SATURDAY_HOUR * D.OVERTIME_SATURDAY AS SATURDAY_AMOUNT, -- 2021-02-02 jamerl - 조용래 : 기초 데이터를 이용한 수식으로 값이 출력되도록 요청
+      B.HOLIDAY_HOUR          AS HOLIDAY_MANHOUR,
+      -- NVL(Z.HOLIDAY_AMOUNT, B.HOLIDAY_HOUR * D.OVERTIME_HOLIDAY) AS HOLIDAY_AMOUNT,
+      B.HOLIDAY_HOUR * D.OVERTIME_HOLIDAY AS HOLIDAY_AMOUNT, -- 2021-02-02 jamerl - 조용래 : 기초 데이터를 이용한 수식으로 값이 출력되도록 요청
+      Z.REWARD_RATE, Z.REWARD_AMOUNT,
+      Z.REWARD_REASON       AS REWARD_REASON,
+      Z.ADDITIONAL_AMOUNT    AS ADDITIONAL_AMOUNT,
+      Z.ADDITIONAL_BASIS       AS ADDITIONAL_BASIS,
+      Z.ADDITIONAL_REASON    AS ADDITIONAL_REASON,
+      Z.PENALTY_AMOUNT       AS PENALTY_AMOUNT,
+      Z.PENALTY_BASIS       AS PENALTY_BASIS,
+      Z.PENALTY_REASON       AS PENALTY_REASON,
+      Z.PAY_AMOUNT          AS PAY_AMOUNT_VIEW,
+      Z.STATUS,
+      F_GETCODENAME('YP_APPR_STATUS', Z.STATUS) AS STATUS_TXT
+   FROM TBL_WORKING_SUBC A /* 계약 */
+   LEFT OUTER JOIN (
+      SELECT
+         MIN(B.TEAM_LEADER_CONFIRM) AS TLC_YN, /* 2021-03-09 jamerl - 조용래 : 도급일보 승인받지 않은 데이터(TEAM_LEADER_CONFIRM : N) 존재시 조회제거 */
+         B.BASE_YYYY, B.VENDOR_CODE, B.CONTRACT_CODE,
+         SUM(B.EXTENSION_HOUR) AS EXTENSION_HOUR,
+         SUM(B.NIGHT_HOUR) AS NIGHT_HOUR,
+         SUM(B.SATURDAY_HOUR) AS SATURDAY_HOUR,
+         SUM(B.HOLIDAY_HOUR) AS HOLIDAY_HOUR,
+         SUM(NVL(B.MANHOUR, 0)) AS MANHOUR,
+         SUM(NVL(B.COLLECTION_MANHOUR, 0)) AS COLLECTION_MANHOUR,
+         SUM(NVL(B.WORKLOAD, 0)) AS WORKLOAD
+      FROM TBL_WORKING_DAILY_REPORT B
+      WHERE 1=1
+      AND B.BASE_YYYY = SUBSTR($P{BASE_YYYY}, 1, 4)
+      AND B.VENDOR_CODE = $P{VENDOR_CODE}
+      AND SUBSTR(B.BASE_YYYYMMDD, 1, 6) = REPLACE($P{BASE_YYYY}, '/', '')
+      GROUP BY B.BASE_YYYY, B.VENDOR_CODE, B.CONTRACT_CODE
+   ) B /* 연장, 야간, 토요, 휴일 */
+      ON A.BASE_YYYY = B.BASE_YYYY
+      AND A.VENDOR_CODE = B.VENDOR_CODE
+      AND A.CONTRACT_CODE = B.CONTRACT_CODE
+   INNER JOIN TBL_WORKING_SUBC_CTN D
+      ON A.BASE_YYYY = D.BASE_YYYY
+      AND A.VENDOR_CODE = D.VENDOR_CODE
+      AND A.CONTRACT_CODE = D.CONTRACT_CODE
+   LEFT OUTER JOIN TBL_WORKING_MONTHLY_REPORT Z
+      ON A.BASE_YYYY = Z.BASE_YYYY
+      AND A.VENDOR_CODE = Z.VENDOR_CODE
+      AND A.CONTRACT_CODE = Z.CONTRACT_CODE
+      AND Z.CHECK_YYYYMM = REPLACE($P{BASE_YYYY}, '/', '')
+   WHERE 1=1
+   AND A.BASE_YYYY = SUBSTR($P{BASE_YYYY}, 1, 4) -- 조회조건 시작일자 4자리 잘라서 사용
+   AND B.TLC_YN = 'Y' /* 2021-03-09 jamerl - 조용래 : 도급일보 승인받지 않은 데이터(TEAM_LEADER_CONFIRM : N) 존재시 조회제거 */
+   AND A.VENDOR_CODE = $P{VENDOR_CODE}
+   AND A.GUBUN_CODE  <>  '3' -- 저장품 외(1)
+) X
+UNION ALL
+SELECT
+   MAX(X.TLC_YN) AS TLC_YN,
+   MAX(X.PYYYY) AS PYYY,
+   MAX(X.PMM) AS PMM,
+   MAX(X.PDD) AS PDD,
+   MAX(X.CHECK_YYYY) AS CHECK_YYYY,
+   NULL AS  CHECK_MM,
+   NULL AS  CHECK_YYYYMM,
+   NULL AS BASE_YYYY,
+   NULL AS VENDOR_CODE,
+   NULL AS VENDOR_NAME,
+   NULL AS UNIT_CODE,
+   NULL AS UNIT_NAME,
+   '합계' AS CONTRACT_CODE,
+   NULL AS CONTRACT_NAME,
+   NULL AS DEPT_CODE,
+   NULL AS DEPT_NAME,
+   NULL AS MANHOUR,
+   NULL AS UNIT_PRICE,
+   NULL AS UNIT_PRICE_V,
+   NULL AS MONTH_STANDARD_AMOUNT,
+   '' AS GUBUN_CODE,
+   NULL AS QUANTITY1,
+   NULL AS QUANTITY,
+   NULL AS QUANTITY_CHANGED,
+   NULL AS SUBCONTRACTING_COST_V,
+   NULL AS SUBCONTRACTING_COST,
+   NULL AS EXTENSION_HOUR,
+   NULL AS EXTENSION_AMOUNT,
+   NULL AS NIGHT_HOUR,
+   NULL AS NIGHT_AMOUNT,
+   NULL AS SATURDAY_MANHOUR,
+   NULL AS SATURDAY_AMOUNT,
+   NULL AS HOLIDAY_HOUR,
+   NULL AS HOLIDAY_AMOUNT,
+   NULL AS REWARD_RATE,
+   NULL AS REWARD_AMOUNT,
+   NULL AS REWARD_REASON,
+   NULL AS ADDITIONAL_AMOUNT,
+   NULL AS ADDITIONAL_BASIS,
+   NULL AS ADDITIONAL_REASON,
+   NULL AS PENALTY_AMOUNT,
+   NULL AS PENALTY_BASIS,
+   NULL AS PENALTY_REASON,
+   NULL AS PAY_AMOUNT_VIEW,
+   NULL AS STATUS,
+   NULL AS STATUS_TXT,
+   SUM(NVL(X.PAY_AMOUNT_VIEW, 0)) AS PAY_AMOUNT
+FROM (
+   SELECT
+      B.TLC_YN, /* 2021-03-09 jamerl - 조용래 : 도급일보 승인받지 않은 데이터(TEAM_LEADER_CONFIRM : N) 존재시 조회제거 */
+      SUBSTR(TO_CHAR(SYSDATE,'YYYY/MM/DD'),0,4) AS PYYYY,
+      SUBSTR(TO_CHAR(SYSDATE,'YYYY/MM/DD'),6,2) AS PMM,
+      SUBSTR(TO_CHAR(SYSDATE,'YYYY/MM/DD'),9,2) AS PDD,
+      SUBSTR(Z.CHECK_YYYYMM,0,4)          AS CHECK_YYYY,
+      SUBSTR(Z.CHECK_YYYYMM,5,2)          AS CHECK_MM,
+      Z.CHECK_YYYYMM          AS CHECK_YYYYMM,
+      A.BASE_YYYY          AS BASE_YYYY,
+      A.VENDOR_CODE          AS VENDOR_CODE,
+      (SELECT S.CODE_NAME FROM TBL_WORKING_MASTER S WHERE SUBSTR(S.CODE, 1, 1) = 'V' AND S.CODE = A.VENDOR_CODE) AS VENDOR_NAME,
+      A.UNIT_CODE AS UNIT_CODE,
+      (SELECT S.CODE_NAME FROM TBL_WORKING_MASTER S WHERE SUBSTR(S.CODE, 1, 1) = 'U' AND S.CODE = A.UNIT_CODE) AS UNIT_NAME,
+      A.CONTRACT_CODE       AS CONTRACT_CODE,
+      A.CONTRACT_NAME       AS CONTRACT_NAME,
+      A.DEPT_CODE AS DEPT_CODE,
+      A.DEPT_NAME AS DEPT_NAME,
+      B.COLLECTION_MANHOUR    AS MANHOUR,
+      D.UNIT_PRICE          AS UNIT_PRICE,
+      NVL(Z.UNIT_PRICE, 0)    AS UNIT_PRICE_V, /* 2021-08-02 jamerl - 조용래 : 집계된 단가 출력 */
+      D.MONTH_STANDARD_AMOUNT AS MONTH_STANDARD_AMOUNT,
+      A.GUBUN_CODE         AS GUBUN_CODE,
+     NVL(Z.QUANTITY_CHANGED, CASE
+         WHEN A.GUBUN_CODE = '2' AND A.UNIT_CODE = 'U7' THEN B.COLLECTION_MANHOUR /* 2020-11-06 jamerl - 조용래 : 구분 인력, 단위 공 케이스에 [공수] 출력 적용 */
+         ELSE B.WORKLOAD /* 2020-11-06 jamerl - 조용래 : 나머지 케이스는 모두 [작업량] 출력 적용 */
+      END) AS QUANTITY1,
+      CASE
+         WHEN A.GUBUN_CODE = '2' AND A.UNIT_CODE = 'U7' THEN B.COLLECTION_MANHOUR /* 2020-11-06 jamerl - 조용래 : 구분 인력, 단위 공 케이스에 [공수] 출력 적용 */
+         ELSE B.WORKLOAD /* 2020-11-06 jamerl - 조용래 : 나머지 케이스는 모두 [작업량] 출력 적용 */
+      END AS QUANTITY,
+      Z.QUANTITY_CHANGED      AS QUANTITY_CHANGED,
+      /*
+      ROUND(NVL(Z.SUBCONTRACTING_COST, D.UNIT_PRICE *
+         CASE
+            WHEN A.GUBUN_CODE = '2' AND A.UNIT_CODE != 'U7' THEN D.MONTH_STANDARD_AMOUNT -- [단가 X 월도급비]
+            WHEN A.GUBUN_CODE = '2' AND A.UNIT_CODE = 'U7' THEN B.COLLECTION_MANHOUR -- 2020-11-06 jamerl - 조용래 : 구분 인력, 단위 공 케이스에 [단가 X 공수] 수식 적용
+            ELSE B.WORKLOAD -- [단가 * 작업량]
+         END
+      ), 0) AS SUBCONTRACTING_COST,
+      */
+      ROUND(NVL(Z.SUBCONTRACTING_COST, 0), 0) AS SUBCONTRACTING_COST_V, /* 2021-03-03 jamerl - 조용래 : 집계된 월도급비 출력 */
+      ROUND(
+         D.UNIT_PRICE *
+         CASE
+            WHEN A.GUBUN_CODE = '2' AND A.UNIT_CODE != 'U7' THEN D.MONTH_STANDARD_AMOUNT /* [단가 X 월도급비] */
+            WHEN A.GUBUN_CODE = '2' AND A.UNIT_CODE = 'U7' THEN B.COLLECTION_MANHOUR /* 2020-11-06 jamerl - 조용래 : 구분 인력, 단위 공 케이스에 [단가 X 공수] 수식 적용 */
+            ELSE B.WORKLOAD /* [단가 * 작업량] */
+         END
+      , 0) AS SUBCONTRACTING_COST, -- 2021-02-02 jamerl - 조용래 : 기초 데이터를 이용한 수식으로 값이 출력되도록 요청
+      B.EXTENSION_HOUR       AS EXTENSION_HOUR,
+      -- NVL(Z.EXTENSION_AMOUNT, B.EXTENSION_HOUR * D.OVERTIME_EXTENSION) AS EXTENSION_AMOUNT,
+      B.EXTENSION_HOUR * D.OVERTIME_EXTENSION AS EXTENSION_AMOUNT, -- 2021-02-02 jamerl - 조용래 : 기초 데이터를 이용한 수식으로 값이 출력되도록 요청
+      B.NIGHT_HOUR          AS NIGHT_HOUR,
+      -- NVL(Z.NIGHT_AMOUNT, B.NIGHT_HOUR * D.OVERTIME_NIGHT) AS NIGHT_AMOUNT,
+      B.NIGHT_HOUR * D.OVERTIME_NIGHT AS NIGHT_AMOUNT, -- 2021-02-02 jamerl - 조용래 : 기초 데이터를 이용한 수식으로 값이 출력되도록 요청
+      B.SATURDAY_HOUR       AS SATURDAY_MANHOUR,
+      -- NVL(Z.SATURDAY_AMOUNT, B.SATURDAY_HOUR * D.OVERTIME_SATURDAY) AS SATURDAY_AMOUNT,
+      B.SATURDAY_HOUR * D.OVERTIME_SATURDAY AS SATURDAY_AMOUNT, -- 2021-02-02 jamerl - 조용래 : 기초 데이터를 이용한 수식으로 값이 출력되도록 요청
+      B.HOLIDAY_HOUR          AS HOLIDAY_MANHOUR,
+      -- NVL(Z.HOLIDAY_AMOUNT, B.HOLIDAY_HOUR * D.OVERTIME_HOLIDAY) AS HOLIDAY_AMOUNT,
+      B.HOLIDAY_HOUR * D.OVERTIME_HOLIDAY AS HOLIDAY_AMOUNT, -- 2021-02-02 jamerl - 조용래 : 기초 데이터를 이용한 수식으로 값이 출력되도록 요청
+      Z.REWARD_RATE, Z.REWARD_AMOUNT,
+      Z.REWARD_REASON       AS REWARD_REASON,
+      Z.ADDITIONAL_AMOUNT    AS ADDITIONAL_AMOUNT,
+      Z.ADDITIONAL_BASIS       AS ADDITIONAL_BASIS,
+      Z.ADDITIONAL_REASON    AS ADDITIONAL_REASON,
+      Z.PENALTY_AMOUNT       AS PENALTY_AMOUNT,
+      Z.PENALTY_BASIS       AS PENALTY_BASIS,
+      Z.PENALTY_REASON       AS PENALTY_REASON,
+      Z.PAY_AMOUNT          AS PAY_AMOUNT_VIEW,
+      Z.STATUS,
+      F_GETCODENAME('YP_APPR_STATUS', Z.STATUS) AS STATUS_TXT
+   FROM TBL_WORKING_SUBC A /* 계약 */
+   LEFT OUTER JOIN (
+      SELECT
+         MIN(B.TEAM_LEADER_CONFIRM) AS TLC_YN, /* 2021-03-09 jamerl - 조용래 : 도급일보 승인받지 않은 데이터(TEAM_LEADER_CONFIRM : N) 존재시 조회제거 */
+         B.BASE_YYYY, B.VENDOR_CODE, B.CONTRACT_CODE,
+         SUM(B.EXTENSION_HOUR) AS EXTENSION_HOUR,
+         SUM(B.NIGHT_HOUR) AS NIGHT_HOUR,
+         SUM(B.SATURDAY_HOUR) AS SATURDAY_HOUR,
+         SUM(B.HOLIDAY_HOUR) AS HOLIDAY_HOUR,
+         SUM(NVL(B.MANHOUR, 0)) AS MANHOUR,
+         SUM(NVL(B.COLLECTION_MANHOUR, 0)) AS COLLECTION_MANHOUR,
+         SUM(NVL(B.WORKLOAD, 0)) AS WORKLOAD
+      FROM TBL_WORKING_DAILY_REPORT B
+      WHERE 1=1
+      AND B.BASE_YYYY = SUBSTR($P{BASE_YYYY}, 1, 4)
+      AND B.VENDOR_CODE = $P{VENDOR_CODE}
+      AND SUBSTR(B.BASE_YYYYMMDD, 1, 6) = REPLACE($P{BASE_YYYY}, '/', '')
+      GROUP BY B.BASE_YYYY, B.VENDOR_CODE, B.CONTRACT_CODE
+   ) B /* 연장, 야간, 토요, 휴일 */
+      ON A.BASE_YYYY = B.BASE_YYYY
+      AND A.VENDOR_CODE = B.VENDOR_CODE
+      AND A.CONTRACT_CODE = B.CONTRACT_CODE
+   INNER JOIN TBL_WORKING_SUBC_CTN D
+      ON A.BASE_YYYY = D.BASE_YYYY
+      AND A.VENDOR_CODE = D.VENDOR_CODE
+      AND A.CONTRACT_CODE = D.CONTRACT_CODE
+   LEFT OUTER JOIN TBL_WORKING_MONTHLY_REPORT Z
+      ON A.BASE_YYYY = Z.BASE_YYYY
+      AND A.VENDOR_CODE = Z.VENDOR_CODE
+      AND A.CONTRACT_CODE = Z.CONTRACT_CODE
+      AND Z.CHECK_YYYYMM = REPLACE($P{BASE_YYYY}, '/', '')
+   WHERE 1=1
+   AND A.BASE_YYYY = SUBSTR($P{BASE_YYYY}, 1, 4) -- 조회조건 시작일자 4자리 잘라서 사용
+   AND B.TLC_YN = 'Y' /* 2021-03-09 jamerl - 조용래 : 도급일보 승인받지 않은 데이터(TEAM_LEADER_CONFIRM : N) 존재시 조회제거 */
+   AND A.VENDOR_CODE = $P{VENDOR_CODE}
+   AND A.GUBUN_CODE  <>  '3' -- 저장품 외(1)
+) X
+WHERE X.CHECK_YYYYMM IS NOT NULL
+GROUP BY X.CHECK_YYYYMM]]>
+	</queryString>
+	<field name="TLC_YN" class="java.lang.String"/>
+	<field name="PYYYY" class="java.lang.String"/>
+	<field name="PMM" class="java.lang.String"/>
+	<field name="PDD" class="java.lang.String"/>
+	<field name="CHECK_YYYY" class="java.lang.String"/>
+	<field name="CHECK_MM" class="java.lang.String"/>
+	<field name="CHECK_YYYYMM" class="java.lang.String"/>
+	<field name="BASE_YYYY" class="java.lang.String"/>
+	<field name="VENDOR_CODE" class="java.lang.String"/>
+	<field name="VENDOR_NAME" class="java.lang.String"/>
+	<field name="UNIT_CODE" class="java.lang.String"/>
+	<field name="UNIT_NAME" class="java.lang.String"/>
+	<field name="CONTRACT_CODE" class="java.lang.String"/>
+	<field name="CONTRACT_NAME" class="java.lang.String"/>
+	<field name="DEPT_CODE" class="java.lang.String"/>
+	<field name="DEPT_NAME" class="java.lang.String"/>
+	<field name="MANHOUR" class="java.math.BigDecimal"/>
+	<field name="UNIT_PRICE" class="java.math.BigDecimal"/>
+	<field name="UNIT_PRICE_V" class="java.math.BigDecimal"/>
+	<field name="MONTH_STANDARD_AMOUNT" class="java.math.BigDecimal"/>
+	<field name="GUBUN_CODE" class="java.lang.String"/>
+	<field name="QUANTITY1" class="java.math.BigDecimal"/>
+	<field name="QUANTITY" class="java.math.BigDecimal"/>
+	<field name="QUANTITY_CHANGED" class="java.math.BigDecimal"/>
+	<field name="SUBCONTRACTING_COST_V" class="java.math.BigDecimal"/>
+	<field name="SUBCONTRACTING_COST" class="java.math.BigDecimal"/>
+	<field name="EXTENSION_HOUR" class="java.math.BigDecimal"/>
+	<field name="EXTENSION_AMOUNT" class="java.math.BigDecimal"/>
+	<field name="NIGHT_HOUR" class="java.math.BigDecimal"/>
+	<field name="NIGHT_AMOUNT" class="java.math.BigDecimal"/>
+	<field name="SATURDAY_MANHOUR" class="java.math.BigDecimal"/>
+	<field name="SATURDAY_AMOUNT" class="java.math.BigDecimal"/>
+	<field name="HOLIDAY_MANHOUR" class="java.math.BigDecimal"/>
+	<field name="HOLIDAY_AMOUNT" class="java.math.BigDecimal"/>
+	<field name="REWARD_RATE" class="java.math.BigDecimal"/>
+	<field name="REWARD_AMOUNT" class="java.math.BigDecimal"/>
+	<field name="REWARD_REASON" class="java.lang.String"/>
+	<field name="ADDITIONAL_AMOUNT" class="java.math.BigDecimal"/>
+	<field name="ADDITIONAL_BASIS" class="java.lang.String"/>
+	<field name="ADDITIONAL_REASON" class="java.lang.String"/>
+	<field name="PENALTY_AMOUNT" class="java.math.BigDecimal"/>
+	<field name="PENALTY_BASIS" class="java.lang.String"/>
+	<field name="PENALTY_REASON" class="java.lang.String"/>
+	<field name="PAY_AMOUNT_VIEW" class="java.math.BigDecimal"/>
+	<field name="STATUS" class="java.lang.String"/>
+	<field name="STATUS_TXT" class="java.lang.String"/>
+	<field name="PAY_AMOUNT" class="java.math.BigDecimal"/>
+	<pageHeader>
+		<band height="89" splitType="Stretch">
+			<staticText>
+				<reportElement x="310" y="5" width="153" height="33" uuid="215712a9-a8bf-4922-9a32-2f0033b20a67"/>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.5" lineStyle="Solid"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="20" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[도급비 청구서]]></text>
+			</staticText>
+			<textField>
+				<reportElement x="340" y="38" width="100" height="20" uuid="5816f527-2083-4f69-9a86-38588b872f92"/>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font size="10" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{CHECK_YYYY} +'/'+ $F{CHECK_MM}]]></textFieldExpression>
+			</textField>
+		</band>
+	</pageHeader>
+	<columnHeader>
+		<band height="20" splitType="Stretch">
+			<staticText>
+				<reportElement x="228" y="0" width="70" height="20" uuid="dee7a776-2c1c-494f-a655-98cd792b3806"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[작업량]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="186" y="0" width="42" height="20" uuid="700292c1-314d-49b3-bfb3-c64ef4a9089d"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[단위]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="48" y="0" width="138" height="20" uuid="fe083d7d-53a1-4dd3-a5ed-b089899e3427"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[작업명]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="411" y="0" width="40" height="20" uuid="9078aae2-a9dd-45d4-a24d-1dfc79c0d462"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[추가]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="6" y="0" width="42" height="20" uuid="c8809d92-53cc-42e2-a8a9-93a4fe685642"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[작업코드]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="368" y="0" width="43" height="20" uuid="93193fb9-2be9-4622-9dd9-646035907f69"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[보상]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="298" y="0" width="70" height="20" uuid="328f7c45-0187-44cf-a6f7-98108e506b74"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[단가]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="451" y="0" width="52" height="20" uuid="eee8c261-0dca-4457-a87f-eac72e5c612b"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[패널티]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="503" y="0" width="52" height="20" uuid="3538f9f6-4383-45a7-8a16-d3b40d6102aa"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[휴일근무]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="555" y="0" width="52" height="20" uuid="26d56a26-37ad-41e8-b6c5-c3b103d80927"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[토요근무]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="607" y="0" width="52" height="20" uuid="54fd4ace-c2e8-48f7-89c5-ce30068603c7"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[연장근무]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="659" y="0" width="52" height="20" uuid="a3864c1a-16e7-4f60-ab59-d7c4f3ff2f72"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[야간근무]]></text>
+			</staticText>
+			<staticText>
+				<reportElement x="711" y="0" width="78" height="20" uuid="29e8f328-417f-45cd-bd6e-120abd3ec762"/>
+				<box>
+					<pen lineWidth="0.25" lineStyle="Solid"/>
+					<topPen lineWidth="0.25" lineStyle="Solid"/>
+					<leftPen lineWidth="0.25" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.25" lineStyle="Solid"/>
+					<rightPen lineWidth="0.25" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[금액]]></text>
+			</staticText>
+		</band>
+	</columnHeader>
+	<detail>
+		<band height="20" splitType="Stretch">
+			<textField>
+				<reportElement x="6" y="0" width="42" height="20" uuid="9f6ada4a-24ef-4c20-9f1f-65cfc11122ed"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{CONTRACT_CODE}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="48" y="0" width="138" height="20" uuid="7d2587ff-bb3a-4628-8bfd-fac746d727bf"/>
+				<box rightPadding="0">
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{CONTRACT_NAME}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="228" y="0" width="70" height="20" uuid="098f3222-0e55-46fb-a577-26bd1e53f343"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{QUANTITY1}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="298" y="0" width="70" height="20" uuid="04333749-525e-415a-90be-dc8ae2fcbc71"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{UNIT_PRICE}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="368" y="0" width="43" height="20" uuid="d660cfcd-0f5b-4e7b-8f07-ab41153247b7"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{REWARD_AMOUNT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="411" y="0" width="40" height="20" uuid="3662d09d-6bea-41fb-86be-8fe5ecfa410a"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{ADDITIONAL_AMOUNT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="451" y="0" width="52" height="20" uuid="e6e6b597-aa17-42c0-aa53-5ab526d80482"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{PENALTY_AMOUNT}]]></textFieldExpression>
+			</textField>
+			<textField isBlankWhenNull="true">
+				<reportElement x="186" y="0" width="42" height="20" uuid="3746f64f-f166-41b3-ba64-20eca7a26c7e"/>
+				<box rightPadding="0">
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{UNIT_NAME}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="503" y="0" width="52" height="20" uuid="315bcddc-4668-4aa3-aed5-d9286dea115d"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{HOLIDAY_AMOUNT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="555" y="0" width="52" height="20" uuid="a659f45a-4c72-4802-bf43-fb5b78b7a81d"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{SATURDAY_MANHOUR}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="607" y="0" width="52" height="20" uuid="8424c406-2f34-4166-ae5b-7e13b4c9e2ea"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{EXTENSION_AMOUNT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="659" y="0" width="52" height="20" uuid="7d675a31-35e1-437c-a822-64f369adb030"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{NIGHT_AMOUNT}]]></textFieldExpression>
+			</textField>
+			<textField pattern="#,##0" isBlankWhenNull="true">
+				<reportElement x="711" y="0" width="78" height="20" uuid="55d2f7a5-dc98-45ee-bf70-58d82fd49654"/>
+				<box>
+					<pen lineWidth="0.25"/>
+					<topPen lineWidth="0.25"/>
+					<leftPen lineWidth="0.25"/>
+					<bottomPen lineWidth="0.25"/>
+					<rightPen lineWidth="0.25"/>
+				</box>
+				<textElement textAlignment="Right" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="8" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<textFieldExpression><![CDATA[$F{PAY_AMOUNT}]]></textFieldExpression>
+			</textField>
+		</band>
+	</detail>
+	<pageFooter>
+		<band height="152">
+			<staticText>
+				<reportElement x="311" y="42" width="153" height="33" uuid="49ceef1a-a2b9-4c18-a355-f5128c420601"/>
+				<box>
+					<pen lineWidth="0.0" lineStyle="Solid"/>
+					<topPen lineWidth="0.0" lineStyle="Solid"/>
+					<leftPen lineWidth="0.0" lineStyle="Solid"/>
+					<bottomPen lineWidth="0.0" lineStyle="Solid"/>
+					<rightPen lineWidth="0.0" lineStyle="Solid"/>
+				</box>
+				<textElement textAlignment="Center" verticalAlignment="Middle">
+					<font fontName="맑은 고딕" size="12" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+				</textElement>
+				<text><![CDATA[위와 같이 청구합니다.]]></text>
+			</staticText>
+			<frame>
+				<reportElement mode="Opaque" x="555" y="75" width="234" height="74" forecolor="#D0B48E" backcolor="#DBDBDB" uuid="a41017d8-df9b-45fd-9c77-953c2c2ca655"/>
+				<textField>
+					<reportElement x="91" y="9" width="129" height="20" uuid="090adbf7-9d22-4369-a9c4-eb3977ba5164"/>
+					<textElement>
+						<font size="12" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$F{PYYYY}+' 년 '+$F{PMM}+' 월 '+$F{PDD}+' 일 ']]></textFieldExpression>
+				</textField>
+				<textField>
+					<reportElement x="26" y="44" width="208" height="20" uuid="8f5cf27b-98e8-4e73-841d-fef276b40657"/>
+					<textElement textAlignment="Center" verticalAlignment="Middle">
+						<font fontName="맑은 고딕" size="12" pdfFontName="HYGoThic-Medium" pdfEncoding="UniKS-UCS2-H" isPdfEmbedded="true"/>
+					</textElement>
+					<textFieldExpression><![CDATA[$P{p1} +'  대표  '+ $P{p2} +' ( 인 )']]></textFieldExpression>
+				</textField>
+			</frame>
+		</band>
+	</pageFooter>
+</jasperReport>

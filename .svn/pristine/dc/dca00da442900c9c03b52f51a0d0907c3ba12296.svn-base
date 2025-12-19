@@ -1,0 +1,259 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_zwc_nft">
+
+<select id="select_cb_working_master_v" resultType="HashMap">
+/* oracle.yp_zwc_nft.select_cb_working_master_v */
+SELECT
+	A.CODE,
+	A.CODE_NAME
+FROM TBL_WORKING_MASTER A
+WHERE 1=1
+AND A.USE_YN = 'Y'
+AND SUBSTR(A.CODE, 1, 1) = 'V'
+AND A.ENTERPRISE_GUBUN IN ('1', '2') -- 조업 및 정비 거래처
+ORDER BY A.BASE_YYYY, TO_NUMBER(REGEXP_REPLACE(A.CODE, '[^0-9]'))
+</select>
+
+<select id="select_cb_working_master_n" resultType="HashMap">
+/* oracle.yp_zwc_ptc.select_cb_working_master_n */
+SELECT
+    CODE,
+    CODE_NAME AS CODE_NAME
+FROM TBL_WORKING_MASTER A
+WHERE CODE LIKE 'N%'
+AND USE_YN = 'Y'
+ORDER BY A.BASE_YYYY, TO_NUMBER(REGEXP_REPLACE(A.CODE, '[^0-9]'))
+</select>
+
+<select id="select_zwc_nft_working_subc_list" resultType="HashMap">
+/* oracle.yp_zwc_nft.select_zwc_nft_working_subc_list */
+SELECT 
+    A.BASE_YYYY,
+    A.CONTRACT_CODE,
+    A.CONTRACT_NAME,
+    A.VENDOR_CODE,
+    C.CODE_NAME AS VENDOR_NAME,
+    NVL(B.SECOND_TEST_RATE, 0) AS SECOND_TEST_RATE,
+    NVL(B.MONTH_AMOUNT, 0) AS MONTH_AMOUNT,
+    NVL(B.YEAR_AMOUNT, 0) AS YEAR_AMOUNT
+FROM TBL_WORKING_SUBC A
+LEFT OUTER JOIN TBL_WORKING_NFT B
+ON A.BASE_YYYY = B.BASE_YYYY
+AND A.CONTRACT_CODE = B.CONTRACT_CODE
+AND A.VENDOR_CODE = B.VENDOR_CODE
+LEFT OUTER JOIN TBL_WORKING_MASTER C
+ON A.VENDOR_CODE = C.CODE
+WHERE 1=1
+AND A.BASE_YYYY =  #{BASE_YYYY}
+<if test='VENDOR_CODE != null'>
+AND A.VENDOR_CODE =  #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_NAME != null'>
+AND A.CONTRACT_NAME LIKE  '%' || #{CONTRACT_NAME} || '%'
+</if>
+ORDER BY CONTRACT_CODE
+</select>
+
+<select id="select_zwc_nft_dt_list" resultType="HashMap">
+/* oracle.yp_zwc_nft.select_zwc_nft_dt_list */
+SELECT
+    BASE_YYYY,
+    CONTRACT_CODE,
+    CONTRACT_NAME,
+    VENDOR_CODE,
+    NOXIOUS_FACTOR_CODE,
+    CHECK_YN
+FROM(
+    SELECT 
+        A.BASE_YYYY,
+        A.CONTRACT_CODE,
+        B.CONTRACT_NAME,
+        A.VENDOR_CODE,
+        A.NOXIOUS_FACTOR_CODE,
+        A.CHECK_YN
+    FROM TBL_WORKING_NFT_DT A
+    LEFT OUTER JOIN TBL_WORKING_SUBC B
+    ON A.BASE_YYYY = B.BASE_YYYY
+    AND A.CONTRACT_CODE = B.CONTRACT_CODE
+    AND A.VENDOR_CODE = B.VENDOR_CODE
+)
+WHERE 1=1
+AND BASE_YYYY =  #{BASE_YYYY}
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE =  #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_NAME != null'>
+AND CONTRACT_NAME LIKE  '%' || #{CONTRACT_NAME} || '%'
+</if>
+</select>
+
+<select id="working_nft_chk" resultType="int">
+/* oracle.yp_zwc_nft.working_nft_chk */
+SELECT count(*) as cnt
+FROM TBL_WORKING_NFT
+WHERE 1=1
+<if test='BASE_YYYY != null'>
+AND BASE_YYYY =  #{BASE_YYYY}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE =  #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE =  #{CONTRACT_CODE}
+</if>
+</select>
+
+<update id="working_nft_update">
+/* oracle.yp_zwc_nft.working_nft_update */
+UPDATE TBL_WORKING_NFT SET
+    SECOND_TEST_RATE = #{SECOND_TEST_RATE},
+    MONTH_AMOUNT = #{MONTH_AMOUNT},
+    YEAR_AMOUNT = #{YEAR_AMOUNT},
+    UPD_EMP = #{s_emp_code},
+    UPD_DATE = sysdate
+WHERE 1=1
+<if test='BASE_YYYY != null'>
+AND BASE_YYYY =  #{BASE_YYYY}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE =  #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE =  #{CONTRACT_CODE}
+</if>
+</update>
+
+<update id="zwc_nft_create_save_working">
+/* oracle.yp_zwc_nft.zwc_nft_create_save_working_nft */
+INSERT INTO TBL_WORKING_NFT(
+    BASE_YYYY,
+    CONTRACT_CODE,
+    VENDOR_CODE,
+    SECOND_TEST_RATE,
+    MONTH_AMOUNT,
+    YEAR_AMOUNT,
+    REG_EMP,
+    UPD_EMP,
+    REG_DATE,
+    UPD_DATE
+)VALUES(
+    #{BASE_YYYY},
+    #{CONTRACT_CODE},
+    #{VENDOR_CODE},
+    #{SECOND_TEST_RATE},
+    #{MONTH_AMOUNT},
+    #{YEAR_AMOUNT},
+    #{s_emp_code},
+    #{s_emp_code},
+    sysdate,
+    sysdate
+)
+</update>
+
+<select id="working_nft_dt_chk" resultType="int">
+/* oracle.yp_zwc_nft.working_nft_dt_chk */
+SELECT count(*) as cnt
+FROM TBL_WORKING_NFT_DT
+WHERE 1=1
+<if test='BASE_YYYY != null'>
+AND BASE_YYYY =  #{BASE_YYYY}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE =  #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE =  #{CONTRACT_CODE}
+</if>
+<if test='NOXIOUS_FACTOR_CODE != null'>
+AND NOXIOUS_FACTOR_CODE =  #{NOXIOUS_FACTOR_CODE}
+</if>
+</select>
+
+
+<update id="working_nft_dt_update">
+/* oracle.yp_zwc_nft.working_nft_dt_update */
+UPDATE TBL_WORKING_NFT_DT SET
+    CHECK_YN = #{CHECK_YN},
+    UPD_EMP = #{s_emp_code},
+    UPD_DATE = sysdate
+WHERE 1=1
+<if test='BASE_YYYY != null'>
+AND BASE_YYYY =  #{BASE_YYYY}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE =  #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE =  #{CONTRACT_CODE}
+</if>
+<if test='NOXIOUS_FACTOR_CODE != null'>
+AND NOXIOUS_FACTOR_CODE =  #{NOXIOUS_FACTOR_CODE}
+</if>
+</update>
+
+<update id="zwc_nft_dt_insert">
+/* oracle.yp_zwc_nft.zwc_nft_dt_insert */
+INSERT INTO TBL_WORKING_NFT_DT(
+    BASE_YYYY,
+    CONTRACT_CODE,
+    VENDOR_CODE,
+    NOXIOUS_FACTOR_CODE,
+    CHECK_YN,
+    REG_EMP,
+    UPD_EMP,
+    REG_DATE,
+    UPD_DATE
+)VALUES(
+    #{BASE_YYYY},
+    #{CONTRACT_CODE},
+    #{VENDOR_CODE},
+    #{NOXIOUS_FACTOR_CODE},
+    #{CHECK_YN},
+    #{s_emp_code},
+    #{s_emp_code},
+    sysdate,
+    sysdate
+)
+</update>
+
+<select id="select_column_make_list" resultType="java.util.LinkedHashMap">
+/* oracle.yp_zwc_nft.select_column_make_list */
+<!-- 
+SELECT DISTINCT
+    A.BASE_YYYY,
+    A.NOXIOUS_FACTOR_CODE,
+    B.CODE_NAME AS NOXIOUS_FACTOR_NAME
+FROM TBL_WORKING_NFT_DT A
+LEFT OUTER JOIN TBL_WORKING_MASTER B
+ON A.NOXIOUS_FACTOR_CODE = B.CODE
+WHERE 1=1
+<if test='BASE_YYYY != null'>
+AND A.BASE_YYYY =  #{BASE_YYYY}
+</if>
+ORDER BY NOXIOUS_FACTOR_CODE
+-->
+SELECT DISTINCT
+    A.BASE_YYYY,
+    A.NOXIOUS_FACTOR_CODE,
+    B.CODE_NAME AS NOXIOUS_FACTOR_NAME
+FROM TBL_WORKING_NFT_DT A
+INNER JOIN TBL_WORKING_MASTER B
+ON A.NOXIOUS_FACTOR_CODE = B.CODE
+WHERE 1=1
+<if test='BASE_YYYY != null'>
+AND A.BASE_YYYY =  #{BASE_YYYY}
+</if>
+ORDER BY TO_NUMBER(REGEXP_REPLACE(NOXIOUS_FACTOR_CODE, '[^0-9]'))
+</select>
+
+<delete id="delete_working_nft_dt">
+/* oracle.yp_zwc_ptc.delete_working_nft_dt */
+DELETE TBL_WORKING_NFT_DT
+WHERE 1=1
+AND BASE_YYYY =  #{BASE_YYYY}
+AND VENDOR_CODE =  #{VENDOR_CODE}
+AND CONTRACT_CODE =  #{CONTRACT_CODE}
+</delete>
+
+</mapper>

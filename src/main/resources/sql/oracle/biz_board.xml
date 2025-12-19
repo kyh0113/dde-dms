@@ -1,0 +1,447 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.biz_board">
+	
+	<select id="grid_boardCnt" resultType="double">
+		/* oracle.biz_board.grid_boardCnt */
+		SELECT COUNT(1)
+		FROM COM_BOARD
+		WHERE 1=1
+		<if test='board_searchValue != null and !board_searchValue.equals("") and board_search.equals("title")'>
+	    AND title LIKE  '%' || #{board_searchValue} || '%'
+	    </if>
+	    <if test='board_searchValue != null and !board_searchValue.equals("") and board_search.equals("creator")'>
+	    AND created_by LIKE  '%' || #{board_searchValue} || '%'
+	    </if>
+	</select>
+	
+	<select id="grid_boardList" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+		/* oracle.biz_board.grid_boardList */
+		SELECT * FROM(
+			SELECT 
+				ROW_NUMBER() OVER (ORDER BY HEADER_YN , BOARD_NO ) rnum,
+				board_no,
+				title, 
+				popup_yn,
+				nvl(HEADER_YN,'N') AS header_yn,
+				(SELECT count(*) FROM COM_ATTACH D
+				  WHERE D.ATTACH_NO=A.attach_no) AS file_num,
+				attach_no, 
+				created_by, 
+				TO_CHAR(CREATION_DATE, 'YYYY-MM-DD HH24:MI:SS') as  creation_date, 
+				last_updated_by, 
+				TO_CHAR(last_update_date, 'YYYY-MM-DD HH24:MI:SS') as last_update_date,
+				cnt,
+				(SELECT USER_NAME FROM gw_user B WHERE 1 = 1 AND A.created_by = B.EMP_CD) AS created_by_name
+			FROM COM_BOARD A
+		) D
+		WHERE 1=1
+		<if test='board_searchValue != null and !board_searchValue.equals("") and board_search.equals("title")'>
+	    AND D.title LIKE  '%' || #{board_searchValue} || '%'
+	    </if>
+	    <if test='board_searchValue != null and !board_searchValue.equals("") and board_search.equals("creator")'>
+	    AND D.created_by_name LIKE  '%' || #{board_searchValue} || '%'
+	    </if>
+	    ORDER BY D.POPUP_YN DESC, D.HEADER_YN DESC, D.BOARD_NO DESC
+	</select>
+	
+	<insert id="board_insert">
+	/* oracle.biz_board.board_insert */
+	INSERT INTO COM_BOARD
+	 (
+	 	board_no,
+		title,
+		content ,
+		header_yn,
+		popup_yn,
+		cnt,
+		attach_no,
+		created_by,
+		creation_date,
+		last_updated_by,
+		last_update_date
+	 ) VALUES (
+	    SEQ_COM_BOARD.NEXTVAL,
+		#{board_title}, 
+		#{write_content}, 
+		#{board_header_yn}, 
+		<if test='popup_yn=="Y"'>
+		#{popup_yn},
+		</if>
+		<if test='popup_yn!="Y"'>
+		'N',
+		</if>
+		0, 
+	    #{attach_no},
+		#{emp_cd}, 
+		SYSTIMESTAMP, 
+		#{emp_cd},
+		SYSTIMESTAMP
+	)
+	</insert>
+	
+	<resultMap id="map_board_select" type="com.vicurus.it.core.common.util.LowerKeyMap">
+		<result property="board_no" column="board_no"					jdbcType="NUMERIC" javaType="java.math.BigInteger" />
+		<result property="title" column="title"							jdbcType="NVARCHAR" javaType="java.lang.String" />
+		<result property="content" column="content"						jdbcType="CLOB" javaType="java.lang.String" />
+		<result property="popup_yn" column="popup_yn"					jdbcType="NVARCHAR" javaType="java.lang.String" />
+		<result property="header_yn" column="header_yn"					jdbcType="NCHAR" javaType="java.lang.String" />
+		<result property="attach_no" column="attach_no"					jdbcType="NVARCHAR" javaType="java.lang.String" />
+		<result property="created_by" column="created_by"				jdbcType="NVARCHAR" javaType="java.lang.String" />
+		<result property="creation_date" column="creation_date"			jdbcType="NVARCHAR" javaType="java.lang.String" />
+		<result property="last_updated_by" column="last_updated_by"		jdbcType="NVARCHAR" javaType="java.lang.String" />
+		<result property="last_update_date" column="last_update_date"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+		<result property="cnt" column="cnt"								jdbcType="NUMERIC" javaType="java.math.BigInteger" />
+		<result property="created_by_name" column="created_by_name"		jdbcType="NVARCHAR" javaType="java.lang.String" />
+	</resultMap>
+	<select id="board_select" resultMap="map_board_select" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+		/* oracle.biz_board.board_select */
+		SELECT 
+			board_no,
+			title, 
+			content,
+			popup_yn,
+			nvl(HEADER_YN,'N') AS header_yn,
+			attach_no, 
+			created_by, 
+			TO_CHAR(CREATION_DATE, 'YYYY-MM-DD HH24:MI:DD') as  creation_date, 
+			last_updated_by, 
+			TO_CHAR(last_update_date, 'YYYY-MM-DD HH24:MI:DD') as last_update_date,
+			cnt,
+			(SELECT USER_NAME FROM gw_user B WHERE 1 = 1 AND A.created_by = B.EMP_CD) AS created_by_name
+		FROM COM_BOARD A
+		WHERE 1=1
+	    AND board_no = #{board_no}
+	    
+	</select>
+	
+	<select id="board_view_file_list" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+		/* oracle.biz_board.board_view_file_list */
+		SELECT 
+		    attach_no,
+		    ser_no,
+		    src_file_name,
+		    sys_file_name,
+		    file_dir,
+		    file_size
+		FROM COM_ATTACH
+		WHERE 1=1
+		AND attach_no = #{attach_no}
+	</select>
+	
+	
+	<select id="board_get_attach_no" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.biz_board.board_get_attach_no */
+	SELECT
+		attach as attach_no
+	FROM COM_BOARD
+	WHERE board_no = #{board_no}
+	</select>
+	
+	<update id="board_update">
+	/* oracle.biz_board.board_update */
+	UPDATE COM_BOARD SET  title = #{board_update_title}
+					,content = #{update_content}
+				    ,attach_no = #{attach_no}
+					,header_yn = #{board_update_header_yn}
+					,last_updated_by = #{emp_cd}
+					,last_update_date = SYSTIMESTAMP
+					,popup_yn = <if test='update_popup_yn=="Y"'>
+								#{update_popup_yn}
+								</if>
+								<if test='update_popup_yn!="Y"'>
+								'N'
+								</if> 
+	WHERE board_no = #{update_board_no}
+	</update>
+	
+	<delete id="board_delete">
+	/* oracle.biz_board.board_delete */
+	DELETE FROM COM_BOARD
+	WHERE board_no=#{board_no}
+	</delete>
+	
+	<delete id="board_attach_delete">
+	/* oracle.biz_board.board_attach_delete */
+	DELETE FROM COM_ATTACH
+	WHERE attach_no=#{attach_no}
+	</delete>
+	
+	<update id="board_cnt_up">
+	/* oracle.biz_board.board_cnt_up */
+	UPDATE COM_BOARD SET cnt=cnt+1
+	WHERE board_no = #{board_no}
+	</update>
+	
+	<select id="popupData" resultMap="map_board_select" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.biz_board.popupData */
+	SELECT board_no,
+			title,
+			content,
+			header_yn,
+			popup_yn,
+			cnt,
+			attach_no,
+			created_by,
+			to_char(creation_date, 'YYYY-MM-DD HH:MI') as  creation_date,
+			last_updated_by,
+			to_char(last_update_date, 'YYYY-MM-DD HH:MI') as last_update_date,
+			(SELECT USER_NAME FROM gw_user B WHERE 1 = 1 AND A.created_by = B.EMP_CD) AS created_by_name
+	FROM COM_BOARD A
+	WHERE POPUP_YN='Y'	
+	</select>
+	
+	<select id="popupChk" resultType="int">
+	/* oracle.biz_board.popupChk */
+	SELECT count(*) as popup_chk FROM COM_BOARD
+	WHERE POPUP_YN='Y'	
+	</select>
+	
+	<update id="board_update_popupY">
+	/* oracle.biz_board.board_update_popupY */
+	UPDATE COM_BOARD SET popup_yn='N'
+	WHERE popup_yn='Y'
+	</update>
+	
+	<select id="board_list_select" resultType="HashMap">
+	/* mssql.biz_board.board_list_select */
+	SELECT * FROM(
+	    SELECT 
+	        ROW_NUMBER() OVER (ORDER BY POPUP_YN DESC, HEADER_YN DESC, BOARD_NO DESC) rnum,
+	        D.*
+	    FROM(
+	        SELECT 
+	            board_no,
+	            title, 
+	            popup_yn,
+	            nvl(HEADER_YN,'N') AS header_yn,
+	            (SELECT count(*) FROM COM_ATTACH D
+	              WHERE D.ATTACH_NO=A.attach_no) AS file_num,
+	            attach_no, 
+	            created_by, 
+	            TO_CHAR(CREATION_DATE, 'YYYY.MM.DD HH24:MI:SS') as  creation_date, 
+	            TO_CHAR(last_update_date, 'YYYY.MM.DD HH24:MI:SS') as last_update_date
+	        FROM COM_BOARD A
+	    ) D
+	) E
+	WHERE 1=1 
+	and rnum <![CDATA[<]]> 5
+	ORDER BY rnum ASC
+	</select>
+	
+	<select id="grid_boardCnt2" resultType="double">
+		/* oracle.biz_board.grid_boardCnt2 */
+		SELECT COUNT(1)
+		FROM COM_BOARD2
+		WHERE 1=1
+		<if test='board_searchValue != null and !board_searchValue.equals("") and board_search.equals("title")'>
+	    AND title LIKE  '%' || #{board_searchValue} || '%'
+	    </if>
+	    <if test='board_searchValue != null and !board_searchValue.equals("") and board_search.equals("creator")'>
+	    AND created_by LIKE  '%' || #{board_searchValue} || '%'
+	    </if>
+	</select>
+	
+	<select id="grid_boardList2" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+		/* oracle.biz_board.grid_boardList2 */
+		SELECT * FROM(
+			SELECT 
+				ROW_NUMBER() OVER (ORDER BY HEADER_YN , BOARD_NO ) rnum,
+				board_no,
+				title, 
+				popup_yn,
+				nvl(HEADER_YN,'N') AS header_yn,
+				(SELECT count(*) FROM COM_ATTACH D
+				  WHERE D.ATTACH_NO=A.attach_no) AS file_num,
+				attach_no, 
+				created_by, 
+				TO_CHAR(CREATION_DATE, 'YYYY-MM-DD HH24:MI:SS') as  creation_date, 
+				last_updated_by, 
+				TO_CHAR(last_update_date, 'YYYY-MM-DD HH24:MI:SS') as last_update_date,
+				cnt,
+				(SELECT USER_NAME FROM gw_user B WHERE 1 = 1 AND A.created_by = B.EMP_CD) AS created_by_name
+			FROM COM_BOARD2 A
+		) D
+		WHERE 1=1
+		<if test='board_searchValue != null and !board_searchValue.equals("") and board_search.equals("title")'>
+	    AND D.title LIKE  '%' || #{board_searchValue} || '%'
+	    </if>
+	    <if test='board_searchValue != null and !board_searchValue.equals("") and board_search.equals("creator")'>
+	    AND D.created_by_name LIKE  '%' || #{board_searchValue} || '%'
+	    </if>
+	    ORDER BY D.POPUP_YN DESC, D.HEADER_YN DESC, D.BOARD_NO DESC
+	</select>
+	
+	<insert id="board_insert2">
+	/* oracle.biz_board.board_insert2 */
+	INSERT INTO COM_BOARD2
+	 (
+	 	board_no,
+		title,
+		content ,
+		header_yn,
+		popup_yn,
+		cnt,
+		attach_no,
+		created_by,
+		creation_date,
+		last_updated_by,
+		last_update_date
+	 ) VALUES (
+	    SEQ_COM_BOARD.NEXTVAL,
+		#{board_title}, 
+		#{write_content}, 
+		#{board_header_yn}, 
+		<if test='popup_yn=="Y"'>
+		#{popup_yn},
+		</if>
+		<if test='popup_yn!="Y"'>
+		'N',
+		</if>
+		0, 
+	    #{attach_no},
+		#{emp_cd}, 
+		SYSTIMESTAMP, 
+		#{emp_cd},
+		SYSTIMESTAMP
+	)
+	</insert>
+	
+	<delete id="board_delete2">
+	/* oracle.biz_board.board_delete2 */
+	DELETE FROM COM_BOARD2
+	WHERE board_no=#{board_no}
+	</delete>
+	
+	<update id="board_cnt_up2">
+	/* oracle.biz_board.board_cnt_up2 */
+	UPDATE COM_BOARD2 SET cnt=cnt+1
+	WHERE board_no = #{board_no}
+	</update>
+	
+	<select id="board_select2" resultMap="map_board_select" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+		/* oracle.biz_board.board_select2 */
+		SELECT 
+			board_no,
+			title, 
+			content,
+			popup_yn,
+			nvl(HEADER_YN,'N') AS header_yn,
+			attach_no, 
+			created_by, 
+			TO_CHAR(CREATION_DATE, 'YYYY-MM-DD HH24:MI:DD') as  creation_date, 
+			last_updated_by, 
+			TO_CHAR(last_update_date, 'YYYY-MM-DD HH24:MI:DD') as last_update_date,
+			cnt,
+			(SELECT USER_NAME FROM gw_user B WHERE 1 = 1 AND A.created_by = B.EMP_CD) AS created_by_name
+		FROM COM_BOARD2 A
+		WHERE 1=1
+	    AND board_no = #{board_no}
+	    
+	</select>
+	
+	<update id="board_update2">
+	/* oracle.biz_board.board_update2 */
+	UPDATE COM_BOARD2 SET title = #{board_update_title}
+		,content = #{update_content}
+	    ,attach_no = #{attach_no}
+		,header_yn = #{board_update_header_yn}
+		,last_updated_by = #{emp_cd}
+		,last_update_date = SYSTIMESTAMP
+		,popup_yn = <if test='update_popup_yn=="Y"'>
+					#{update_popup_yn}
+					</if>
+					<if test='update_popup_yn!="Y"'>
+					'N'
+					</if> 
+	WHERE board_no = #{update_board_no}
+	</update>
+	
+	<update id="insert_comment">
+	/* oracle.biz_board.insert_comment */
+		INSERT INTO COM_BOARD2_COMMENT(
+	    COMMENT_NO,
+	    BOARD_NO,
+	    CLASS,
+	    SEQ,
+	    GROUP_NUM,
+	    CONTENT,
+	    CREATED_BY,
+	    CREATION_DATE,
+	    LAST_UPDATED_BY,
+	    LAST_UPDATE_DATE
+	)VALUES(
+	    (SELECT NVL(MAX(COMMENT_NO),0)+1 FROM COM_BOARD2_COMMENT),
+	    #{BOARD_NO},
+	    #{CLASS}, --0:부모, 1:자식
+	    (SELECT NVL(MAX(COMMENT_NO),0)+1 FROM COM_BOARD2_COMMENT WHERE BOARD_NO = #{BOARD_NO}),
+	    <if test='CLASS == "0"'>
+	    (SELECT NVL(MAX(COMMENT_NO),0)+1 FROM COM_BOARD2_COMMENT), --어느 그룹에 해당되는지(COMMENT_NO),
+	    </if>
+	    <if test='CLASS == "1"'>
+	    #{COMMENT_NO},
+	    </if>
+	    #{CONTENT},
+	    #{s_emp_cd},
+	    sysdate,
+	    #{s_emp_cd},
+	    sysdate
+	)
+	</update>
+	
+	<resultMap id="map_board2_comment_select" type="HashMap">
+		<result property="COMMENT_NO" column="COMMENT_NO"					jdbcType="NUMERIC" javaType="java.math.BigInteger" />
+		<result property="BOARD_NO" column="BOARD_NO"							jdbcType="NUMERIC" javaType="java.math.BigInteger" />
+		<result property="CLASS" column="CLASS"						jdbcType="NUMERIC" javaType="java.math.BigInteger" />
+		<result property="SEQ" column="SEQ"					jdbcType="NUMERIC" javaType="java.math.BigInteger" />
+		<result property="GROUP_NUM" column="GROUP_NUM"					jdbcType="NUMERIC" javaType="java.math.BigInteger" />
+		<result property="CONTENT" column="CONTENT"					jdbcType="CLOB" javaType="java.lang.String" />
+		<result property="CREATED_BY" column="CREATED_BY"				jdbcType="NVARCHAR" javaType="java.lang.String" />
+		<result property="CREATED_BY_NAME" column="CREATED_BY_NAME"			jdbcType="NVARCHAR" javaType="java.lang.String" />
+		<result property="CREATION_DATE" column="CREATION_DATE"		jdbcType="NVARCHAR" javaType="java.lang.String" />
+		<result property="LAST_UPDATED_BY" column="last_updated_by"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+		<result property="LAST_UPDATE_DATE" column="last_update_date"					jdbcType="NVARCHAR" javaType="java.lang.String" />
+	</resultMap>
+	<select id="board_comment_select2" resultMap="map_board2_comment_select">
+		/* oracle.biz_board.board_comment_select2 */
+		SELECT 
+		    COMMENT_NO,
+		    BOARD_NO,
+		    CLASS,
+		    SEQ,
+		    GROUP_NUM,
+		    CONTENT,
+		    CREATED_BY,
+		    (SELECT USER_NAME FROM gw_user B WHERE 1 = 1 AND A.created_by = B.EMP_CD) AS CREATED_BY_NAME,
+		    TO_CHAR(CREATION_DATE, 'YYYY-MM-DD HH24:MI:SS') as CREATION_DATE
+		FROM COM_BOARD2_COMMENT A
+		WHERE 1=1
+		AND BOARD_NO = #{BOARD_NO}
+	    ORDER BY GROUP_NUM DESC, CLASS ASC, SEQ DESC
+	</select>
+	
+	<update id="update_comment">
+	/* oracle.biz_board.update_comment */
+		UPDATE COM_BOARD2_COMMENT SET
+	    	CONTENT = #{CONTENT},
+	    	LAST_UPDATE_DATE = sysdate
+    	WHERE 1=1
+    	AND COMMENT_NO = #{COMMENT_NO}
+	</update>
+	
+	<update id="delete_comment">
+	/* oracle.biz_board.delete_comment */
+		DELETE FROM COM_BOARD2_COMMENT
+    	WHERE 1=1
+    	AND COMMENT_NO = #{COMMENT_NO}
+	</update>
+	
+	<update id="delete_comment_by_board_no">
+	/* oracle.biz_board.delete_comment_by_board_no */
+		DELETE FROM COM_BOARD2_COMMENT
+    	WHERE 1=1
+    	AND BOARD_NO = #{BOARD_NO}
+	</update>
+	
+</mapper>
+

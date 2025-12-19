@@ -1,0 +1,85 @@
+<?xml version="1.0" encoding="utf-8"?>
+<decorators defaultdir="/WEB-INF/views">
+	<!-- sitemesh를 사용하지 않을 패턴을 정의 -->
+	<excludes>
+		<!-- <pattern>/</pattern> -->
+		<!-- <pattern>*.html*</pattern> -->
+		<!-- <pattern>*.htm*</pattern> -->
+		<!-- <pattern>/login/*</pattern> -->
+		<!-- <pattern>/common/*</pattern> -->
+		<!-- <pattern>/document/*</pattern> -->
+		<pattern>**/gridLoad.do</pattern>
+		<pattern>**/gridStop.do</pattern>
+		<pattern>**/uiGridLoad.do</pattern>
+		<pattern>/resources/**</pattern>
+		<pattern>/core/error/**</pattern>
+		<pattern>/yp/popup/**</pattern>
+		<pattern>/yp/xls/**</pattern>
+		<pattern>/yp/lme/**</pattern>
+		<!-- <pattern>/dswcommon/popup/*</pattern> -->
+	</excludes>
+
+	<!-- sitemesh를 사용할 패턴을 정의 -->
+	<decorator name="세션상실" page="/core/login/sessionNO.do">
+		<pattern>/core/login/login</pattern>
+		<pattern>/core/login/logout.do</pattern>
+		<pattern>/core/login/dup_login.do</pattern>
+		<pattern>/core/login/sessionOut.do</pattern>
+	</decorator>
+
+	<decorator name="세션유효_관리자" page="/core/login/sessionOK_manager.do">
+		<pattern>**/mng/*</pattern>
+	</decorator>
+
+	<decorator name="세션유효" page="/core/login/sessionOK.do">
+		<pattern>/biz_temp/**</pattern>
+	</decorator>
+
+	<!-- 2020-07-14 jamerl - 영풍 웹포털 데코레이터 패턴 추가 -->
+	<decorator name="yp_session_not_exist" page="/yp_decorator/yp_session_not_exist">
+		<pattern>/yp/login/login</pattern>
+		<pattern>/yp/login/logout</pattern>
+	</decorator>
+
+    <!-- 2022-10-12 smh - API Endpoint용 패턴 생성 -->
+	<decorator name="yp_api_endpoint" page="/yp_decorator/yp_api_endpoint">
+		<pattern>/yp/api/endpoint/get_daily_zinc_prod</pattern>
+	</decorator>
+
+	<decorator name="yp_session_exist1" page="/yp_decorator/yp_session_exist_main">
+		<pattern>/yp/main</pattern>
+	</decorator>
+	<decorator name="yp_session_exist2" page="/yp_decorator/yp_session_exist">
+		<pattern>/core/staff/**</pattern>
+		<pattern>/biz/**</pattern>
+		<pattern>/yp/**</pattern>
+	</decorator>
+	<decorator name="inv_list" page="/yp/common/inv_list">
+		<pattern>/yp/common/inv_list</pattern>
+	</decorator>
+	
+	<decorator name="wr_final_pop" page="/yp/wr/wr_final_pop">
+		<pattern>/yp/wr/wr_final_pop</pattern>
+	</decorator>
+
+	<decorator name="wr_report_pop" page="/yp/wr/wr_report_pop">
+		<pattern>/yp/wr/wr_report_pop</pattern>
+	</decorator>
+	
+	<decorator name="wr_write_pop" page="/yp/wr/wr_write_pop">
+		<pattern>/yp/wr/wr_write_pop</pattern>
+	</decorator>
+	
+	<decorator name="wr_report_in_pop" page="/yp/wr/wr_report_in_pop">
+		<pattern>/yp/wr/wr_report_in_pop</pattern>
+	</decorator>
+	
+	<decorator name="wr_final_in_pop" page="/yp/wr/wr_final_in_pop">
+		<pattern>/yp/wr/wr_final_in_pop</pattern>
+	</decorator>
+	
+	
+	<decorator name="select_tbl_inv_list" page="/yp/zmm/inv/select_tbl_inv_list">
+		<pattern>/yp/zmm/inv/select_tbl_inv_list</pattern>
+	</decorator>
+</decorators>

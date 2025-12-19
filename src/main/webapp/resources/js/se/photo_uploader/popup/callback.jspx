@@ -1,0 +1,39 @@
+<%@ page language="java" contentType="text/html; charset=utf-8" pageEncoding="utf-8"%>
+<%@ taglib uri="http://www.opensymphony.com/sitemesh/decorator" prefix="decorator" %>
+<%@ taglib uri="http://www.opensymphony.com/sitemesh/page" prefix="page" %>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="html" uri="/WEB-INF/tld/html.tld"  %>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core" %>
+<%@ page import="java.util.HashMap"%>
+<%
+out.println("<script>alert('123');</script>");
+System.out.println(request.getAttribute("start_base_ym"));
+%>
+    <script type="text/javascript">
+    alert("123");
+		// document.domain 설정
+		try { document.domain = "http://localhost:8080"; } catch(e) {}		
+        // execute callback script
+        var sUrl = document.location.search.substr(1);
+
+		if (sUrl != "blank") {
+// 	        var oParameter = {}; // query array
+//			alert("<c:out value="${paramMap.FileName}" />");
+	        var oParameter = {
+        			sFileName : '<c:out value="${paramMap.FileName}" />',
+        			sFileURL : '<c:out value="${paramMap.sFileURL}" />',
+        			bNewLine : '<c:out value="${paramMap.bNewLine}" />'
+        	};
+
+	        sUrl.replace(/([^=]+)=([^&]*)(&|$)/g, function(){
+	            oParameter[arguments[1]] = arguments[2];
+	            return "";
+	        });
+	        
+	        if ((oParameter.errstr || '').length) { // on error
+ 	            //(parent.jindo.FileUploader._oCallback[oParameter.callback_func+'_error'])(oParameter);
+	        } else {
+		        (parent.jindo.FileUploader._oCallback['<c:out value="${paramMap.callback_func}" />'+'_success'])(oParameter);
+		   }
+		}
+    </script>

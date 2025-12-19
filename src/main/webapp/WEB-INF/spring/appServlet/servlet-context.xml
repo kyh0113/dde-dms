@@ -1,0 +1,385 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans xmlns="http://www.springframework.org/schema/mvc"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:context="http://www.springframework.org/schema/context"
+	xmlns:task="http://www.springframework.org/schema/task"
+	xmlns:tx="http://www.springframework.org/schema/tx"
+	xmlns:aop="http://www.springframework.org/schema/aop"
+	xmlns:util="http://www.springframework.org/schema/util"
+	xsi:schemaLocation="http://www.springframework.org/schema/mvc http://www.springframework.org/schema/mvc/spring-mvc.xsd
+		http://www.springframework.org/schema/beans http://www.springframework.org/schema/beans/spring-beans.xsd
+		http://www.springframework.org/schema/tx http://www.springframework.org/schema/tx/spring-tx-2.5.xsd
+		http://www.springframework.org/schema/aop http://www.springframework.org/schema/aop/spring-aop.xsd
+		http://www.springframework.org/schema/context http://www.springframework.org/schema/context/spring-context.xsd
+		http://www.springframework.org/schema/util
+		http://www.springframework.org/schema/util/spring-util-3.0.xsd
+		http://www.springframework.org/schema/task
+		http://www.springframework.org/schema/task/spring-task-3.0.xsd">
+
+	<!-- DispatcherServlet Context: defines this servlet's request-processing infrastructure -->
+
+	<!-- Property Service Add -->
+	<!--
+	<util:properties id="config" location="classpath:/config.properties"/>
+	-->
+	<!--
+		2022-07-05
+		YPWEBPOTAL-7 서버 별 config 파일 분리
+	-->
+	<util:properties id="config" location="classpath:config-#{systemProperties['spring.profiles.active']}.properties" />
+	<!--
+	#{systemProperties['spring.profiles.active']}
+	-->
+
+	<!-- 일반클래스에서 프로퍼티 읽기위해 bean추가 -->
+ 	<beans:bean class="com.vicurus.it.core.common.util.ContextPropUtil" id="prop">
+ 		<!-- <beans:property value="classpath:/config.properties" name="propFile" /> -->
+ 		<!--
+ 			2022-07-05
+ 			YPWEBPOTAL-7 서버 별 config 파일 분리
+ 		 -->
+        <beans:property value="classpath:/config-#{systemProperties['spring.profiles.active']}.properties" name="propFile" />
+ 	</beans:bean>
+ 
+	<!-- Property Service Add -->
+
+	<!-- 스캔 후 annotation 명시한 자바파일들을 bean으로 등록 -->
+	<context:component-scan base-package="com.vicurus.it,com.yp,com.yp.sap,com.ypzinc.safety" />
+
+	<!-- 20191027_khj ADD jobScheduler -->
+	<task:scheduler id="jobScheduler" pool-size="10" />
+	<task:annotation-driven scheduler="jobScheduler" />
+ 
+	<!-- DB config-property PW암호화 -->
+	<beans:bean id="encryptorConfig" class="org.jasypt.encryption.pbe.config.EnvironmentStringPBEConfig">
+        <beans:property name="algorithm" value="PBEWithMD5AndDES" />
+        <beans:property name="password" value="mtgi1234" />
+    </beans:bean>
+
+    <beans:bean id="encryptor" class="org.jasypt.encryption.pbe.StandardPBEStringEncryptor">
+        <beans:property name="config" ref="encryptorConfig"></beans:property>
+    </beans:bean>
+
+    <beans:bean id="propertyConfigurer" class="org.jasypt.spring31.properties.EncryptablePropertyPlaceholderConfigurer">
+        <beans:constructor-arg ref="encryptor" />
+            <beans:property name="locations">
+                <beans:list>
+<!--                     <beans:value>classpath*:config-properties.xml</beans:value> -->
+					<!--
+			 			2022-07-05
+			 			YPWEBPOTAL-7 서버 별 config 파일 분리
+			 		 -->
+					<beans:value>classpath*:config-#{systemProperties['spring.profiles.active']}.properties</beans:value>
+					<!--동일한 암호화키값으로 생성된 키값을저장한 다른 properties를 추가할 수 있습니다 -->
+                </beans:list>
+            </beans:property>
+    </beans:bean>
+
+	<!-- DB Config start -->
+	<!-- ############################# WEBPORTAL DB ############################# -->
+	<beans:bean id="dataSource" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+		<beans:constructor-arg ref="dataSourceSpied" />
+		<beans:property name="logFormatter">
+			<beans:bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
+				<beans:property name="loggingType" value="MULTI_LINE" />
+				<beans:property name="sqlPrefix" value="${db.vendor}: &#xA;" />
+			</beans:bean>
+		</beans:property>
+	</beans:bean>
+
+	<beans:bean id="dataSourceSpied" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<beans:property name="driverClassName" value="#{config['db.driverClassName']}" />
+		<beans:property name="url"             value="${db.url}" />
+		<beans:property name="username"        value="${db.username}"/>
+		<beans:property name="password"        value="${db.password}"/>
+		<beans:property name="maxActive"       value="#{config['db.maxActive']}" />
+		<beans:property name="maxIdle"         value="#{config['db.maxIdle']}" />
+		<beans:property name="validationQuery" value="select 1 from dual" />
+		<beans:property name="testWhileIdle" value="true" />
+		<beans:property name="timeBetweenEvictionRunsMillis" value="600000" />
+	</beans:bean>
+
+	<beans:bean id="sqlSessionFactory" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<beans:property name="dataSource" ref="dataSource" />
+		<beans:property name="mapperLocations" value="classpath*:sql/${db.vendor}/**" />
+		<beans:property name="configLocation" value="classpath:/mybatis/sql-map-config.xml" />
+	</beans:bean>
+
+	<beans:bean id="sqlSession" class="org.mybatis.spring.SqlSessionTemplate">
+		<beans:constructor-arg ref="sqlSessionFactory" />
+	</beans:bean>
+
+	<beans:bean id="transactionManager" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<beans:property name="dataSource" ref="dataSource" />
+	</beans:bean>
+
+	<tx:annotation-driven transaction-manager="transactionManager" />
+
+	<tx:advice id="txAdvice" transaction-manager="transactionManager">
+		<tx:attributes>
+			<tx:method name="*" rollback-for="Exception" />
+			<tx:method name="insert*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="delete*" propagation="REQUIRED" />
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- httpSessionListener에서 스프링 bean proxy를 불러와서 class object로 캐스팅하기 위한 설정   -->
+	<aop:aspectj-autoproxy proxy-target-class="true" />
+
+	<!-- transaction 직접관리 -->
+	<!-- 서비스(~ServiceImpl)에서만 트랜잭션이 작동되도록 설정변경 -->
+	<aop:config>
+		<aop:pointcut id="txPointcut" expression="execution(* com.vicurus.it..*ServiceImpl.*(..))" />
+		<aop:advisor advice-ref="txAdvice" pointcut-ref="txPointcut" />
+	</aop:config>
+	<!-- transaction 직접관리 끝-->	
+
+	<!-- ############################# BLEND DB ############################# -->
+	<beans:bean id="dataSource2" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+		<beans:constructor-arg ref="dataSourceSpied2" />
+		<beans:property name="logFormatter">
+			<beans:bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
+				<beans:property name="loggingType" value="MULTI_LINE" />
+				<beans:property name="sqlPrefix" value="${db.vendor2}: &#xA;" />
+			</beans:bean>
+		</beans:property>
+	</beans:bean>
+
+	<beans:bean id="dataSourceSpied2" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<beans:property name="driverClassName" value="#{config['db.driverClassName2']}" />
+		<beans:property name="url"             value="${db.url2}" />
+		<beans:property name="username"        value="${db.username2}" />
+		<beans:property name="password"        value="${db.password2}" />
+		<beans:property name="maxActive"       value="#{config['db.maxActive2']}" />
+		<beans:property name="maxIdle"         value="#{config['db.maxIdle2']}" />
+	</beans:bean>
+
+	<beans:bean id="sqlSessionFactory2" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<beans:property name="dataSource" ref="dataSource2" />
+		<beans:property name="mapperLocations" value="classpath*:sql/${db.vendor}/**" />
+		<beans:property name="configLocation" value="classpath:/mybatis/sql-map-config.xml" />
+	</beans:bean>
+
+	<beans:bean id="sqlSession2" class="org.mybatis.spring.SqlSessionTemplate">
+		<beans:constructor-arg ref="sqlSessionFactory2" />
+	</beans:bean>
+
+	<beans:bean id="transactionManager2" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<beans:property name="dataSource" ref="dataSource2" />
+	</beans:bean>
+
+	<tx:annotation-driven transaction-manager="transactionManager2" />
+
+	<tx:advice id="txAdvice2" transaction-manager="transactionManager2">
+		<tx:attributes>
+			<tx:method name="*" rollback-for="Exception" />
+			<tx:method name="insert*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="delete*" propagation="REQUIRED" />
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- ############################# CAS DB ############################# -->
+	<beans:bean id="dataSource3" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+		<beans:constructor-arg ref="dataSourceSpied3" />
+		<beans:property name="logFormatter">
+			<beans:bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
+				<beans:property name="loggingType" value="MULTI_LINE" />
+				<beans:property name="sqlPrefix" value="${db.vendor3}: &#xA;" />
+			</beans:bean>
+		</beans:property>
+	</beans:bean>
+
+	<beans:bean id="dataSourceSpied3" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<beans:property name="driverClassName" value="#{config['db.driverClassName3']}" />
+		<beans:property name="url"             value="${db.url3}" />
+		<beans:property name="username"        value="${db.username3}" />
+		<beans:property name="password"        value="${db.password3}" />
+		<beans:property name="maxActive"       value="#{config['db.maxActive3']}" />
+		<beans:property name="maxIdle"         value="#{config['db.maxIdle3']}" />
+	</beans:bean>
+
+	<beans:bean id="sqlSessionFactory3" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<beans:property name="dataSource" ref="dataSource3" />
+		<beans:property name="mapperLocations" value="classpath*:sql/${db.vendor}/**" />
+		<beans:property name="configLocation" value="classpath:/mybatis/sql-map-config.xml" />
+	</beans:bean>
+
+	<beans:bean id="sqlSession3" class="org.mybatis.spring.SqlSessionTemplate">
+		<beans:constructor-arg ref="sqlSessionFactory3" />
+	</beans:bean>
+
+	<beans:bean id="transactionManager3" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<beans:property name="dataSource" ref="dataSource3" />
+	</beans:bean>
+
+	<tx:annotation-driven transaction-manager="transactionManager3" />
+
+	<tx:advice id="txAdvice3" transaction-manager="transactionManager3">
+		<tx:attributes>
+			<tx:method name="*" rollback-for="Exception" />
+			<tx:method name="insert*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="delete*" propagation="REQUIRED" />
+		</tx:attributes>
+	</tx:advice>
+
+
+	<!-- ############################# BI NEW DB ############################# -->
+	<beans:bean id="dataSource4" class="net.sf.log4jdbc.Log4jdbcProxyDataSource">
+		<beans:constructor-arg ref="dataSourceSpied4" />
+		<beans:property name="logFormatter">
+			<beans:bean class="net.sf.log4jdbc.tools.Log4JdbcCustomFormatter">
+				<beans:property name="loggingType" value="MULTI_LINE" />
+				<beans:property name="sqlPrefix" value="${db.vendor4}: &#xA;" />
+			</beans:bean>
+		</beans:property>
+	</beans:bean>
+
+	<beans:bean id="dataSourceSpied4" class="org.apache.commons.dbcp.BasicDataSource" destroy-method="close">
+		<beans:property name="driverClassName" value="#{config['db.driverClassName4']}" />
+		<beans:property name="url"             value="${db.url4}" />
+		<beans:property name="username"        value="${db.username4}" />
+		<beans:property name="password"        value="${db.password4}" />
+		<beans:property name="maxActive"       value="#{config['db.maxActive4']}" />
+		<beans:property name="maxIdle"         value="#{config['db.maxIdle4']}" />
+	</beans:bean>
+
+	<beans:bean id="sqlSessionFactory4" class="org.mybatis.spring.SqlSessionFactoryBean">
+		<beans:property name="dataSource" ref="dataSource4" />
+		<beans:property name="mapperLocations" value="classpath*:sql/${db.vendor}/**" />
+		<beans:property name="configLocation" value="classpath:/mybatis/sql-map-config.xml" />
+	</beans:bean>
+
+	<beans:bean id="sqlSession4" class="org.mybatis.spring.SqlSessionTemplate">
+		<beans:constructor-arg ref="sqlSessionFactory4" />
+	</beans:bean>
+
+	<beans:bean id="transactionManager4" class="org.springframework.jdbc.datasource.DataSourceTransactionManager">
+		<beans:property name="dataSource" ref="dataSource4" />
+	</beans:bean>
+
+	<tx:annotation-driven transaction-manager="transactionManager4" />
+
+	<tx:advice id="txAdvice4" transaction-manager="transactionManager4">
+		<tx:attributes>
+			<tx:method name="*" rollback-for="Exception" />
+			<tx:method name="insert*" propagation="REQUIRED" />
+			<tx:method name="update*" propagation="REQUIRED" />
+			<tx:method name="delete*" propagation="REQUIRED" />
+		</tx:attributes>
+	</tx:advice>
+
+	<!-- DB Config end -->
+
+	<!-- Enables the Spring MVC @Controller programming model -->
+	<annotation-driven />
+
+	<beans:bean id="vicInterceptor" class="com.vicurus.it.core.interceptor.Interceptor" />
+
+	<interceptors>
+		<interceptor>
+			<!-- <mapping path="*.do"/> -->
+			<!-- 새로운 패키지 구조가 생기면 이곳에 추가한다. -->
+			<mapping path="/reports/**" />
+			<mapping path="/sample/**" />
+			<mapping path="/uiGridLoad" />
+			<mapping path="/vims/**" />
+			<mapping path="/core/**" />
+			<mapping path="/biz/**" />
+			<mapping path="/gridLoad.do" />
+			<mapping path="/gridStop.do" />
+			<mapping path="/yp/**" />
+			<exclude-mapping path="/core/error/403.do" /> <!-- 20191028_khj 클라이언트ip 유효성 체크시 무한루프 발생되서 추가함 -->
+			<exclude-mapping path="/core/login/login" />
+			<exclude-mapping path="/core/login/sessionOut.do" />
+			<!-- 2020-07-17 jamerl - 영풍 웹포털 로그인 -->
+			<exclude-mapping path="/yp/login/login" />
+			<exclude-mapping path="/yp/login/gwlogin" />
+			<exclude-mapping path="/yp/batchSAP" />
+			<exclude-mapping path="/yp/lme/table" />
+			<exclude-mapping path="/yp/batchSeokpoSoneData" />
+			<exclude-mapping path="/yp/batchSeokpoSoneDataYesterday" />
+			<!-- hic 추가 20230515 -->
+			<exclude-mapping path="/yp/batchBonsaCapsData" />
+			<exclude-mapping path="/yp/batchAnsanCapsData" />
+			<!-- hic 추가 20230620 -->
+			<exclude-mapping path="/yp/common/inv_list" />
+			<exclude-mapping path="/yp/zmm/inv/select_tbl_inv_list" />
+			<!-- 2022.10.26 kjy batch test 등록 -->
+			<exclude-mapping path="/yp/batchMSSQLData" />
+			<!-- 2023.03.13 kjy BI Batch data 등록 -->
+			<exclude-mapping path="/yp/batchInsertDate" />
+			<!-- 2020-11-06 jamerl - Interceptor 대상에서 제외 - 영풍 그룹웨어 전자결재 웹포탈 상세보기 페이지 호출 URL -->
+			<exclude-mapping path="/yp/zwc/rpt/zwc_rpt_intervention_view" />
+			<exclude-mapping path="/yp/zcs/cpt/zcs_cpt_view" />
+			<exclude-mapping path="/yp/popup/zpp/wsd/gw_wsd_detail" />
+			<exclude-mapping path="/yp/zmm/aw/zmm_weight_calc_edoc_write" />
+			<beans:ref bean="vicInterceptor" />
+		</interceptor>
+
+		<!-- 20191112_khj 스프링시큐리티 적용 후, post 요청 후 뒤로가기시 웹페이지만료페이지 예외 추가, 86400은 하루를 초단위로 나타낸것  -->
+		<beans:bean id="webContentInterceptor" class="org.springframework.web.servlet.mvc.WebContentInterceptor">
+	        <beans:property name="cacheSeconds" value="0" />
+	        <beans:property name="useExpiresHeader" value="true" />
+	        <beans:property name="useCacheControlHeader" value="true" />
+	        <beans:property name="useCacheControlNoStore" value="true" />
+		    <beans:property name="cacheMappings">
+		        <beans:props>
+		            <beans:prop key="/core/menu/**">86400</beans:prop>
+		            <beans:prop key="/icm/**">86400</beans:prop>
+		        </beans:props>
+		    </beans:property>
+	    </beans:bean>
+	</interceptors>
+
+	<!-- Handles HTTP GET requests for /resources/** by efficiently serving up static resources in the ${webappRoot}/resources directory -->
+	<resources mapping="/resources/**" location="/resources/" />
+	<resources mapping="/favicon_vit.ico" location="/favicon_vit.ico" />
+	<resources mapping="/files/**" location="/files/" />
+	<!-- <resources mapping="/imgFile/**" location="#{config['imgFile']}"/> -->
+	<resources mapping="/imgFile/**" location="${file.imgFile}" />
+	<resources mapping="/uploadFiles/**" location="${file.uploadDirResource}" />
+
+	<!-- Resolves views selected for rendering by @Controllers to .jsp resources in the /WEB-INF/views directory -->
+	<beans:bean id="beanNameViewResolver" class="org.springframework.web.servlet.view.BeanNameViewResolver">
+		<beans:property name="order" value="1" />
+	</beans:bean>
+	<beans:bean class="org.springframework.web.servlet.view.InternalResourceViewResolver">
+		<beans:property name="order" value="2" />
+		<beans:property name="prefix" value="/WEB-INF/views/" />
+		<beans:property name="suffix" value=".jsp" />
+	</beans:bean>
+
+	<!-- FILE 업로드 -->
+	<!-- 20191026_khj 멀티파일 빈 ID변경, 멀티파일에 필터 걸기 위해서 filterMultipartResolver로  변경 필수 -->
+	<!-- <beans:bean id="multipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver"> -->
+	<beans:bean id="filterMultipartResolver" class="org.springframework.web.multipart.commons.CommonsMultipartResolver">
+		<beans:property name="maxUploadSize">
+		<beans:value>524288000</beans:value><!-- 500MB -->
+		</beans:property>
+		<beans:property name="uploadTempDir" ref="uploadDirResource" />
+		<beans:property name="defaultEncoding">
+		<beans:value>UTF-8</beans:value>
+		</beans:property>
+	</beans:bean>
+
+	<beans:bean id="uploadDirResource" class="org.springframework.core.io.FileSystemResource">
+		<beans:constructor-arg>
+ 		<beans:value>${file.uploadDirResource}</beans:value>
+		</beans:constructor-arg>
+	</beans:bean>
+
+	<!-- 새로운 뷰리졸버가 추가되면 이곳에 추가한다. -->
+	<beans:bean id="GridToJSON" class="com.vicurus.it.core.viewResolver.GridToJSON" scope="request" />
+	<beans:bean id="DataToJson" class="com.vicurus.it.core.viewResolver.ReturnJson" scope="request" />
+	<!-- 엑셀다운로드 빈 등록(엑셀 97 ~ 2003버전:.xls, 엑셀 2007버전 이상:.xlsx -->
+	<beans:bean id="excelDownloadXls" class="com.vicurus.it.core.viewResolver.ExcelDownloadXls" scope="request" />
+	<beans:bean id="excelDownloadXlsx" class="com.vicurus.it.core.viewResolver.ExcelDownloadXlsx" scope="request" />
+	<beans:bean id="excelDownloadWithQuery" class="com.vicurus.it.core.viewResolver.excelDownloadWithQuery" scope="request" />
+	<beans:bean id="XlsDownForICM" class="com.vicurus.it.core.viewResolver.XlsDownForICM" />
+	<beans:bean id="XlsxDownForICM" class="com.vicurus.it.core.viewResolver.XlsxDownForICM" />
+
+</beans:beans>

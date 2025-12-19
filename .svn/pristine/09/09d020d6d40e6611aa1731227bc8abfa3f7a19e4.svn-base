@@ -1,0 +1,441 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.Menu">
+
+	<select id="menuTree" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.Menu.menuTree */
+	WITH TBL_PARENT (TITLE_VIEW, ID, TEXT, LAST_YN, URL, PARENT, PARENT_TITLE, SORT, USE_YN, SORT2, LVL, HIERARCHY, LEVL)
+	AS (
+	SELECT
+				   CAST( A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID as id
+	             , A.MENU_TITLE AS text
+	             , DECODE(A.URL, '/', 0, 1) AS LAST_YN
+	             , A.URL AS URL
+	             , A.PARENT_ID as parent
+	             , ( SELECT MENU_TITLE
+	               FROM    COM_MENU
+	               WHERE   MENU_ID = A.PARENT_ID ) AS PARENT_TITLE
+	             , A.SORT
+	             , A.USE_YN
+	             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+	             , CAST( '　' AS VARCHAR(100)) AS LVL
+	             , substr( '000000' || to_char(A.SORT),-6 ) AS HIERARCHY
+	             , 1 AS LEVL
+	       FROM    COM_MENU A
+	       WHERE   A.PARENT_ID = 0
+	
+	UNION ALL
+	
+	SELECT 
+				   CAST( LVL || A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID as id
+	             , A.MENU_TITLE AS text
+	             , DECODE(A.URL, '/', 0, 1) AS LAST_YN
+	             , A.URL AS URL
+	             , A.PARENT_ID as parent
+	
+	             , ( SELECT MENU_TITLE
+	               FROM    COM_MENU
+	               WHERE   MENU_ID = A.PARENT_ID ) AS PARENT_TITLE
+	             , A.SORT
+	             , A.USE_YN
+	             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+	             , CAST( '　' || LVL AS VARCHAR(100)) AS LVL
+	             , HIERARCHY || ';' || substr( '000000' || to_char(A.SORT),-6 ) AS HIERARCHY
+	             , LEVL + 1 AS LEVL
+	       FROM    COM_MENU A
+	             , TBL_PARENT C
+	       WHERE   A.PARENT_ID = C.id
+	)
+	SELECT	
+			TITLE_VIEW as title_view,
+			id,
+			text,
+			LAST_YN as last_yn,
+	        LEVL as LEVL,
+	        URL as url,
+	        DECODE(parent, '0', '#', parent) AS parent,
+	        nvl(PARENT_TITLE, '#') as up_menu_name,
+	        SORT as sort,
+	        USE_YN as use_yn,
+			CASE WHEN cnt.upcnt IS NULL or cnt.upcnt = '' THEN 'N'
+			ELSE 'Y' END AS type
+	FROM TBL_PARENT 
+	left outer join (SELECT PARENT_ID,count(PARENT_ID) AS upcnt
+					 FROM COM_MENU
+					 WHERE 1 = 1
+					 AND USE_YN = 'Y'
+					 GROUP BY PARENT_ID
+	) cnt
+	ON TBL_PARENT.id = cnt.PARENT_ID
+	ORDER BY HIERARCHY 
+	</select>
+	
+	<select id="menuTree_sort" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.Menu.menuTree_sort */
+	WITH TBL_PARENT (TITLE_VIEW, ID, TEXT, LAST_YN, URL, PARENT, PARENT_TITLE, SORT, USE_YN, SORT2, LVL, HIERARCHY, LEVL)
+	AS (
+	SELECT
+				   CAST( A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID as id
+	             , A.MENU_TITLE AS text
+	             , CASE A.URL WHEN N'/' THEN 0 ELSE 1 END AS LAST_YN
+	             , A.URL AS URL
+	             , A.PARENT_ID as parent
+	             , ( SELECT MENU_TITLE
+	               FROM    COM_MENU
+	               WHERE   MENU_ID = A.PARENT_ID ) AS PARENT_TITLE
+	             , A.SORT
+	             , A.USE_YN
+	             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+	             , CAST( '　' AS VARCHAR(100)) AS LVL
+	             , substr( '000000' || to_char(A.SORT),-6 ) AS HIERARCHY
+	             , 1 AS LEVL
+	       FROM    COM_MENU A
+	       WHERE   A.PARENT_ID = 0
+	
+	UNION ALL
+	
+	SELECT 
+				   CAST( LVL || A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID as id
+	             , A.MENU_TITLE AS text
+	             , CASE A.URL WHEN N'/' THEN 0 ELSE 1 END AS LAST_YN
+	             , A.URL AS URL
+	             , A.PARENT_ID as parent
+	
+	             , ( SELECT MENU_TITLE
+	               FROM    COM_MENU
+	               WHERE   MENU_ID = A.PARENT_ID ) AS PARENT_TITLE
+	             , A.SORT
+	             , A.USE_YN
+	             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+	             , CAST( '　' || LVL AS VARCHAR(100)) AS LVL
+	             , HIERARCHY || ';' || substr( '000000' || to_char(A.SORT),-6 ) AS HIERARCHY
+	             , LEVL + 1 AS LEVL
+	       FROM    COM_MENU A
+	             , TBL_PARENT C
+	       WHERE   A.PARENT_ID = C.id
+	)
+	SELECT	
+			TITLE_VIEW as title_view,
+			id,
+			'[' || TO_CHAR(SORT) || ']' || text as text,
+			text as text2,
+			LAST_YN as last_yn,
+	        LEVL as LEVL,
+	        URL as url,
+	        case when TO_CHAR(parent) = '0' then '#' else TO_CHAR(parent) end as parent,
+	        nvl(PARENT_TITLE, '#') as up_menu_name,
+	        SORT as sort,
+	        USE_YN as use_yn,
+			CASE WHEN cnt.upcnt IS NULL or cnt.upcnt = '' THEN 'N'
+			ELSE 'Y' END AS type
+	FROM TBL_PARENT 
+	left outer join (SELECT PARENT_ID,count(PARENT_ID) AS upcnt
+					 FROM COM_MENU
+					 WHERE 1 = 1
+					 AND USE_YN = 'Y'
+					 GROUP BY PARENT_ID
+	) cnt
+	ON TBL_PARENT.id = cnt.PARENT_ID
+	ORDER BY HIERARCHY 
+	</select>
+
+	<select id="getMenuList"  resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.Menu.getMenuList*/
+	WITH TBL_PARENT (TITLE_VIEW, MENU_ID, MENU_TITLE, LAST_YN, MENU_LEVEL, MENU_URL, PARENT_ID, PARENT_TITLE, SORT, SORT2, LVL, HIERARCHY, BUTTON_AUTH, USE_YN)
+	AS (
+	SELECT
+				   CAST( A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID
+	             , A.MENU_TITLE AS MENU_TITLE
+	             , 0 AS LAST_YN
+	             , 1 AS MENU_LEVEL
+	             , A.URL AS MENU_URL
+	             , A.PARENT_ID
+	
+	             , ( SELECT MENU_TITLE
+	               FROM    COM_MENU
+	               WHERE   MENU_ID = A.PARENT_ID ) AS PARENT_TITLE
+	
+	             , A.SORT
+	             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+	             , CAST( '　' AS VARCHAR(100)) AS LVL
+	             , substr( '000000' || to_char(A.SORT),-6 ) AS HIERARCHY
+	             , B.READ_YN||'@'||B.RUN_YN||'@'||B.DEL_YN||'@'||B.EXCEL_YN AS BUTTON_AUTH
+	             , A.USE_YN
+	       FROM    COM_MENU A
+	             , ( SELECT MENU_ID
+	                     , READ_YN
+	                     , RUN_YN
+	                     , DEL_YN
+	                     , EXCEL_YN
+	               FROM    COM_AUTH_MENU
+	               WHERE   AUTH_ID IN ( SELECT nvl(S2.AUTH_ID, 'US')
+	                       				FROM    COM_USER_V_YP S1
+	                       				LEFT OUTER JOIN COM_AUTH_USER S2
+	                       				ON S1.EMP_CODE = S2.USER_ID
+	                       				WHERE   S1.EMP_CODE = #{s_emp_code} ) 
+	              ) B
+	       WHERE   A.MENU_ID = B.MENU_ID
+		   AND A.PARENT_ID = 0
+	       AND A.USE_YN = 'Y'
+	       UNION ALL
+	
+	SELECT 
+				   CAST( LVL || A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID
+	             , A.MENU_TITLE AS MENU_TITLE
+	             , 0 AS LAST_YN
+	             , MENU_LEVEL + 1 AS MENU_LEVEL
+	             , A.URL AS MENU_URL
+	             , A.PARENT_ID
+	             , ( SELECT MENU_TITLE
+	               FROM    COM_MENU
+	               WHERE   MENU_ID = A.PARENT_ID ) AS PARENT_TITLE
+	             , A.SORT
+	             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+	             , CAST( '　' || LVL AS VARCHAR(100)) AS LVL
+	             , HIERARCHY || ';' || substr( '000000' || to_char(A.SORT),-6 ) AS HIERARCHY
+	             , B.READ_YN||'@'||B.RUN_YN||'@'||B.DEL_YN||'@'||B.EXCEL_YN AS BUTTON_AUTH
+	             , A.USE_YN
+	       FROM    COM_MENU A
+	             , ( SELECT MENU_ID
+	                     , READ_YN
+	                     , RUN_YN
+	                     , DEL_YN
+	                     , EXCEL_YN
+	               FROM    COM_AUTH_MENU
+	               WHERE   AUTH_ID IN ( SELECT nvl(S2.AUTH_ID, 'US')
+	                       				FROM    COM_USER_V_YP S1
+	                       				LEFT OUTER JOIN COM_AUTH_USER S2
+	                       				ON S1.EMP_CODE = S2.USER_ID
+	                       				WHERE   S1.EMP_CODE = #{s_emp_code} ) 
+					) B
+	             , TBL_PARENT C
+	       WHERE   A.MENU_ID   = B.MENU_ID
+	       AND     A.PARENT_ID = C.MENU_ID
+	       AND 	   A.USE_YN = 'Y'
+	)
+	SELECT
+			MENU_TITLE as menu_name,
+			MENU_ID as menu_id,
+			MENU_URL as menu_path,
+			MENU_LEVEL as menu_level,
+			TBL_PARENT.PARENT_ID as upmenu_id,
+			SORT as sort,
+			CASE WHEN cnt.upcnt IS NULL or cnt.upcnt = '' THEN 'N'
+			ELSE 'Y' END AS type,
+			USE_YN,
+			HIERARCHY
+	FROM TBL_PARENT 
+	left outer join (SELECT PARENT_ID,count(PARENT_ID) AS upcnt
+					 FROM COM_MENU
+					 WHERE 1 = 1
+					 AND USE_YN = 'Y'
+					 GROUP BY PARENT_ID
+	) cnt
+	ON TBL_PARENT.MENU_ID = cnt.PARENT_ID
+	ORDER BY HIERARCHY 
+	</select>
+
+	<select id="breadcrumb" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.Menu.breadcrumb */	
+	SELECT 
+		FT.menu_id, 
+		FT.url, 
+		FT.menu_title as menu_name, 
+		ST.MENU_ID as up_menu_id, 
+		case when length(ST.url) = 1 then null else ST.url end as up_menu_path,
+		ST.menu_title as up_menu_name,
+		TT.menu_id as top_menu_id,
+		case when length(TT.url) = 1 then null else TT.url end as top_menu_path,
+		TT.menu_title as top_menu_name 
+	FROM COM_MENU FT 
+	INNER JOIN COM_MENU ST
+		ON FT.PARENT_ID = ST.MENU_ID
+	INNER JOIN COM_MENU TT
+		ON ST.PARENT_ID = TT.MENU_ID
+	where 1 = 1
+	<if test='menu_path != null and !menu_path.equals("")'>
+	AND FT.menu_id = (select distinct(menu_id) from COM_MENU where url = #{menu_path})
+	</if>
+	<if test='menu_id != null and !menu_id.equals("")'>
+	AND FT.menu_id = #{menu_id}	
+	</if>
+	</select>
+	
+	
+	<select id="breadcrumbHierarchy" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.Menu.breadcrumbHierarchy */	
+	SELECT 
+	    menu_id
+	    ,parent_id as parent_menu_name
+	    ,url
+	    ,menu_title as menu_name
+	    ,sort
+	    ,LEVEL
+	    ,SYS_CONNECT_BY_PATH(menu_id, ';') as path
+	FROM COM_MENU
+	WHERE 1 = 1
+	<if test='menu_id != null and !menu_id.equals("")'>
+	AND menu_id = #{menu_id}	
+	</if>
+	<if test='menu_path != null and !menu_path.equals("")'>
+	AND menu_id = (select distinct(menu_id) from COM_MENU where url = #{menu_path})
+	</if>
+	
+    START WITH parent_id = 0
+    CONNECT BY PRIOR menu_id = parent_id 
+    ORDER SIBLINGS BY sort 
+	
+	</select>
+	
+	<insert id="insertTopMenu">
+	/* oracle.Menu.insertTopMenu */
+	INSERT INTO COM_MENU 
+	(
+	      MENU_ID
+		, MENU_TITLE
+		, PARENT_ID
+		, URL
+		, SORT
+		, USE_YN
+		, REG_ID
+		, REG_DT
+		, MOD_ID
+		, MOD_DT
+	)
+	VALUES 
+	(
+		  SEQ_COM_MENU.NEXTVAL
+		, #{topMenuAddModal_menu_name}
+		, 0
+		, #{topMenuAddModal_menu_url}
+		, #{topMenuAddModal_menu_sort}
+		, 'Y'
+		, #{s_emp_code}
+		, SYSTIMESTAMP
+		, #{s_emp_code}
+		, SYSTIMESTAMP
+	)
+	</insert>	
+	
+	<update id="updateMenu">
+	/* oracle.Menu.updateMenu */
+	UPDATE COM_MENU SET 
+		 MENU_TITLE = #{menu_name}
+		,URL        = #{menu_url}
+		,SORT       = #{menu_sort}
+		,USE_YN     = #{use_yn}
+		,MOD_ID     = #{s_emp_code}
+		,MOD_DT     = SYSTIMESTAMP
+	WHERE MENU_ID   = #{menu_code}
+	</update>
+	
+	<insert id="insertSubMenu">
+	/* oracle.Menu.insertSubMenu */
+	INSERT INTO COM_MENU 
+	(     
+	      MENU_ID
+		, MENU_TITLE
+		, PARENT_ID
+		, URL
+		, SORT
+		, USE_YN
+		, REG_ID
+		, REG_DT
+		, MOD_ID
+		, MOD_DT
+	)
+	VALUES 
+	( 
+	      SEQ_COM_MENU.NEXTVAL
+		, #{menuAddModal_menu_name}
+		, #{menuAddModal_up_menu_code}
+		, #{menuAddModal_menu_url}
+		, TO_NUMBER(#{menuAddModal_menu_sort})
+		, 'Y'
+		, #{s_emp_code}
+		, SYSTIMESTAMP
+		, #{s_emp_code}
+		, SYSTIMESTAMP
+	)
+	</insert>
+
+	<update id="updateParentMenu">
+	/* oracle.Menu.updateParentMenu */
+	UPDATE COM_MENU SET 
+		  URL = '/'
+		, MOD_ID = #{s_emp_code}
+		, MOD_DT = SYSTIMESTAMP
+	WHERE MENU_ID = #{menuAddModal_up_menu_code}
+	</update>
+	
+	<delete id="deleteMenu">
+	/* oracle.Menu.deleteMenu */
+	DELETE FROM COM_MENU
+	WHERE MENU_ID = #{menu_code} 
+	</delete>
+	
+	<delete id="deleteChildMenu">
+	/* oracle.Menu.deleteChildMenu */
+	delete from COM_MENU a
+	WHERE 1=1
+	and exists (
+		WITH TBL_PARENT (TITLE_VIEW, MENU_ID, TITLE, LAST_YN, URL, PARENT_ID, PARENT_TITLE, SORT, USE_YN, SORT2, LVL, HIERARCHY, LEVL)
+		AS (
+		SELECT
+					   CAST( A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+		             , A.MENU_ID
+		             , A.MENU_TITLE AS TITLE
+		             , decode( A.URL, '/', 0, 1 ) AS LAST_YN
+		             , A.URL AS URL
+		             , A.PARENT_ID
+		             , ( SELECT MENU_TITLE
+		               FROM    COM_MENU
+		               WHERE   MENU_ID = A.PARENT_ID ) AS PARENT_TITLE
+		             , A.SORT
+		             , A.USE_YN
+		             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+		             , CAST( '　' AS VARCHAR(100)) AS LVL
+		             , substr( '000000' || to_char(A.SORT),-6 ) AS HIERARCHY
+		             , 1 AS LEVL
+		       FROM    COM_MENU A
+		       WHERE   A.PARENT_ID = #{menu_code}
+		
+		UNION ALL
+		
+		SELECT 
+					   CAST( LVL || A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+		             , A.MENU_ID
+		             , A.MENU_TITLE AS TITLE
+		             , decode( A.URL, '/', 0, 1 ) AS LAST_YN
+		             , A.URL AS URL
+		             , A.PARENT_ID
+		             , ( SELECT MENU_TITLE
+		               FROM    COM_MENU
+		               WHERE   MENU_ID = A.PARENT_ID ) AS PARENT_TITLE
+		             , A.SORT
+		             , A.USE_YN
+		             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+		             , CAST( '　' || LVL AS VARCHAR(100)) AS LVL
+		             , HIERARCHY || ';' || substr( '000000' || to_char(A.SORT),-6 ) AS HIERARCHY
+		             , LEVL + 1 AS LEVL
+		       FROM    COM_MENU A
+		             , TBL_PARENT C
+		       WHERE   A.PARENT_ID = C.MENU_ID
+		)
+	    select menu_id from COM_MENU ex
+	    WHERE 1=1
+	    and MENU_ID IN (
+	        select s.MENU_ID
+	        FROM TBL_PARENT s
+	    )
+	    and ex.MENU_ID = a.menu_id 
+	)
+	</delete>
+	
+</mapper>

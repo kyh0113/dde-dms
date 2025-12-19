@@ -1,0 +1,484 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mssql.biz_dept">
+
+<select id="grid_cnt_userList" resultType="double">
+/* mssql.biz_dept.grid_cnt_userList */
+SELECT count(*)
+FROM COM_USER usr LEFT OUTER JOIN COM_DEPT dept
+ON usr.dept_code = dept.dept_code
+WHERE 1=1
+<if test='dept_code != null and !dept_code.equals("")'>
+AND dept.dept_code = #{dept_code}
+</if>
+<if test='status != null and !status.equals("")'>
+AND rtrim(usr.status) = #{status}
+</if>
+<if test='emp_name != null and !emp_name.equals("")'>
+AND usr.emp_name like '%' + #{emp_name} + '%'
+</if>
+</select>
+
+<select id="grid_userList" resultType = "HashMap">
+/* mssql.biz_dept.grid_userList */
+SELECT 
+	   usr.emp_code,
+	   usr.emp_name,
+	   (select POSITION_NAME from COM_POSITION where POSITION_CODE=usr.POSITION_CODE) as position_name,
+	   dept.dept_name,
+	   dept.dept_code,
+	   case when rtrim(isnull(usr.photoimg_dir,'')) <![CDATA[<>]]> '' then 'Yes' 
+			else 'No' end as photoimg_dir,
+	   case when rtrim(isnull(usr.SIGNIMG_DIR,'')) <![CDATA[<>]]> '' then 'Yes' 
+			else 'No' end as signimg_dir,
+	   case when rtrim(isnull(usr.stampimg_dir,'')) <![CDATA[<>]]> '' then 'Yes' 
+			else 'No' end as stampimg_dir,
+	   usr.status  
+FROM COM_USER usr LEFT OUTER JOIN COM_DEPT dept
+ON usr.dept_code = dept.dept_code
+WHERE 1=1
+<if test='dept_code != null and !dept_code.equals("")'>
+AND dept.dept_code = #{dept_code}
+</if>
+<if test='status != null and !status.equals("")'>
+AND rtrim(usr.status) = #{status}
+</if>
+<if test='emp_name != null and !emp_name.equals("")'>
+AND usr.emp_name like '%' + #{emp_name} + '%'
+</if>
+ORDER BY usr.position_code, emp_name
+</select>
+
+<select id="userDetail" resultType="HashMap">
+/* mssql.biz_dept.userDetail */
+SELECT 
+	emp_name,
+	emp_code,
+--	password,
+	isnull(auth.AUTH_ID, '') as auth_code,
+	isnull(auth.AUTH_TITLE, '권한없음') as auth_name,
+	position_code,
+	signimg_dir,
+	stampimg_dir,
+	email,
+	tel_no,
+	fax_no,
+	mobile_no,
+-- 	zip_code,
+--	address,
+	
+ (select dept_name
+ from COM_DEPT
+ where 1 = 1
+ and dept_code = usr.dept_code ) as dept_name,
+	status,
+	dept_code 
+FROM COM_USER usr
+left outer join COM_AUTH auth
+on usr.AUTHOGRP_CODE = auth.AUTH_ID
+WHERE EMP_CODE = #{emp_code}
+</select>
+
+<select id="userDetailForSign" resultType="HashMap">
+/* mssql.biz_dept.userDetailForSign */
+SELECT 
+	replace(signimg_dir,'D:/nicm','') as signimg_dir,
+	replace(stampimg_dir,'D:/nicm','') as stampimg_dir,
+	emp_name
+FROM COM_USER 
+WHERE EMP_CODE= #{s_emp_code}
+</select>
+
+<update id="userPasswordReset">
+/* msqql.biz_dept.userPasswordReset */
+	update COM_USER
+	set password        = '111111',
+		PASSWORD_ENC    = 'vLFfghR5tNV3K9DKhmwArV+SbjWAcgZZzIDTnJ0JgCo=',
+		pwerr_cnt       = 0,
+		login_fail_datetime = ''
+	where emp_code = #{emp_code}
+</update>
+
+<update id="userModify">
+/* mssql.biz_dept.userModify */
+UPDATE COM_USER set
+	photoimg_dir = #{userDetailModal_photoimg_dir},
+	authogrp_code = #{userDetailModal_auth_code},
+	email = #{userDetailModal_email},
+	fax_no = #{userDetailModal_fax_no},
+	mobile_no = #{userDetailModal_mobile_no},
+	position_code = #{userDetailModal_position_code},
+	<!-- 2019-08-07 smh 시작 -->
+	<!-- 도장or싸인 사진 1개만 바꾸고 싶을때, 1개만 업로드시키면 다른하나는 null값으로 저장돼는것을 방지하기위해 추가 -->
+	<if test="userDetailModal_signimg_dir != null and userDetailModal_signimg_dir != ''">
+	signimg_dir = #{userDetailModal_signimg_dir},
+	</if>
+	<if test="userDetailModal_stampimg_dir != null and userDetailModal_stampimg_dir != ''">
+	stampimg_dir = #{userDetailModal_stampimg_dir},
+	</if>
+	<!-- 2019-08-07 smh 끝 -->
+	tel_no = #{userDetailModal_tel_no},
+	status = #{userDetailModal_status}
+WHERE 1 = 1
+AND emp_code = #{userDetailModal_emp_code}
+</update>
+
+<insert id="userPerInsert">
+/* mssql.biz_dept.userPerInsert */
+INSERT INTO COM_USER (
+    [EMP_CODE]
+   ,[EMP_NAME]
+   ,[PASSWORD]
+   ,[PASSWORD_ENC]
+   ,[AUTHOGRP_CODE]
+   ,[DEPT_CODE]
+   ,[POSITION_CODE]
+   ,[SIGNIMG_DIR]
+   ,[PHOTOIMG_DIR]
+   ,[STAMPIMG_DIR]
+   ,[EMAIL]
+   ,[TEL_NO]
+   ,[FAX_NO]
+   ,[MOBILE_NO]
+   ,[ZIP_CODE]
+   ,[ADDRESS]
+   ,[STATUS]
+   ,[PWCHG_DATE]
+   ,[PWERR_CNT]
+   ,[LOGIN_DATETIME]
+   ,[LOGOUT_DATETIME]
+   ,[LOGIN_FAIL_DATETIME]
+   ,[NOWUSE_YN]
+   ,[REG_ID]
+   ,[REG_DT]
+   ,[MOD_ID]
+   ,[MOD_DT]
+) VALUES (
+	 #{userDetailModal_emp_code}
+	,#{userDetailModal_emp_name}
+	,'111111'
+	,'vLFfghR5tNV3K9DKhmwArV+SbjWAcgZZzIDTnJ0JgCo='
+	,#{userDetailModal_authogrp_code}
+	,#{userDetailModal_dept_code}
+	,#{userDetailModal_position_code}
+	,#{userDetailModal_signimg_dir}
+	,#{userDetailModal_photoimg_dir}
+	,#{userDetailModal_stampimg_dir}
+	,#{userDetailModal_email}
+	,#{userDetailModal_tel_no}
+	,#{userDetailModal_fax_no}
+	,#{userDetailModal_mobile_no}
+	,#{zip_code}
+	,#{address}
+	,#{userDetailModal_status}
+	,''
+	,0
+	,''
+	,''
+	,''
+	,'N'
+	,#{s_emp_code}
+	,getdate()
+	,#{s_emp_code}
+	,getdate()
+)
+</insert>
+
+<delete id="userPerDelete">
+/* msqql.biz_dept.userPerDelete */
+DELETE COM_USER
+WHERE 1 = 1
+AND emp_code = #{emp_code}
+</delete>
+
+<select id="positionList" resultType="hashMap">
+/* mssql.biz_dept.positionList */
+select 
+	position_code,
+	position_name
+from COM_POSITION
+</select>
+
+<select id="deptList" resultType = "HashMap">
+/* mssql.dept.deptList */
+SELECT dept.dept_code AS id, 
+	   dept.dept_name AS text, 
+	   dept.deptlvl_code,
+	   (SELECT dept_name FROM COM_DEPT WHERE dept_code = dept.updept_code) AS updept_name, 
+	   (SELECT DEPTLVL_NAME FROM COM_DEPTLVL WHERE DEPTLVL_CODE = dept.deptlvl_code) AS deptlvl_name, 
+	   CASE WHEN dept.updept_code = '0' THEN '#'
+			ELSE dept.updept_code END AS parent,
+	   dept.dept_syscode,
+	   CASE WHEN cnt.upcnt IS NULL or cnt.upcnt = '' THEN 'N'
+			ELSE 'Y' END AS type,
+	   dept.dept_line 
+FROM 
+COM_DEPT AS dept 
+left outer join (SELECT UPDEPT_CODE,count(UPDEPT_CODE) AS upcnt
+				 FROM COM_DEPT
+				 WHERE 1=1
+				 AND status = 'C'
+				 GROUP BY UPDEPT_CODE) AS cnt
+ON dept.dept_code = cnt.UPDEPT_CODE
+WHERE 1=1
+AND status = 'C'
+ORDER BY dept.dept_line ASC
+</select>
+
+<update id="user_dept_modify">
+/* mssql.biz_dept.user_dept_modify */
+UPDATE  COM_USER 
+SET DEPT_CODE    = #{u_deptcode}, 
+    MOD_EMP_CODE = #{s_emp_code}, 
+    MOD_DATE     = CONVERT(VARCHAR(8),GETDATE(),112) 
+WHERE EMP_CODE   = #{emp_code}
+</update>
+
+<delete id="dept_delete">
+/* mssql.biz_dept.dept_delete */
+DELETE COM_DEPT
+WHERE 1 = 1
+</delete>
+
+<insert id="dept_insert">
+/* mssql.biz_dept.dept_insert */
+insert into COM_DEPT 
+( 
+	DEPT_CODE,	
+	DEPT_NAME,	
+	STATUS,	
+	DEPTLVL_CODE,	
+	UPDEPT_CODE,	
+	DEPT_SYSCODE,
+	MNGEMP_CODE,	
+	MNGEMP_NAME,	
+	DEPT_LINE,
+	REG_ID,
+	REG_DT,
+	MOD_ID,
+	MOD_DT
+) values (  
+	#{termcode},
+	#{dept_code},
+	#{dept_name},
+	'C',
+	#{deptlvl_code},
+	#{updept_code},
+	#{dept_syscode},
+	#{mngemp_code},
+	#{mngemp_name},
+	'',
+	#{s_emp_code},
+	GETDATE(),
+	#{s_emp_code},
+	GETDATE()
+)
+</insert>
+
+<update id="dept_line_update">
+/* msqql.biz_dept.dept_line_update */
+UPDATE COM_DEPT SET DEPT_LINE = DEPT_CODE
+ WHERE 1 = 1 AND  DEPTLVL_CODE = '1'
+
+UPDATE COM_DEPT
+   SET DEPT_LINE = (SELECT B.DEPT_LINE FROM COM_DEPT B  WHERE 1 = 1 AND B.DEPT_CODE = COM_DEPT.UPDEPT_CODE)
+                     + 'i;' + COM_DEPT.DEPT_CODE
+ WHERE 1 = 1 AND  DEPTLVL_CODE = '2'
+
+UPDATE COM_DEPT
+   SET DEPT_LINE = (SELECT B.DEPT_LINE FROM COM_DEPT B  WHERE 1 = 1 AND B.DEPT_CODE = COM_DEPT.UPDEPT_CODE)
+                     + 'i;' + COM_DEPT.DEPT_CODE
+ WHERE  1 = 1 AND DEPTLVL_CODE = '3'
+
+UPDATE COM_DEPT
+   SET DEPT_LINE = (SELECT B.DEPT_LINE FROM COM_DEPT B  WHERE 1 = 1 AND B.DEPT_CODE = COM_DEPT.UPDEPT_CODE)
+                     + 'i;' + COM_DEPT.DEPT_CODE
+ WHERE  1 = 1 AND DEPTLVL_CODE = '4'
+
+UPDATE COM_DEPT
+   SET DEPT_LINE = (SELECT B.DEPT_LINE FROM COM_DEPT B  WHERE 1 = 1 AND B.DEPT_CODE = COM_DEPT.UPDEPT_CODE)
+                     + 'i;' + COM_DEPT.DEPT_CODE
+ WHERE  1 = 1 AND DEPTLVL_CODE = '5'
+
+UPDATE COM_DEPT
+   SET DEPT_LINE = (SELECT B.DEPT_LINE FROM COM_DEPT B  WHERE 1 = 1 AND B.DEPT_CODE = COM_DEPT.UPDEPT_CODE)
+                     + 'i;' + COM_DEPT.DEPT_CODE
+ WHERE  1 = 1 AND DEPTLVL_CODE = '6'
+
+UPDATE COM_DEPT
+   SET DEPT_LINE = (SELECT B.DEPT_LINE FROM COM_DEPT B  WHERE 1 = 1 AND B.DEPT_CODE = COM_DEPT.UPDEPT_CODE)
+                     + 'i;' + COM_DEPT.DEPT_CODE
+ WHERE  1 = 1 AND DEPTLVL_CODE = '7'
+
+UPDATE COM_DEPT
+   SET DEPT_LINE = (SELECT B.DEPT_LINE FROM COM_DEPT B  WHERE 1 = 1 AND B.DEPT_CODE = COM_DEPT.UPDEPT_CODE)
+                     + 'i;' + COM_DEPT.DEPT_CODE
+ WHERE  1 = 1 AND DEPTLVL_CODE = '8'
+</update>
+
+<delete id="user_delete">
+/* mssql.biz_dept.user_delete */
+DELETE COM_USER
+WHERE 1 = 1
+</delete>
+
+<insert id="user_insert">
+/* mssql.biz_dept.user_insert */
+INSERT INTO COM_USER
+(
+    [EMP_CODE]
+   ,[EMP_NAME]
+   ,[PASSWORD]
+   ,[PASSWORD_ENC]
+   ,[AUTHOGRP_CODE]
+   ,[DEPT_CODE]
+   ,[POSITION_CODE]
+   ,[SIGNIMG_DIR]
+   ,[PHOTOIMG_DIR]
+   ,[STAMPIMG_DIR]
+   ,[EMAIL]
+   ,[TEL_NO]
+   ,[FAX_NO]
+   ,[MOBILE_NO]
+   ,[ZIP_CODE]
+   ,[ADDRESS]
+   ,[STATUS]
+   ,[PWCHG_DATE]
+   ,[PWERR_CNT]
+   ,[LOGIN_DATETIME]
+   ,[LOGOUT_DATETIME]
+   ,[LOGIN_FAIL_DATETIME]
+   ,[NOWUSE_YN]
+   ,[REG_ID]
+   ,[REG_DT]
+   ,[MOD_ID]
+   ,[MOD_DT]
+) VALUES (
+	 #{emp_code}
+	,#{emp_name}
+	,#{password}
+	,'vLFfghR5tNV3K9DKhmwArV+SbjWAcgZZzIDTnJ0JgCo='
+	,#{authogrp_code}
+	,#{dept_code}
+	,#{position_code}
+	,#{signimg_dir}
+	,#{photoimg_dir}
+	,#{stampimg_dir}
+	,#{email}
+	,#{tel_no}
+	,#{fax_no}
+	,#{mobile_no}
+	,#{zip_code}
+	,#{address}
+	,'C'
+	,''
+	,0
+	,''
+	,''
+	,''
+	,'N'
+	,#{s_emp_code}
+	,getdate()
+	,#{s_emp_code}
+	,getdate()
+)
+</insert>
+
+<select id="deptExistCheck" resultType="int">
+/* mssql.biz_dept.depdeptExistChecktInsert */
+select count(1) from COM_DEPT where 1 = 1 and dept_code = #{deptAddModal_dept_code}
+</select>
+
+<select id="topdeptExistCheck" resultType="int">
+/* mssql.biz_dept.topdeptExistCheck */
+select count(1) from COM_DEPT where 1 = 1 and updept_code = #{deptAddModal_updept_code}
+</select>
+
+<insert id="deptInsert">
+/* mssql.biz_dept.deptInsert */
+INSERT INTO COM_DEPT (
+	DEPT_CODE,
+	DEPT_NAME,
+	STATUS,
+	DEPTLVL_CODE,
+	UPDEPT_CODE, 
+	dept_syscode ,
+	MNGEMP_CODE,
+	MNGEMP_NAME,
+	DEPT_LINE,
+	REG_ID,
+	REG_DT,
+	MOD_ID,
+	MOD_DT
+) VALUES (
+	#{deptAddModal_dept_code},
+	#{deptAddModal_dept_name},
+	'C',
+	convert(int,#{deptAddModal_updeptlvl_code})+1,
+	#{deptAddModal_updept_code},
+	null,
+	'',
+	'',
+	<choose>
+	    <when test='deptAddModal_updept_code.equals("0")'>
+	      #{deptAddModal_dept_code},
+	    </when>
+	    <otherwise>
+	      #{deptAddModal_updept_line} + 'i;' + #{deptAddModal_dept_code},
+	    </otherwise>
+  	</choose>
+  	#{s_emp_code},
+	GETDATE(),
+	#{s_emp_code},
+	GETDATE()
+)
+</insert>
+
+<delete id="deptDeleteCon">
+/* mssql.biz_dept.deptDeleteCon */
+delete COM_DEPT
+where 1 = 1
+and dept_line like '%'+ #{deptAddModal_updept_code} +'%'
+</delete>
+
+<delete id="userDeleteCon">
+/* mssql.biz_dept.userDeleteCon */
+delete COM_USER
+where 1 = 1
+and dept_code in (
+		select dept_code 
+		from COM_DEPT
+		where 1 = 1
+		and dept_line like '%'+ #{deptAddModal_updept_code} +'%'
+	)
+</delete>
+
+<update id="deptUpdate">
+/* mssql.biz_dept.deptUpdate */
+UPDATE COM_DEPT
+SET dept_name = #{dept_name}
+WHERE 1 = 1
+AND dept_code = #{dept_code}
+</update>
+
+<update id="allUserPwInit">
+/* mssql.biz_dept.userPasswordReset */
+update COM_USER
+set password        = '111111',
+	PASSWORD_ENC    = 'vLFfghR5tNV3K9DKhmwArV+SbjWAcgZZzIDTnJ0JgCo=',
+	pwerr_cnt       = 0,
+	login_fail_datetime = '',
+	mod_emp_code = #{s_emp_code},
+	mod_date = CONVERT(CHAR(8), getDate(), 112)
+</update>
+
+<update id="allUserStatusUpdate">
+/* mssql.biz_dept.userPasswordReset */
+update COM_USER
+set status = #{status},
+	mod_emp_code = #{s_emp_code},
+	mod_date = CONVERT(CHAR(8), getDate(), 112)
+</update>
+
+
+</mapper>

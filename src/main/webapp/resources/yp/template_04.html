@@ -1,0 +1,273 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">
+    <title>영풍</title>
+	<link rel="stylesheet" href="css/style.css">
+    <script language="JavaScript">
+     
+     function viewLayer(){ 
+        document.getElementById("gnb").style.visibility = "visible"
+        document.getElementById("gnb_nav").style.visibility = "hidden"
+        document.getElementById("closeNav").style.marginLeft = "140px"
+     }
+     
+     function hideLayer(){
+         document.getElementById("gnb").style.visibility = "hidden"
+         document.getElementById("gnb_nav").style.visibility = "visible"
+         document.getElementById("closeNav").style.marginLeft = "350px"
+         
+     }
+     </script>
+</head>
+<body class="bg_gray">
+	<div id="wrapper">
+        <div class="header">
+            <div class="logo"><a href="main.html"><img src="images/logo_sub.png"> 도급관리 웹포탈 시스템</a></div>
+            <div class="top_ic">
+                <ul>
+                    <li>ypAdminUser <a href="#"><img src="images/topic_logout.png"></a>
+                        <div class="topnav_my">
+                            <ul>
+                                <li><a href="#">정보수정</a></li>
+                                <li><a href="#">로그아웃</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="content_body">
+        <!-- gnb S -->
+        <div id="gnb">
+            <ul>
+                <li><a href="#" onclick="hideLayer('gnb')" ><img src="images/gnb_ic_menu.png"><p>전체메뉴</p></a></li>
+                <li><a href="#"><img src="images/gnb_ic_money.png"><p>재무관리</p></a> </li>
+                <li><a href="#"><img src="images/gnb_ic_buy.png"><p>구매관리</p></a></li>
+                <li><a href="#"><img src="images/gnb_ic_person.png"><p>인사관리</p></a></li>
+                <li><a href="#"><img src="images/gnb_ic_report.png"><p>준공보고서</p></a></li>
+                <li><a href="#"><img src="images/gnb_ic_work.png"><p>조업 도급관리</p></a></li>
+                <li><a href="#"><img src="images/gnb_ic_factory.png"><p>공사 도급관리</p></a></li>
+            </ul>
+        </div>
+        <div id="gnb_nav">
+                <div class="mn_container">
+                    <div class="mn_icon"><a href="#" onclick="viewLayer('gnb')" ><img src="images/gnb_ic_menu.png"></a>
+                    </div>
+                    <div class="mn_item">
+                        <input id="ac-1" name="gnb" type="radio" /> <label for="ac-1">재무관리</label> 
+                        <article class="mn_sub">
+                            <ul>
+                                <li><a href="#">전표관리</a> </li>
+                                <ul class="gnb_3lv">
+                                    <li><a href="#">회계전표 목록</a></li>
+                                    <li><a href="#">회계전표 등록</a></li>
+                                </ul>
+
+                                <li><a href="#">예산관리</a> </li>
+                                <ul class="gnb_3lv">
+                                    <li><a href="#">예산조회</a></li>
+                                    <li><a href="#">예산신청</a></li>
+                                    <li><a href="#">예산 결재상신</a></li>
+                                    <li><a href="#">투보수 예산현황 조회</a></li>
+                                    <li><a href="#">일이삼사오육칠팔구십일이삼사오육칠팔구십</a></li>
+                                </ul>
+                            </ul>
+                        </article>
+                    </div>
+                    <div class="mn_item">
+                        <input id="ac-2" name="gnb" type="radio" /> <label for="ac-2">메뉴명 20자</label> 
+                        
+                        <article class="mn_sub">
+                            <ul>
+                                <li><a href="#">일이삼사오육칠팔구십일이삼사오육칠팔구십</a> </li>
+                                <li><a href="#">일이삼사오육칠팔구십일이삼사오육칠팔구십</a> </li>
+                            </ul>
+                        </article>
+                    </div>
+                    <div class="mn_item">
+                        <input id="ac-3" name="gnb" type="radio" checked /> <label for="ac-3">화면템플릿</label> 
+                        <article class="mn_sub">
+                            <ul>
+                                <li><a href="template_01.html">계약등록</a></li>
+                                <li><a href="template_02.html">회계전표 목록</a></li>
+                                <li><a href="template_03.html">회계전표 등록</a></li>
+                                <li><a href="#" onclick="window.open('template_pop02.html','','width=500,height=500')">업체검색</a></li>
+                                <li><a href="template_04.html">투보수 예산현황 조회</a></li>
+                                <li><a href="template_05.html">투보수 예산상세 조회</a></li>
+                                <li><a href="template_06.html">입항스케쥴 조회</a></li>
+                                <li><a href="template_07.html">개인 출퇴근 현황</a></li>
+                                <li><a href="template_08.html">도시락 신청/조회</a></li>
+                                <li><a href="template_09.html">식당관리</a></li>
+                            </ul>
+                        </article>
+                    </div>
+                </div>
+                  
+            </div>
+        <!-- gnb S -->
+        <!--- sub contents S -->
+        
+            
+        <!-- contents box S -->
+        <div class="sub_contents_box"  id="closeNav">
+            <div class="sub_contents">
+                <h2>투보수 예산현황 조회
+                <ul class="loc">
+                    <li><a href="#"><img src="images/ic_loc_home.png"></a></li>
+                    <li><a href="#">공사도급관리</a></li>
+                    <li><a href="#">계약관리</a></li>
+                    <li>계약등록</li>
+                </ul>   
+            </h2>
+                <section>
+                    <div class="tbl_box">
+                        <table cellspacing="0" cellpadding="0">
+                            <colgroup>
+                                <col width="8%" />
+                                <col  />
+                            </colgroup> 
+                            <tr>
+                                <th>WBS코드</th>
+                                <td><input type="text" style="width:100px;"> <input type="text" style="width:150px;"> <a href="#"><img src="images/ic_search.png"></a></td>
+                            </tr>
+                        </table>
+                        <div class="btn_wrap">
+                            <button class="btn btn_search" type="">조회</button>
+                        </div>
+                    </div>
+                </section>
+                <div class="float_wrap">
+                    <div class="fl"><div class="stitle">WBS 예산현황</div></div>
+                    <div class="fr">
+                        <div class="btn_wrap">
+                            <button class="btn_g" type="">엑셀다운로드</button> 
+                        </div>
+                    </div>
+                </div>
+                <section>
+                    <div class="lst">
+                        <table cellspacing="0" cellpadding="0">
+                            <colgroup>
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                            </colgroup>
+                            <tr>
+                                <th>WBS코드</th>
+                                <th>예산</th>
+                                <th>실적</th>
+                                <th>약정</th>
+                                <th>지정(실적)+약정</th>
+                                <th>사용가능</th>
+                            </tr>
+                            <tr>
+                                <td><a href="#">YP-2016-1305 Catho..</a></td>
+                                <td class="right">32,300,000 </td>
+                                <td class="right">0 </td>
+                                <td class="right">0 </td>
+                                <td class="right">0 </td>
+                                <td class="right">32,300,000 </td>
+                            </tr>
+                            <tr>
+                                <td>YP-2016-1305 Catho..</td>
+                                <td class="right">32,300,000 </td>
+                                <td class="right">10.000 </td>
+                                <td class="right">0 </td>
+                                <td class="right">0 </td>
+                                <td class="right">32,300,000 </td>
+                            </tr>
+                            <tr class="total">
+                                <td>합계</td>
+                                <td class="right">32,300,000 </td>
+                                <td class="right">0 </td>
+                                <td class="right">0 </td>
+                                <td class="right">0 </td>
+                                <td class="right">32,300,000 </td>
+                            </tr>
+
+                        </table>
+                    </div>
+                </section>
+                <div class="float_wrap">
+                    <div class="fl"><div class="stitle">월별 WBS 코드 내역</div></div>
+                    <div class="fr">
+                        <div class="btn_wrap">
+                            <button class="btn_g" type="">엑셀다운로드</button> 
+                        </div>
+                    </div>
+                </div>
+                 <section>
+                <div class="lst">
+                    <table cellspacing="0" cellpadding="0">
+                        <colgroup>
+                            <col />
+                            <col />
+                            <col />
+                            <col />
+                            <col />
+                            <col />
+                            <col />
+                        </colgroup>
+                        <tr>
+                            <th>WBS코드</th>
+                            <th>기간</th>
+                            <th>예산</th>
+                            <th>실적</th>
+                            <th>약정</th>
+                            <th>지정(실적)+약정</th>
+                            <th>사용가능</th>
+                        </tr>
+                        <tr>
+                            <td rowspan="4">YP-2016-1305 Catho..</td>
+                        </tr>
+                        <tr>
+                            <td>잔액금액</td>
+                            <td class="right">32,300,000 </td>
+                            <td class="right">0 </td>
+                            <td class="right">0 </td>
+                            <td class="right">0 </td>
+                            <td class="right">32,300,000 </td>
+                        </tr>
+                        <tr>
+                            <td>2016.04 4월</td>
+                            <td class="right">32,300,000 </td>
+                            <td class="right">10.000 </td>
+                            <td class="right">0 </td>
+                            <td class="right">0 </td>
+                            <td class="right">32,300,000</td>
+                        </tr>
+                        <tr>
+                            <td>2016.04 6월</td>
+                            <td class="right">32,300,000 </td>
+                            <td class="right">10.000 </td>
+                            <td class="right">0 </td>
+                            <td class="right">0 </td>
+                            <td class="right">32,300,000 </td>
+                        </tr>
+                        <tr class="total">
+                            <td>합계</td>
+                            <td></td>
+                            <td class="right">32,300,000 </td>
+                            <td class="right">0 </td>
+                            <td class="right">0 </td>
+                            <td class="right">0 </td>
+                            <td class="right">32,300,000 </td>
+                        </tr>
+
+                    </table>
+                </div>
+            </section>
+            </div>
+        </div>
+        <!-- contents box E -->
+       
+        <!--- sub contents S -->
+    </div>
+</body>
+</html>

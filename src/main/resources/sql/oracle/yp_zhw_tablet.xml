@@ -1,0 +1,38 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_zhw_tablet">
+
+	<select id="tabletListCnt" resultType="Double">
+	/* oracle.Tablet.tabletListCnt */
+	SELECT	count(*) as CNT 
+	FROM (
+		SELECT 	A.DEVICE_ID AS dev_id
+		FROM TBL_PARTNER_DEVICE A
+		WHERE 1 = 1
+		) GRID
+	WHERE 1 = 1
+	</select>
+		
+	<select id="tabletList" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.Tablet.tabletList */
+	SELECT
+		ROW_NUMBER() OVER ( ORDER BY GRID.seq desc ) RNUM,		
+		GRID.* 
+	FROM (
+		SELECT 	
+				A.DEVICE_ID AS dev_id,
+				A.COMPANY_NAME AS com_nm ,
+				CASE WHEN Round((sysdate - to_date(to_char(A.UPDATE_DATE,'YYYYMMDD HH24:mi:SS'),'YYYYMMDD HH24:mi:SS' )) * 24 * 60 * 60 ) <![CDATA[ < ]]> 15 THEN 'Online'
+				ELSE 'Offline' END lte_sts,
+				CASE WHEN Round((sysdate - to_date(to_char(A.RF_UPDATE_DATE,'YYYYMMDD HH24:mi:SS'),'YYYYMMDD HH24:mi:SS' )) * 24 * 60 * 60 ) <![CDATA[ < ]]> 15 THEN 'Online'
+				ELSE 'Offline' END ble_sts,
+				TO_CHAR(A.UPDATE_DATE, 'yyyy-mm-dd hh24:mi:ss') AS up_dt,
+				TO_CHAR(A.RF_UPDATE_DATE, 'yyyy-mm-dd hh24:mi:ss') AS rf_up_dt,
+				A.seq
+		FROM TBL_PARTNER_DEVICE A
+		WHERE 1 = 1
+		) GRID
+	WHERE 1 = 1
+	</select>
+
+</mapper>

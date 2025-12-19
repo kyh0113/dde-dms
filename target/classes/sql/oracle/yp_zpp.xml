@@ -1,0 +1,2772 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_zpp">
+
+	<update id="merge_creatCreReg" parameterType="java.util.HashMap">
+	INSERT INTO TBL_CLEAN_DETAIL (
+	    STD_DT,
+		FACTORY_NM,
+		F_LINE,
+		F_ROW,
+		CLEAN_GB,
+		CLEAN_ECELL,
+		CLEAN_DT,
+		BF_DT,
+		CALC_CLEAN
+	) VALUES (
+	    replace(#{STD_DT},'/',''),
+		#{FACTORY_NM},
+		#{F_LINE},
+		#{F_ROW},
+		#{CLEAN_GB},
+		#{CLEAN_ECELL},
+		replace(#{CLEAN_DT},'/',''),
+		replace(#{BF_DT},'/',''),
+		#{CALC_CLEAN}
+	)
+	</update>
+
+	<select id="select_zpp_cre_list" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.select_zpp_cre_list */
+		SELECT A.STD_DT
+		      ,A.FACTORY_NM||'공장' FACTORY_NM
+		      ,CASE WHEN 8 >= A.F_LINE THEN '#'||A.F_LINE ELSE A.F_LINE END F_LINE
+		      ,CASE WHEN A.F_ROW = 'A' THEN '남' when A.F_ROW = 'B' then '북' ELSE A.F_ROW END F_ROW
+		      ,CASE WHEN A.CLEAN_GB = 'A' THEN '완전청소' when A.CLEAN_GB = 'B' then '부분청소' ELSE '완전청소' END CLEAN_GB
+		      ,A.CLEAN_ECELL
+		      ,A.CLEAN_DT
+		      <!-- ,NVL(TO_CHAR(TO_DATE(A.STD_DT), 'YYYYMMDD') - TO_CHAR(TO_DATE(A.CLEAN_DT), 'YYYYMMDD'),0) as CALC_CLEAN -->
+		      ,NVL(A.BF_DT,'-') BF_DT
+		      <!-- ,NVL(A.OVER_ECELL,'-') OVER_ECELL -->
+		      <!-- ,NVL(A.OVER_DT,'-') OVER_DT -->
+		      <!--,CASE WHEN NVL(A.OVER_ECELL,0) != '' THEN NVL(TO_CHAR(TO_DATE(A.STD_DT), 'YYYYMMDD') - TO_CHAR(TO_DATE(A.OVER_DT), 'YYYYMMDD'),0) ELSE 0 END CALC_OVER -->
+		      <!-- ,A.CH_ANODE -->
+		      ,NVL(A.CALC_CLEAN,0) CALC_CLEAN
+		FROM TBL_CLEAN_DETAIL A
+		<if test='ser_gbdt == "A"'>
+		WHERE A.CLEAN_DT BETWEEN replace(#{sdate},'/','') AND replace(#{edate},'/','')</if>
+		<if test='ser_gbdt == "B"'>
+		WHERE A.STD_DT BETWEEN replace(#{sdate},'/','') AND replace(#{edate},'/','')</if>
+		<if test='ser_factory != null and ser_factory != "ALL"'>AND A.FACTORY_NM = #{ser_factory}</if>
+		<if test='ser_line != null and ser_line != "ALL"'>AND A.F_LINE = #{ser_line}</if>
+		ORDER BY A.STD_DT, A.FACTORY_NM, A.F_LINE, A.F_ROW ASC
+	</select>
+
+    <select id="select_zpp_cre_list_cnt" resultType="Double">
+    	/* oracle.yp_zpp.select_zpp_cre_list_cnt */
+		SELECT count(1)
+		FROM TBL_CLEAN_DETAIL
+		<if test='ser_gbdt == "A"'>
+		WHERE CLEAN_DT BETWEEN replace(#{sdate},'/','') AND replace(#{edate},'/','')</if>
+		<if test='ser_gbdt == "B"'>
+		WHERE STD_DT BETWEEN replace(#{sdate},'/','') AND replace(#{edate},'/','')</if>
+		<if test='ser_factory != null and ser_factory != "ALL"'>AND FACTORY_NM = #{ser_factory}</if>
+		<if test='ser_line != null and ser_line != "ALL"'>AND F_LINE = #{ser_line}</if>
+	</select>
+
+	<select id="select_zpp_cre_list_c" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.select_zpp_cre_list_c */
+		SELECT A.STD_DT
+			  ,A.FACTORY_NM
+		      ,A.F_LINE
+		      ,CASE WHEN 8 >= A.F_LINE THEN '#'||A.F_LINE ELSE A.F_LINE END F_LINE1
+		      ,A.F_ROW
+		      ,CASE WHEN A.F_ROW = 'A' THEN '남' when A.F_ROW = 'B' then '북' ELSE A.F_ROW END F_ROW1
+		      ,CLEAN_GB
+		      ,CASE WHEN A.CLEAN_GB = 'A' THEN '완전청소' when A.CLEAN_GB = 'B' then '부분청소' ELSE '완전청소' END CLEAN_GB1
+		      ,A.CLEAN_ECELL
+		      ,A.CLEAN_DT
+		      ,TO_CHAR(TO_DATE(A.CLEAN_DT), 'YYYY/MM/DD') CLEAN_DT1
+		      <!-- ,NVL(TO_CHAR(TO_DATE(A.STD_DT), 'YYYYMMDD') - TO_CHAR(TO_DATE(A.CLEAN_DT), 'YYYYMMDD'),0) as CALC_CLEAN -->
+		      <!-- ,NVL(A.OVER_ECELL,0) OVER_ECELL -->
+		      ,NVL(A.BF_DT,'-') BF_DT
+		      <!-- ,TO_CHAR(TO_DATE(A.BF_DT), 'YYYY/MM/DD') BF_DT1 -->
+		      <!-- ,A.OVER_DT -->
+		      <!-- ,TO_CHAR(TO_DATE(A.OVER_DT), 'YYYY/MM/DD') OVER_DT1 -->
+		      <!-- ,CASE WHEN A.OVER_ECELL is not null or A.OVER_ECELL != '' or A.OVER_DT is not null or A.OVER_DT != '' THEN NVL(TO_CHAR(TO_DATE(A.STD_DT), 'YYYYMMDD') - TO_CHAR(TO_DATE(A.OVER_DT), 'YYYYMMDD'),0) ELSE 0 END CALC_OVER -->
+		      <!-- ,NVL(A.CH_ANODE,0) CH_ANODE --> 
+		      ,NVL(A.CALC_CLEAN,0) CALC_CLEAN
+		FROM TBL_CLEAN_DETAIL A
+		WHERE A.STD_DT = replace(#{date},'/','')
+		ORDER BY A.STD_DT, A.FACTORY_NM, A.F_LINE, A.F_ROW ASC
+	</select>
+
+    <select id="select_zpp_cre_list_cnt_c" resultType="Double">
+    	/* oracle.yp_zpp.select_zpp_cre_list_cnt_c */
+		SELECT count(1)
+		FROM TBL_CLEAN_DETAIL
+		WHERE STD_DT= replace(#{date},'/','')
+	</select>
+	
+    <select id="retrieveCreOkList_excel" parameterType="java.util.HashMap" resultType="java.util.LinkedHashMap">
+    	/* oracle.yp_ZPP.retrieveCreOkList_excel */
+		SELECT A.STD_DT as "기준일"
+		      ,A.FACTORY_NM||'공장' as "공장"
+		      ,CASE WHEN 8 >= A.F_LINE THEN '#'||A.F_LINE ELSE A.F_LINE END as "계열"
+		      ,CASE WHEN A.F_ROW = 'A' THEN '남' when A.F_ROW = 'B' then '북' ELSE A.F_ROW END as "열"
+		      ,CASE WHEN A.CLEAN_GB = 'A' THEN '완전청소' when A.CLEAN_GB = 'B' then '부분청소' ELSE '완전청소' END "청소구분"
+		      ,NVL(A.CLEAN_ECELL,0) as "청소전해조"
+		      ,TO_CHAR(TO_DATE(A.CLEAN_DT), 'YYYY/MM/DD') as "청소일"
+		      ,TO_CHAR(TO_DATE(A.BF_DT), 'YYYY/MM/DD') as "이전청소일"
+		      ,NVL(A.CALC_CLEAN,0) as "청소경과일"
+		      <!-- ,NVL(TO_CHAR(TO_DATE(A.STD_DT), 'YYYYMMDD') - TO_CHAR(TO_DATE(A.CLEAN_DT), 'YYYYMMDD'),0) as "청소경과일" -->
+		      <!-- ,NVL(A.OVER_ECELL,0) as "이월전해조" -->
+		      <!-- ,TO_CHAR(TO_DATE(A.OVER_DT), 'YYYY/MM/DD') as "이월청소일" -->
+		      <!-- ,CASE WHEN A.OVER_ECELL is not null or A.OVER_ECELL != '' or A.OVER_DT is not null or A.OVER_DT != '' THEN NVL(TO_CHAR(TO_DATE(A.STD_DT), 'YYYYMMDD') - TO_CHAR(TO_DATE(A.OVER_DT), 'YYYYMMDD'),0) ELSE 0 END "이월경과일" -->
+		      <!-- ,A.CH_ANODE as "아노드교체량" -->
+		FROM TBL_CLEAN_DETAIL A
+		<if test='ser_gbdt == "A"'>
+		WHERE A.CLEAN_DT BETWEEN replace(#{sdate},'/','') AND replace(#{edate},'/','')</if>
+		<if test='ser_gbdt == "B"'>
+		WHERE A.STD_DT BETWEEN replace(#{sdate},'/','') AND replace(#{edate},'/','')</if>
+		<if test='ser_factory != null and ser_factory != "ALL"'>AND A.FACTORY_NM = #{ser_factory}</if>
+		<if test='ser_line != null and ser_line != "ALL"'>AND A.F_LINE = #{ser_line}</if>
+		ORDER BY A.STD_DT, A.FACTORY_NM, A.F_LINE, A.F_ROW ASC
+    </select>
+
+    <delete id="deleteAccessControl" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.deleteAccessControl */
+		DELETE FROM TBL_CLEAN_DETAIL
+		WHERE STD_DT = replace(#{STD_DT},'/','')
+		AND	FACTORY_NM = #{FACTORY_NM}
+		AND	F_LINE = #{F_LINE}
+		AND	F_ROW = #{F_ROW}
+	</delete>
+
+	<select id="select_zpp_cre_bfdt" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.select_zpp_cre_bfdt */
+		SELECT NVL(MAX(A.CLEAN_DT),'-') BF_DT
+			  ,TO_CHAR(TO_DATE(MAX(A.CLEAN_DT)), 'YYYY/MM/DD') BF_DT1
+			  ,TO_DATE(#{ser_cldt}, 'YYYY/MM/DD') - TO_DATE(MAX(A.CLEAN_DT), 'YYYY/MM/DD') AS CALC_CLEAN
+		FROM TBL_CLEAN_DETAIL A
+		WHERE A.FACTORY_NM = #{ser_factory}
+		AND A.F_LINE = #{ser_line}
+		AND A.F_ROW = #{ser_row}
+	</select>
+
+	<select id="select_tbl_cre_list" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.select_tbl_cre_list */
+		SELECT A.FACTORY_NM||'공장' FACTORY_NM
+		      ,A.F_LINE F_LINE
+		      ,CASE WHEN A.F_ROW = 'A' THEN '남' WHEN A.F_ROW = 'B' THEN '북' ELSE A.F_ROW END F_ROW
+		      ,CASE WHEN MAX(A.CLEAN_GB) = 'A' THEN '완전청소' WHEN MAX(A.CLEAN_GB) = 'B' THEN '부분청소' ELSE '완전청소' END CLEAN_GB
+		      ,MAX(A.CLEAN_ECELL) CLEAN_ECELL
+		      ,MAX(A.CLEAN_DT) CLEAN_DT
+		      ,NVL(MAX(A.BF_DT),'-') BF_DT
+		      ,NVL(SUM(A.CALC_CLEAN),0) CALC_CLEAN
+		      ,ROUND(NVL(SUM(A.CALC_CLEAN),0) / COUNT(1)) CALC_SUM
+		FROM TBL_CLEAN_DETAIL A
+		WHERE A.FACTORY_NM = '1'
+		AND SUBSTR(A.CLEAN_DT,1,4) = #{ser_yy}
+		<if test='ser_mm != null and ser_mm != "ALL"'>
+		AND SUBSTR(A.CLEAN_DT,5,2) = #{ser_mm}
+		</if>
+		GROUP BY A.FACTORY_NM, A.F_LINE, A.F_ROW
+		ORDER BY A.FACTORY_NM, A.F_LINE, A.F_ROW ASC, MAX(A.CLEAN_DT) DESC
+	</select>
+
+	<select id="select_tbl_cre_list_pop" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+	/* oracle.yp_zpp.select_tbl_cre_list_pop */
+SELECT '01' AS MM, a1.*
+FROM (SELECT A.F_LINE||A.F_ROW AS F_LINE
+            ,ROUND(NVL(SUM(A.CALC_CLEAN),0) / COUNT(1)) CALC_CLEAN
+      FROM TBL_CLEAN_DETAIL A
+      WHERE 1=1
+      AND A.FACTORY_NM = '1'
+      AND SUBSTR(A.CLEAN_DT,1,4) = #{ser_yy}
+      AND SUBSTR(A.CLEAN_DT,5,2) = '01'
+      GROUP BY A.F_LINE||A.F_ROW
+      ORDER BY A.F_LINE||A.F_ROW ASC
+)
+PIVOT (
+	MAX(NVL(CALC_CLEAN,0))
+    FOR F_LINE IN ('1A' AS A1, '1B' AS B1, '2A' AS A2, '2B' AS B2, '3A' AS A3, '3B' AS B3, '4A' AS A4, '4B' AS B4, '5A' AS A5, '5B' AS B5, '6A' AS A6, '6B' AS B6, '7A' AS A7, '7B' AS B7)
+) a1
+UNION ALL
+SELECT '02', a2.*
+FROM (SELECT A.F_LINE||A.F_ROW AS F_LINE
+            ,ROUND(NVL(SUM(A.CALC_CLEAN),0) / COUNT(1)) CALC_CLEAN
+      FROM TBL_CLEAN_DETAIL A
+      WHERE 1=1
+      AND A.FACTORY_NM = '1'
+      AND SUBSTR(A.CLEAN_DT,1,4) = #{ser_yy}
+      AND SUBSTR(A.CLEAN_DT,5,2) = '02'
+      GROUP BY A.F_LINE||A.F_ROW
+      ORDER BY A.F_LINE||A.F_ROW ASC
+)
+PIVOT (
+	MAX(NVL(CALC_CLEAN,0))
+    FOR F_LINE IN ('1A' AS A1, '1B' AS B1, '2A' AS A2, '2B' AS B2, '3A' AS A3, '3B' AS B3, '4A' AS A4, '4B' AS B4, '5A' AS A5, '5B' AS B5, '6A' AS A6, '6B' AS B6, '7A' AS A7, '7B' AS B7)
+) a2
+UNION ALL
+SELECT '03', a3.*
+FROM (SELECT A.F_LINE||A.F_ROW AS F_LINE
+            ,ROUND(NVL(SUM(A.CALC_CLEAN),0) / COUNT(1)) CALC_CLEAN
+      FROM TBL_CLEAN_DETAIL A
+      WHERE 1=1
+      AND A.FACTORY_NM = '1'
+      AND SUBSTR(A.CLEAN_DT,1,4) = #{ser_yy}
+      AND SUBSTR(A.CLEAN_DT,5,2) = '03'
+      GROUP BY A.F_LINE||A.F_ROW
+      ORDER BY A.F_LINE||A.F_ROW ASC
+)
+PIVOT (
+	MAX(NVL(CALC_CLEAN,0))
+    FOR F_LINE IN ('1A' AS A1, '1B' AS B1, '2A' AS A2, '2B' AS B2, '3A' AS A3, '3B' AS B3, '4A' AS A4, '4B' AS B4, '5A' AS A5, '5B' AS B5, '6A' AS A6, '6B' AS B6, '7A' AS A7, '7B' AS B7)
+) a3
+UNION ALL
+SELECT '04', a4.*
+FROM (SELECT A.F_LINE||A.F_ROW AS F_LINE
+            ,ROUND(NVL(SUM(A.CALC_CLEAN),0) / COUNT(1)) CALC_CLEAN
+      FROM TBL_CLEAN_DETAIL A
+      WHERE 1=1
+      AND A.FACTORY_NM = '1'
+      AND SUBSTR(A.CLEAN_DT,1,4) = #{ser_yy}
+      AND SUBSTR(A.CLEAN_DT,5,2) = '04'
+      GROUP BY A.F_LINE||A.F_ROW
+      ORDER BY A.F_LINE||A.F_ROW ASC
+)
+PIVOT (
+	MAX(NVL(CALC_CLEAN,0))
+    FOR F_LINE IN ('1A' AS A1, '1B' AS B1, '2A' AS A2, '2B' AS B2, '3A' AS A3, '3B' AS B3, '4A' AS A4, '4B' AS B4, '5A' AS A5, '5B' AS B5, '6A' AS A6, '6B' AS B6, '7A' AS A7, '7B' AS B7)
+) a4
+UNION ALL
+SELECT '05', a5.*
+FROM (SELECT A.F_LINE||A.F_ROW AS F_LINE
+            ,ROUND(NVL(SUM(A.CALC_CLEAN),0) / COUNT(1)) CALC_CLEAN
+      FROM TBL_CLEAN_DETAIL A
+      WHERE 1=1
+      AND A.FACTORY_NM = '1'
+      AND SUBSTR(A.CLEAN_DT,1,4) = #{ser_yy}
+      AND SUBSTR(A.CLEAN_DT,5,2) = '05'
+      GROUP BY A.F_LINE||A.F_ROW
+      ORDER BY A.F_LINE||A.F_ROW ASC
+)
+PIVOT (
+	MAX(NVL(CALC_CLEAN,0))
+    FOR F_LINE IN ('1A' AS A1, '1B' AS B1, '2A' AS A2, '2B' AS B2, '3A' AS A3, '3B' AS B3, '4A' AS A4, '4B' AS B4, '5A' AS A5, '5B' AS B5, '6A' AS A6, '6B' AS B6, '7A' AS A7, '7B' AS B7)
+) a5
+UNION ALL
+SELECT '06', a6.*
+FROM (SELECT A.F_LINE||A.F_ROW AS F_LINE
+            ,ROUND(NVL(SUM(A.CALC_CLEAN),0) / COUNT(1)) CALC_CLEAN
+      FROM TBL_CLEAN_DETAIL A
+      WHERE 1=1
+      AND A.FACTORY_NM = '1'
+      AND SUBSTR(A.CLEAN_DT,1,4) = #{ser_yy}
+      AND SUBSTR(A.CLEAN_DT,5,2) = '06'
+      GROUP BY A.F_LINE||A.F_ROW
+      ORDER BY A.F_LINE||A.F_ROW ASC
+)
+PIVOT (
+	MAX(NVL(CALC_CLEAN,0))
+    FOR F_LINE IN ('1A' AS A1, '1B' AS B1, '2A' AS A2, '2B' AS B2, '3A' AS A3, '3B' AS B3, '4A' AS A4, '4B' AS B4, '5A' AS A5, '5B' AS B5, '6A' AS A6, '6B' AS B6, '7A' AS A7, '7B' AS B7)
+) a6
+UNION ALL
+SELECT '07', a7.*
+FROM (SELECT A.F_LINE||A.F_ROW AS F_LINE
+            ,ROUND(NVL(SUM(A.CALC_CLEAN),0) / COUNT(1)) CALC_CLEAN
+      FROM TBL_CLEAN_DETAIL A
+      WHERE 1=1
+      AND A.FACTORY_NM = '1'
+      AND SUBSTR(A.CLEAN_DT,1,4) = #{ser_yy}
+      AND SUBSTR(A.CLEAN_DT,5,2) = '07'
+      GROUP BY A.F_LINE||A.F_ROW
+      ORDER BY A.F_LINE||A.F_ROW ASC
+)
+PIVOT (
+	MAX(NVL(CALC_CLEAN,0))
+    FOR F_LINE IN ('1A' AS A1, '1B' AS B1, '2A' AS A2, '2B' AS B2, '3A' AS A3, '3B' AS B3, '4A' AS A4, '4B' AS B4, '5A' AS A5, '5B' AS B5, '6A' AS A6, '6B' AS B6, '7A' AS A7, '7B' AS B7)
+) a7
+UNION ALL
+SELECT '08', a8.*
+FROM (SELECT A.F_LINE||A.F_ROW AS F_LINE
+            ,ROUND(NVL(SUM(A.CALC_CLEAN),0) / COUNT(1)) CALC_CLEAN
+      FROM TBL_CLEAN_DETAIL A
+      WHERE 1=1
+      AND A.FACTORY_NM = '1'
+      AND SUBSTR(A.CLEAN_DT,1,4) = #{ser_yy}
+      AND SUBSTR(A.CLEAN_DT,5,2) = '08'
+      GROUP BY A.F_LINE||A.F_ROW
+      ORDER BY A.F_LINE||A.F_ROW ASC
+)
+PIVOT (
+	MAX(NVL(CALC_CLEAN,0))
+    FOR F_LINE IN ('1A' AS A1, '1B' AS B1, '2A' AS A2, '2B' AS B2, '3A' AS A3, '3B' AS B3, '4A' AS A4, '4B' AS B4, '5A' AS A5, '5B' AS B5, '6A' AS A6, '6B' AS B6, '7A' AS A7, '7B' AS B7)
+) a8
+UNION ALL
+SELECT '09', a9.*
+FROM (SELECT A.F_LINE||A.F_ROW AS F_LINE
+            ,ROUND(NVL(SUM(A.CALC_CLEAN),0) / COUNT(1)) CALC_CLEAN
+      FROM TBL_CLEAN_DETAIL A
+      WHERE 1=1
+      AND A.FACTORY_NM = '1'
+      AND SUBSTR(A.CLEAN_DT,1,4) = #{ser_yy}
+      AND SUBSTR(A.CLEAN_DT,5,2) = '09'
+      GROUP BY A.F_LINE||A.F_ROW
+      ORDER BY A.F_LINE||A.F_ROW ASC
+)
+PIVOT (
+	MAX(NVL(CALC_CLEAN,0))
+    FOR F_LINE IN ('1A' AS A1, '1B' AS B1, '2A' AS A2, '2B' AS B2, '3A' AS A3, '3B' AS B3, '4A' AS A4, '4B' AS B4, '5A' AS A5, '5B' AS B5, '6A' AS A6, '6B' AS B6, '7A' AS A7, '7B' AS B7)
+) a9
+UNION ALL
+SELECT '10', a10.*
+FROM (SELECT A.F_LINE||A.F_ROW AS F_LINE
+            ,ROUND(NVL(SUM(A.CALC_CLEAN),0) / COUNT(1)) CALC_CLEAN
+      FROM TBL_CLEAN_DETAIL A
+      WHERE 1=1
+      AND A.FACTORY_NM = '1'
+      AND SUBSTR(A.CLEAN_DT,1,4) = #{ser_yy}
+      AND SUBSTR(A.CLEAN_DT,5,2) = '10'
+      GROUP BY A.F_LINE||A.F_ROW
+      ORDER BY A.F_LINE||A.F_ROW ASC
+)
+PIVOT (
+	MAX(NVL(CALC_CLEAN,0))
+    FOR F_LINE IN ('1A' AS A1, '1B' AS B1, '2A' AS A2, '2B' AS B2, '3A' AS A3, '3B' AS B3, '4A' AS A4, '4B' AS B4, '5A' AS A5, '5B' AS B5, '6A' AS A6, '6B' AS B6, '7A' AS A7, '7B' AS B7)
+) a10
+UNION ALL
+SELECT '11', a11.*
+FROM (SELECT A.F_LINE||A.F_ROW AS F_LINE
+            ,ROUND(NVL(SUM(A.CALC_CLEAN),0) / COUNT(1)) CALC_CLEAN
+      FROM TBL_CLEAN_DETAIL A
+      WHERE 1=1
+      AND A.FACTORY_NM = '1'
+      AND SUBSTR(A.CLEAN_DT,1,4) = #{ser_yy}
+      AND SUBSTR(A.CLEAN_DT,5,2) = '11'
+      GROUP BY A.F_LINE||A.F_ROW
+      ORDER BY A.F_LINE||A.F_ROW ASC
+)
+PIVOT (
+	MAX(NVL(CALC_CLEAN,0))
+    FOR F_LINE IN ('1A' AS A1, '1B' AS B1, '2A' AS A2, '2B' AS B2, '3A' AS A3, '3B' AS B3, '4A' AS A4, '4B' AS B4, '5A' AS A5, '5B' AS B5, '6A' AS A6, '6B' AS B6, '7A' AS A7, '7B' AS B7)
+) a11
+UNION ALL
+SELECT '12', a12.*
+FROM (SELECT A.F_LINE||A.F_ROW AS F_LINE
+            ,ROUND(NVL(SUM(A.CALC_CLEAN),0) / COUNT(1)) CALC_CLEAN
+      FROM TBL_CLEAN_DETAIL A
+      WHERE 1=1
+      AND A.FACTORY_NM = '1'
+      AND SUBSTR(A.CLEAN_DT,1,4) = #{ser_yy}
+      AND SUBSTR(A.CLEAN_DT,5,2) = '12'
+      GROUP BY A.F_LINE||A.F_ROW
+      ORDER BY A.F_LINE||A.F_ROW ASC
+)
+PIVOT (
+	MAX(NVL(CALC_CLEAN,0))
+    FOR F_LINE IN ('1A' AS A1, '1B' AS B1, '2A' AS A2, '2B' AS B2, '3A' AS A3, '3B' AS B3, '4A' AS A4, '4B' AS B4, '5A' AS A5, '5B' AS B5, '6A' AS A6, '6B' AS B6, '7A' AS A7, '7B' AS B7)
+) a12
+	</select>
+
+	<select id="select_zpp_wsd_list" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.select_zpp_wsd_list */
+		SELECT A.DOC_TYPE
+      		  ,A.TYPE1
+			  ,A.TYPE2
+			  ,A.CODE
+			  ,A.DOC_TITLE
+			  ,A.REG_DATE
+			  ,A.REG_EMP
+			  ,A.UPD_DATE
+			  ,B.VERSION
+			  ,A.STATUS
+			  ,B.GW_EDOC_STATUS
+		FROM TBL_WORK_DOC A
+		LEFT JOIN (SELECT CODE
+						 ,GW_EDOC_STATUS
+			             ,MAX(VERSION) AS VERSION
+			       FROM TBL_WORK_DOC_VERSION
+			       GROUP BY CODE, GW_EDOC_STATUS) B
+		ON A.CODE = B.CODE
+		WHERE A.STATUS = 'O'
+		<if test="type1 != '' and type1 != null">AND A.TYPE1 = #{type1}</if>
+		<if test="type2 != '' and type2 != null">AND A.TYPE2 = #{type2}</if>
+	    <if test="code != '' and code != null">AND A.CODE LIKE '%'||#{code}||'%'</if>
+	    <if test="title != '' and title != null">AND A.DOC_TITLE LIKE '%'||#{title}||'%'</if>
+	    ORDER BY A.DOC_TYPE, A.TYPE1, A.TYPE2, A.CODE ASC
+	</select>
+
+<!-- 	<select id="select_zpp_wsd_list" resultType="java.util.HashMap" parameterType="java.util.HashMap"> -->
+<!-- 		/* oracle.yp_zpp.select_zpp_wsd_list */ -->
+<!-- 		SELECT A.DOC_TYPE -->
+<!--       		  ,A.TYPE1 -->
+<!-- 			  ,A.TYPE2 -->
+<!-- 			  ,A.CODE -->
+<!-- 			  ,A.DOC_TITLE -->
+<!-- 			  ,A.REG_DATE -->
+<!-- 			  ,A.REG_EMP -->
+<!-- 			  ,A.UPD_DATE -->
+<!-- 			  ,B.VERSION -->
+<!-- 			  ,A.STATUS -->
+<!-- 			  ,B.GW_EDOC_STATUS -->
+<!-- 			  ,C.VERSION AS NEW_VER -->
+<!-- 			  ,C.GW_EDOC_STATUS AS NEW_EDOC -->
+<!-- 		FROM TBL_WORK_DOC A -->
+<!-- 		LEFT JOIN (SELECT CODE ,GW_EDOC_STATUS -->
+<!-- 			             ,MAX(VERSION) AS VERSION -->
+<!-- 			       FROM TBL_WORK_DOC_VERSION -->
+<!-- 			       GROUP BY CODE, GW_EDOC_STATUS -->
+<!-- 			       HAVING GW_EDOC_STATUS = 'F') B -->
+<!-- 				   ON A.CODE = B.CODE -->
+<!-- 		LEFT JOIN (SELECT CODE ,GW_EDOC_STATUS ,GW_EDOC_DATE -->
+<!-- 			             ,MAX(VERSION) AS VERSION -->
+<!-- 			       FROM TBL_WORK_DOC_VERSION -->
+<!-- 			       GROUP BY CODE, GW_EDOC_STATUS, GW_EDOC_DATE -->
+<!-- 			       HAVING GW_EDOC_STATUS != 'F' OR GW_EDOC_STATUS is null) C -->
+<!-- 				   ON A.CODE = C.CODE -->
+<!-- 		WHERE A.STATUS = 'O' -->
+<!-- 		<if test="type1 != '' and type1 != null">AND A.TYPE1 = #{type1}</if> -->
+<!-- 		<if test="type2 != '' and type2 != null">AND A.TYPE2 = #{type2}</if> -->
+<!-- 		<if test="code != '' and code != null">AND A.CODE LIKE '%'||#{code}||'%'</if> -->
+<!-- 		<if test="title != '' and title != null">AND A.DOC_TITLE LIKE '%'||#{title}||'%'</if> -->
+<!-- 	    ORDER BY A.DOC_TYPE, A.TYPE1, A.TYPE2, A.CODE ASC -->
+<!-- 	</select> -->
+
+    <select id="select_zpp_wsd_list_cnt" resultType="Double">
+    	/* oracle.yp_zpp.select_zpp_wsd_list_cnt */
+		SELECT COUNT(*) AS CNT
+		FROM TBL_WORK_DOC
+		WHERE STATUS = 'O'
+	</select>
+
+	<select id="zpp_wsd_version_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_wsd_version_list */
+		SELECT VERSION ,GW_EDOC_STATUS
+		FROM TBL_WORK_DOC_VERSION
+	    WHERE CODE = #{code}
+	    ORDER BY VERSION DESC
+	</select>
+
+	<select id="zpp_wsd_link" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_wsd_link */
+		SELECT CODE
+			  ,VERSION
+			  ,FILE_URL
+			  ,FILE_NAME
+			  ,PDF_URL
+			  ,PDF_NAME
+		FROM TBL_WORK_DOC_VERSION
+	    WHERE CODE = #{code}
+	    AND VERSION = #{version}
+	</select>
+
+	<select id="wsd_edoc_write" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.wsd_edoc_write */
+		SELECT A.CODE
+			  ,B.TYPE1
+			  ,B.TYPE2 
+			  ,B.DOC_TITLE
+			  ,TO_CHAR(A.VERSION) AS VERSION
+			  ,A.PDF_URL
+			  ,A.PDF_NAME
+			  ,A.REG_DATE
+		FROM TBL_WORK_DOC_VERSION A
+		LEFT JOIN TBL_WORK_DOC B
+		ON A.CODE = B.CODE
+		WHERE A.CODE = #{CODE}
+	    AND A.VERSION = #{VERSION}
+	</select>
+
+	<update id="zpp_wsd_create_save" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_wsd_create_save */
+		INSERT INTO TBL_WORK_DOC
+		(	DOC_TYPE
+			,TYPE1
+			,TYPE2
+			,CODE
+			,DOC_TITLE
+			,REG_DATE
+			,REG_EMP
+			,STATUS
+		)VALUES(
+			#{doc_type}
+			,#{type1}
+			,#{type2}
+			,#{doc_no}
+			,#{doc_title}
+			,sysdate
+			,#{emp_code}
+			,'O'
+		)
+	</update>
+	
+	<update id="zpp_wsd_create_version_save" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_wsd_create_version_save */
+		/*2022.12.28 kjy GW_EDOC_STATUS null 오류 수정 -> 'F' 값으로 고정 처리 */
+		INSERT INTO TBL_WORK_DOC_VERSION
+		(	CODE
+			,VERSION
+			,FILE_URL
+			,FILE_NAME
+			,REG_DATE
+			,REG_EMP
+			,PDF_URL
+			,PDF_NAME
+			,GW_EDOC_STATUS
+		)VALUES(
+			#{doc_no}
+			,#{doc_ver}
+			,#{file_url}
+			,#{file_name}
+			,sysdate
+			,#{emp_code}
+			,#{pdf_url}
+			,#{pdf_name}
+			,'F'
+		)
+	</update>
+	
+	<update  id="zpp_wsd_update_save" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_wsd_update_save */
+			UPDATE TBL_WORK_DOC
+			SET UPD_DATE = SYSDATE
+			   ,UPD_EMP = #{emp_code}
+			WHERE CODE = #{doc_no}
+	</update>
+	
+	<update  id="zpp_wsd_update_status" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_wsd_update_save */
+			UPDATE TBL_WORK_DOC_VERSION
+			SET GW_EDOC_DATE = SYSDATE
+			   ,GW_EDOC_STATUS = #{STATUS}
+			   ,GW_EDOC_NO = #{EDOC_NO}
+			WHERE CODE = #{CODE}
+	    	AND VERSION = #{VERSION}
+	</update>
+
+	<insert id="zpp_ctd_insert_master" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ctd_insert_master */
+		INSERT INTO TBL_CATHODE_MASTER (
+			JOB_INDEX,
+			JOB_DATE,
+			MACHINE_NO,
+			JOB_TIME,
+			WORKER,
+			REMAIN_AMOUNT,
+			REMAIN_LEVEL,
+			M1_LOT_CNT,
+			M1_WEIGHT,
+			M1_RESULT,
+			M2_LOT_CNT,
+			M2_WEIGHT,
+			M2_RESULT,
+			M3_LOT_CNT,
+			M3_WEIGHT,
+			M3_RESULT,
+			M4_LOT_CNT,
+			M4_WEIGHT,
+			M4_RESULT,
+			M5_LOT_CNT,
+			M5_WEIGHT,
+			M5_RESULT,
+			M6_LOT_CNT,
+			M6_WEIGHT,
+			M6_RESULT,
+			M7_LOT_CNT,
+			M7_WEIGHT,
+			M7_RESULT,
+			M8_LOT_CNT,
+			M8_WEIGHT,
+			M8_RESULT,
+			PREDICT_LEVEL,
+			TABLET_WORKER,
+			TABLET_REG_DATETIME,
+			REG_DATE
+		)VALUES(
+			#{JOB_INDEX},
+			#{JOB_DATE},
+			#{MACHINE_NO},
+			#{JOB_TIME},
+			#{WORKER},
+			${REMAIN_AMOUNT},
+			${REMAIN_LEVEL},
+			${M1_LOT_CNT},
+			${M1_WEIGHT},
+			${M1_RESULT},
+			${M2_LOT_CNT},
+			${M2_WEIGHT},
+			${M2_RESULT},
+			${M3_LOT_CNT},
+			${M3_WEIGHT},
+			${M3_RESULT},
+			${M4_LOT_CNT},
+			${M4_WEIGHT},
+			${M4_RESULT},
+			${M5_LOT_CNT},
+			${M5_WEIGHT},
+			${M5_RESULT},
+			${M6_LOT_CNT},
+			${M6_WEIGHT},
+			${M6_RESULT},
+			${M7_LOT_CNT},
+			${M7_WEIGHT},
+			${M7_RESULT},
+			${M8_LOT_CNT},
+			${M8_WEIGHT},
+			${M8_RESULT},
+			${PREDICT_LEVEL},
+			#{TABLET_WORKER},
+			#{TABLET_REG_DATETIME},
+			#{REG_DATE}
+		)
+	</insert>
+
+	<update id="update_zpp_ctd_cathode_master" parameterType="java.util.HashMap">
+		UPDATE TBL_CATHODE_MASTER
+		   SET M1_RESULT = ${M1_RESULT},
+		   	   M2_RESULT = ${M2_RESULT},	
+		   	   M3_RESULT = ${M3_RESULT},	
+		   	   M4_RESULT = ${M4_RESULT},	
+		   	   M5_RESULT = ${M5_RESULT},	
+		   	   M6_RESULT = ${M6_RESULT},	
+		   	   M7_RESULT = ${M7_RESULT},	
+		   	   M8_RESULT = ${M8_RESULT},
+		   	   TABLET_WORKER = #{TABLET_WORKER},
+		   	   TABLET_REG_DATETIME = #{TABLET_REG_DATETIME}
+		 WHERE JOB_INDEX = #{JOB_INDEX}
+	</update>
+
+	<select id="zpp_ctd_cathode_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ctd_cathode_list */
+		SELECT *
+		  FROM TBL_CATHODE_MASTER
+	     WHERE JOB_DATE BETWEEN #{sdate} AND #{edate}
+		 <if test='machine_id != null and machine_id != "A"'>AND MACHINE_NO = #{machine_id}</if>
+		 <if test='hour_index != null and hour_index != "A"'>AND JOB_TIME = #{hour_index}</if>
+		 <if test='worker_name != null and worker_name != ""'>AND WORKER LIKE '%'||#{worker_name}||'%'</if>
+	     ORDER BY REG_DATE
+	</select>
+
+	<select id="zpp_ctd_cathode_list_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ctd_cathode_list_cnt */
+		SELECT COUNT(*) AS CNT
+		  FROM TBL_CATHODE_MASTER
+	     WHERE JOB_DATE BETWEEN #{sdate} AND #{edate}
+		 <if test='machine_id != null and machine_id != "A"'>AND MACHINE_NO = #{machine_id}</if>
+		 <if test='hour_index != null and hour_index != "A"'>AND JOB_TIME = #{hour_index}</if>
+		 <if test='worker_name != null and worker_name != ""'>AND WORKER LIKE '%'||#{worker_name}||'%'</if>
+	</select>
+
+	<insert id="insert_zpp_ctd_cathode_setup" parameterType="java.util.HashMap">
+		INSERT INTO TBL_CATHODE_SETUP (
+			REG_DATE,
+			M1_LOT_WEIGHT,
+			M1_PPM_LEVEL,
+			M2_LOT_WEIGHT,
+			M2_PPM_LEVEL,
+			M3_LOT_WEIGHT,
+			M3_PPM_LEVEL,
+			M4_LOT_WEIGHT,
+			M4_PPM_LEVEL,
+			M5_LOT_WEIGHT,
+			M5_PPM_LEVEL,
+			M6_LOT_WEIGHT,
+			M6_PPM_LEVEL,
+			M7_LOT_WEIGHT,
+			M7_PPM_LEVEL,
+			M8_LOT_WEIGHT,
+			M8_PPM_LEVEL
+		)VALUES(
+			#{REG_DATE}
+			${M1_LOT_WEIGHT},
+			${M1_PPM_LEVEL},
+			${M2_LOT_WEIGHT},
+			${M2_PPM_LEVEL},
+			${M3_LOT_WEIGHT},
+			${M3_PPM_LEVEL},
+			${M4_LOT_WEIGHT},
+			${M4_PPM_LEVEL},
+			${M5_LOT_WEIGHT},
+			${M5_PPM_LEVEL},
+			${M6_LOT_WEIGHT},
+			${M6_PPM_LEVEL},
+			${M7_LOT_WEIGHT},
+			${M7_PPM_LEVEL},
+			${M8_LOT_WEIGHT},
+			${M8_PPM_LEVEL}
+		)
+	</insert>
+
+	<select id="zpp_ctd_envdata" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ctd_envdata */
+		SELECT *
+		  FROM (SELECT * FROM TBL_CATHODE_SETUP ORDER BY REG_DATE desc)
+	     WHERE ROWNUM=1
+	</select>
+
+	<insert id="zpp_ctd_insert_envdata" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ctd_insert_envdata */
+		INSERT INTO TBL_CATHODE_SETUP (
+			REG_DATE,
+			M1_LOT_WEIGHT,
+			M1_PPM_LEVEL,
+			M2_LOT_WEIGHT,
+			M2_PPM_LEVEL,
+			M3_LOT_WEIGHT,
+			M3_PPM_LEVEL,
+			M4_LOT_WEIGHT,
+			M4_PPM_LEVEL,
+			M5_LOT_WEIGHT,
+			M5_PPM_LEVEL,
+			M6_LOT_WEIGHT,
+			M6_PPM_LEVEL,
+			M7_LOT_WEIGHT,
+			M7_PPM_LEVEL,
+			M8_LOT_WEIGHT,
+			M8_PPM_LEVEL
+		)VALUES(
+			#{REG_DATE},
+			${M1_LOT_WEIGHT},
+			${M1_PPM_LEVEL},
+			${M2_LOT_WEIGHT},
+			${M2_PPM_LEVEL},
+			${M3_LOT_WEIGHT},
+			${M3_PPM_LEVEL},
+			${M4_LOT_WEIGHT},
+			${M4_PPM_LEVEL},
+			${M5_LOT_WEIGHT},
+			${M5_PPM_LEVEL},
+			${M6_LOT_WEIGHT},
+			${M6_PPM_LEVEL},
+			${M7_LOT_WEIGHT},
+			${M7_PPM_LEVEL},
+			${M8_LOT_WEIGHT},
+			${M8_PPM_LEVEL}
+		)
+	</insert>
+
+	<select id="zpp_ctd_graph_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ctd_graph_list */
+		SELECT *
+		  FROM TBL_CATHODE_MASTER
+	     WHERE JOB_DATE BETWEEN #{sdate} AND #{edate}
+		 <if test='machine_id != null and machine_id != "A"'>AND MACHINE_NO = #{machine_id}</if>
+		 <if test='hour_index != null and hour_index != "A"'>AND JOB_TIME = #{hour_index}</if>
+		 <if test='worker_name != null and worker_name != ""'>AND WORKER LIKE '%'||#{worker_name}||'%'</if>
+	     ORDER BY REG_DATE
+	</select>
+
+	<select id="zpp_ore_result1_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_result1_list */
+		SELECT *
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND ((IG_1_UMPIRE != 0) OR (IG_2_UMPIRE != 0) OR (IG_3_UMPIRE != 0))
+	       AND MATERIAL_ID = #{ore_id}
+		   <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	     ORDER BY IMPORT_DATE
+	</select>
+
+	<select id="zpp_ore_result1_list_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_result1_list_cnt */
+		SELECT COUNT(*) AS CNT
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND ((IG_1_UMPIRE != 0) OR (IG_2_UMPIRE != 0) OR (IG_3_UMPIRE != 0))
+	       AND MATERIAL_ID = #{ore_id}
+		   <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	</select>
+
+	<select id="zpp_ore_result1_data" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_result1_data */
+		SELECT am.IMPORT_DATE, am.VESSEL_NAME, ar.MASTER_ID, ar.INGREDIENT_ID, ar.LOT_NO, ar.DMT,
+		       ar.YP, ar.SELLER, ar.UMPIRE, ar.SETTLE, ar.STATE
+		  FROM TBL_ORE_ANALYSIS_RESULT ar, TBL_ORE_ANALYSIS_MASTER am
+	     WHERE ar.MASTER_ID = #{master_id}
+	       AND ar.MASTER_ID = am.MASTER_ID
+	     ORDER BY LOT_NO
+	</select>
+
+	<select id="zpp_ore_result1_data_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_result1_data_cnt */
+		SELECT COUNT(*) AS CNT
+		  FROM TBL_ORE_ANALYSIS_RESULT
+	     WHERE MASTER_ID = #{master_id}
+	</select>
+
+	<select id="zpp_ore_result2_ig1_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_result2_ig1_list */
+		select am.IMPORT_DATE, am.SELLER_ID, 
+		       (SELECT AVG(YP)
+		         from tbl_ore_analysis_result
+		        where MASTER_ID=am.MASTER_ID
+		          and INGREDIENT_ID='YPIG-0001') AS YP_AVERAGE,
+		       (SELECT AVG(SELLER)
+		         from tbl_ore_analysis_result
+		        where MASTER_ID=am.MASTER_ID
+		          and INGREDIENT_ID='YPIG-0001') AS SELLER_AVERAGE,
+		        am.IG_1_ADJUST, am.IG_1_SPLIT, am.IG_1_UMPIRE, am.IG_1_WIN, am.IG_1_FAIL
+		          from tbl_ore_analysis_master am, tbl_ore_analysis_result ar
+		where am.MATERIAL_ID=#{ore_id}
+		  and am.MASTER_ID=ar.MASTER_ID
+		  AND am.IG_1_UMPIRE != 0
+		  <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	</select>
+
+	<select id="zpp_ore_result2_ig1_list_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_result2_ig1_list_cnt */
+		select COUNT(*) AS CNT
+		  from TBL_ORE_ANALYSIS_MASTER
+		where MATERIAL_ID=#{ore_id}
+		  AND IG_1_UMPIRE != 0
+		  <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	</select>
+
+	<select id="zpp_ore_result2_ig2_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_result2_ig2_list */
+		select am.IMPORT_DATE, am.SELLER_ID, 
+		       (SELECT AVG(YP)
+		         from tbl_ore_analysis_result
+		        where MASTER_ID=am.MASTER_ID
+		          and INGREDIENT_ID='YPIG-0007') AS YP_AVERAGE,
+		       (SELECT AVG(SELLER)
+		         from tbl_ore_analysis_result
+		        where MASTER_ID=am.MASTER_ID
+		          and INGREDIENT_ID='YPIG-0007') AS SELLER_AVERAGE,
+		        am.IG_2_ADJUST, am.IG_2_SPLIT, am.IG_2_UMPIRE, am.IG_2_WIN, am.IG_2_FAIL
+		          from tbl_ore_analysis_master am, tbl_ore_analysis_result ar
+		where am.MATERIAL_ID=#{ore_id}
+		  and am.MASTER_ID=ar.MASTER_ID
+		  AND am.IG_2_UMPIRE != 0
+		  <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	</select>
+
+	<select id="zpp_ore_result2_ig2_list_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_result2_ig2_list_cnt */
+		select COUNT(*) AS CNT
+		  from TBL_ORE_ANALYSIS_MASTER
+		where MATERIAL_ID=#{ore_id}
+		  AND IG_2_UMPIRE != 0
+		  <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	</select>
+
+
+	<select id="zpp_ore_result2_ig3_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_result2_ig3_list */
+		select am.IMPORT_DATE, am.SELLER_ID, 
+		       (SELECT AVG(YP)
+		         from tbl_ore_analysis_result
+		        where MASTER_ID=am.MASTER_ID
+		          and INGREDIENT_ID='YPIG-0031') AS YP_AVERAGE,
+		       (SELECT AVG(SELLER)
+		         from tbl_ore_analysis_result
+		        where MASTER_ID=am.MASTER_ID
+		          and INGREDIENT_ID='YPIG-0031') AS SELLER_AVERAGE,
+		        am.IG_3_ADJUST, am.IG_3_SPLIT, am.IG_3_UMPIRE, am.IG_3_WIN, am.IG_3_FAIL
+		          from tbl_ore_analysis_master am, tbl_ore_analysis_result ar
+		where am.MATERIAL_ID=#{ore_id}
+		  and am.MASTER_ID=ar.MASTER_ID
+		  AND am.IG_3_UMPIRE != 0
+		  <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	</select>
+
+	<select id="zpp_ore_result2_ig3_list_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_result2_ig3_list_cnt */
+		select COUNT(*) AS CNT
+		  from TBL_ORE_ANALYSIS_MASTER
+		where MATERIAL_ID=#{ore_id}
+		  AND IG_3_UMPIRE != 0
+		  <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	</select>
+	
+	<select id="zpp_wsd_auth_dept_map_code_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_wsd_auth_dept_map_code_list */
+		SELECT 
+		  A.seq,
+		  A.type,
+		  A.key,
+		  A.value,
+		  A.memo,
+		  A.type_level,
+		  A.upper_key,
+		  A.upper_value,
+		  A.order_no
+		FROM TBL_CODE_LIST A
+		LEFT OUTER JOIN TBL_CODE_LIST_DEPT_MAP B
+		ON A.TYPE = B.TYPE
+		AND A.KEY = B.KEY
+		WHERE A.TYPE = #{type}
+		AND A.TYPE_LEVEL = #{type_level}
+		<if test="s_authogrp_code != 'SA' and  s_authogrp_code != 'MA' and auth != 'WM'">
+			<choose>
+				<when test="s_dept_code != null">
+				AND B.dept_cd = #{s_dept_code}
+				</when>
+				<otherwise>
+				AND B.dept_cd = #{dept_cd}
+				</otherwise>
+			</choose>
+		</if>
+		<if test="upper_key != null">AND A.UPPER_KEY = #{upper_key}</if>
+		<if test="upper_val != null">AND A.UPPER_VALUE = #{upper_val}</if>
+		ORDER BY ORDER_NO ASC
+	</select>
+
+	<select id="zpp_ore_umpire_result_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_umpire_result_list */
+		SELECT *
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND MATERIAL_ID = #{ore_id}
+			<if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	     ORDER BY IMPORT_DATE
+	</select>
+
+	<select id="zpp_ore_umpire_result_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_umpire_result_cnt */
+		SELECT COUNT(*) AS CNT
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND MATERIAL_ID = #{ore_id}
+			<if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	</select>
+
+	<select id="zpp_ore_umpire_result_dt_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_umpire_result_dt_list */
+		SELECT am.IMPORT_DATE, am.VESSEL_NAME, ar.MASTER_ID, ar.INGREDIENT_ID, ar.LOT_NO, ar.DMT,
+		       ar.YP, ar.SELLER, ar.UMPIRE, ar.SETTLE, ar.STATE
+		  FROM TBL_ORE_ANALYSIS_RESULT ar, TBL_ORE_ANALYSIS_MASTER am
+	     WHERE ar.MASTER_ID = #{master_id}
+	       AND ar.MASTER_ID = am.MASTER_ID
+		   AND ar.INGREDIENT_ID = #{ingredient_id}
+	     ORDER BY LOT_NO
+	</select>
+
+	<select id="zpp_ore_umpire_result_dt_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_umpire_result_dt_cnt */
+		SELECT COUNT(*) AS CNT
+		  FROM TBL_ORE_ANALYSIS_RESULT
+	     WHERE MASTER_ID = #{master_id}
+		   AND INGREDIENT_ID = #{ingredient_id}
+	</select>
+
+	<select id="zpp_ore_umpire_query_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_umpire_query_list */
+		SELECT *
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND MATERIAL_ID = #{ore_id}
+		   <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	     ORDER BY IMPORT_DATE
+	</select>
+
+	<select id="zpp_ore_umpire_query_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_umpire_query_cnt */
+		SELECT COUNT(*) AS CNT
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND MATERIAL_ID = #{ore_id}
+		   <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	</select>
+
+	<select id="zpp_ore_umpire_query_dt_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_umpire_query_dt_list */
+		SELECT am.IMPORT_DATE, am.VESSEL_NAME, ar.MASTER_ID, ar.INGREDIENT_ID, ar.LOT_NO, ar.DMT,
+		       ar.YP, ar.SELLER, ar.UMPIRE, ar.SETTLE, ar.STATE, ar.SELLER_ACTION, ar.YP_ACTION
+		  FROM TBL_ORE_ANALYSIS_RESULT ar, TBL_ORE_ANALYSIS_MASTER am
+	     WHERE ar.MASTER_ID = #{master_id}
+	       AND ar.MASTER_ID = am.MASTER_ID
+		   AND ar.INGREDIENT_ID = #{ingredient_id}
+	     ORDER BY LOT_NO
+	</select>
+
+	<select id="zpp_ore_umpire_query_dt_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_query_data_cnt */
+		SELECT COUNT(*) AS CNT
+		  FROM TBL_ORE_ANALYSIS_RESULT
+	     WHERE MASTER_ID = #{master_id}
+		   AND INGREDIENT_ID = #{ingredient_id}
+	</select>
+
+	<select id="zpp_ore_seller_compare_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_seller_compare_list */
+		SELECT *
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND MATERIAL_ID = #{ore_id}
+		   <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	     ORDER BY IMPORT_DATE
+	</select>
+
+	<select id="zpp_ore_seller_compare_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_seller_compare_cnt */
+		SELECT COUNT(*) AS CNT
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND MATERIAL_ID = #{ore_id}
+		   <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	</select>
+
+	<select id="zpp_ore_seller_compare_dt_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_seller_compare_dt_list */
+		SELECT am.IMPORT_DATE, am.VESSEL_NAME, ar.MASTER_ID, ar.INGREDIENT_ID, ar.LOT_NO, ar.DMT,
+		       ar.YP, ar.SELLER, ar.UMPIRE, ar.SETTLE, ar.STATE, ar.SELLER_ACTION, ar.YP_ACTION
+		  FROM TBL_ORE_ANALYSIS_RESULT ar, TBL_ORE_ANALYSIS_MASTER am
+	     WHERE ar.MASTER_ID = #{master_id}
+	       AND ar.MASTER_ID = am.MASTER_ID
+		   AND ar.INGREDIENT_ID = #{ingredient_id}
+	     ORDER BY LOT_NO
+	</select>
+
+	<select id="zpp_ore_seller_compare_dt_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_seller_compare_dt_cnt */
+		SELECT COUNT(*) AS CNT
+		  FROM TBL_ORE_ANALYSIS_RESULT
+	     WHERE MASTER_ID = #{master_id}
+		   AND INGREDIENT_ID = #{ingredient_id}
+	</select>
+
+	<select id="zpp_ore_seller_result_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_seller_result_list */
+		SELECT *
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND MATERIAL_ID = #{ore_id}
+		   <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	     ORDER BY IMPORT_DATE
+	</select>
+
+	<select id="zpp_ore_seller_result_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_seller_result_cnt */
+		SELECT COUNT(*) AS CNT
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND MATERIAL_ID = #{ore_id}
+		   <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	</select>
+
+	<select id="zpp_ore_seller_result_dt_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_seller_result_dt_list */
+		SELECT UNIQUE(LOT_NO),
+			   (SELECT YP FROM tbl_ore_analysis_result WHERE LOT_NO=ar.LOT_NO AND MASTER_ID=ar.master_id AND ingredient_id='YPIG-0001') YP_IG_1,
+			   (SELECT YP FROM tbl_ore_analysis_result WHERE LOT_NO=ar.LOT_NO AND MASTER_ID=ar.master_id AND ingredient_id='YPIG-0007') YP_IG_2,
+			   (SELECT YP FROM tbl_ore_analysis_result WHERE LOT_NO=ar.LOT_NO AND MASTER_ID=ar.master_id AND ingredient_id='YPIG-0031') YP_IG_3
+		FROM tbl_ore_analysis_result ar
+		where master_id=#{master_id}
+		ORDER BY LOT_NO
+	</select>
+
+	<select id="zpp_ore_seller_result_dt_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_seller_result_dt_cnt */
+		SELECT LOT_COUNT AS CNT
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE MASTER_ID=#{master_id}
+	</select>
+
+	<select id="zpp_ore_seller_query_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_seller_query_list */
+		SELECT *
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND MATERIAL_ID = #{ore_id}
+		   <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	     ORDER BY IMPORT_DATE
+	</select>
+
+	<select id="zpp_ore_seller_query_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_seller_query_cnt */
+		SELECT COUNT(*) AS CNT
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND MATERIAL_ID = #{ore_id}
+		   <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	</select>
+
+	<select id="zpp_ore_seller_query_dt_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_seller_query_dt_list */
+		SELECT UNIQUE(LOT_NO),
+			(SELECT YP FROM tbl_ore_analysis_result WHERE LOT_NO=ar.LOT_NO AND MASTER_ID=ar.master_id AND ingredient_id='YPIG-0001') YP_IG_1,
+			(SELECT YP FROM tbl_ore_analysis_result WHERE LOT_NO=ar.LOT_NO AND MASTER_ID=ar.master_id AND ingredient_id='YPIG-0007') YP_IG_2,
+			(SELECT YP FROM tbl_ore_analysis_result WHERE LOT_NO=ar.LOT_NO AND MASTER_ID=ar.master_id AND ingredient_id='YPIG-0031') YP_IG_3
+		FROM tbl_ore_analysis_result ar where master_id=#{master_id}
+		ORDER BY LOT_NO
+	</select>
+
+	<select id="zpp_ore_seller_query_dt_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_seller_query_dt_cnt */
+		SELECT LOT_COUNT AS CNT
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE MASTER_ID=#{master_id}
+	</select>
+
+	<select id="zpp_ore_bl_info_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_bl_info_list */
+		SELECT am.MASTER_ID, am.MATERIAL_ID, am.SELLER_ID, am.IMPORT_DATE, bi.WMT, NVL(am.STATUS, 0) STATUS
+		  FROM TBL_ORE_ANALYSIS_MASTER am, TBL_ORE_BL_INFO bi
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND am.MATERIAL_ID = #{ore_id}
+		   AND am.MASTER_ID = bi.MASTER_ID
+		   <if test='seller_id != null and seller_id != "ALL"'>AND am.SELLER_ID = #{seller_id}</if>
+	     ORDER BY am.IMPORT_DATE
+	</select>
+
+	<select id="zpp_ore_bl_info_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_bl_info_cnt */
+		SELECT COUNT(*) AS CNT
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND MATERIAL_ID = #{ore_id}
+		   <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+	</select>
+
+	<insert id="zpp_ore_insert_bl_info" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_insert_bl_info */
+		INSERT INTO TBL_ORE_BL_INFO (
+			MASTER_ID,
+			IMPORT_NO,
+			PO_NO,
+			DISCHARGING_RATE,
+			DEM_DES,
+			DMT,
+			WMT,
+			MOISTURE,
+			LBL_IG_1,
+			LBL_IG_2,
+			LBL_IG_3,
+			LBL_IG_4,
+			ASSAY_LIMIT_IG_1,
+			ASSAY_LIMIT_AMT_1,
+			ASSAY_LIMIT_UNIT_1,
+			ASSAY_LIMIT_IG_2,
+			ASSAY_LIMIT_AMT_2,
+			ASSAY_LIMIT_UNIT_2,
+			ASSAY_LIMIT_IG_3,
+			ASSAY_LIMIT_AMT_3,
+			ASSAY_LIMIT_UNIT_3,
+			ASSAY_LIMIT_IG_4,
+			ASSAY_LIMIT_AMT_4,
+			ASSAY_LIMIT_UNIT_4,
+			ASSAY_LIMIT_IG_5,
+			ASSAY_LIMIT_AMT_5,
+			ASSAY_LIMIT_UNIT_5,
+			ASSAY_LIMIT_IG_6,
+			ASSAY_LIMIT_AMT_6,
+			ASSAY_LIMIT_UNIT_6,
+			ASSAY_LIMIT_IG_7,
+			ASSAY_LIMIT_AMT_7,
+			ASSAY_LIMIT_UNIT_7,
+			ASSAY_LIMIT_IG_8,
+			ASSAY_LIMIT_AMT_8,
+			ASSAY_LIMIT_UNIT_8,
+			ASSAY_LIMIT_IG_9,
+			ASSAY_LIMIT_AMT_9,
+			ASSAY_LIMIT_UNIT_9,
+			ASSAY_LIMIT_IG_10,
+			ASSAY_LIMIT_AMT_10,
+			ASSAY_LIMIT_UNIT_10,
+			ASSAY_LIMIT_IG_11,
+			ASSAY_LIMIT_AMT_11,
+			ASSAY_LIMIT_UNIT_11,
+			ASSAY_LIMIT_IG_12,
+			ASSAY_LIMIT_AMT_12,
+			ASSAY_LIMIT_UNIT_12,
+			QP,
+			SURVEYOR,
+			LC_NO,
+			CLEARANCE_DATE,
+			AMOUNT_DECISION,
+			UNLOADING,
+			IMPORT_STORAGE,
+			DOCK_NO,
+			SPECIAL_SCHEDULE,
+			CPS_IG_1,
+			CPS_IG_2,
+			CPS_IG_3,
+			CPS_IG_4,
+			CPS_IG_5
+			)VALUES(
+			#{MASTER_ID},
+			#{IMPORT_NO},
+			#{PO_NO},
+			${DISCHARGING_RATE},
+			${DEM_DES},
+			${DMT},
+			${WMT},
+			${MOISTURE},
+			#{LBL_IG_1},
+			#{LBL_IG_2},
+			#{LBL_IG_3},
+			#{LBL_IG_4},
+			#{ASSAY_LIMIT_IG_1},
+			${ASSAY_LIMIT_AMT_1},
+			#{ASSAY_LIMIT_UNIT_1},
+			#{ASSAY_LIMIT_IG_2},
+			${ASSAY_LIMIT_AMT_2},
+			#{ASSAY_LIMIT_UNIT_2},
+			#{ASSAY_LIMIT_IG_3},
+			${ASSAY_LIMIT_AMT_3},
+			#{ASSAY_LIMIT_UNIT_3},
+			#{ASSAY_LIMIT_IG_4},
+			${ASSAY_LIMIT_AMT_4},
+			#{ASSAY_LIMIT_UNIT_4},
+			#{ASSAY_LIMIT_IG_5},
+			${ASSAY_LIMIT_AMT_5},
+			#{ASSAY_LIMIT_UNIT_5},
+			#{ASSAY_LIMIT_IG_6},
+			${ASSAY_LIMIT_AMT_6},
+			#{ASSAY_LIMIT_UNIT_6},
+			#{ASSAY_LIMIT_IG_7},
+			${ASSAY_LIMIT_AMT_7},
+			#{ASSAY_LIMIT_UNIT_7},
+			#{ASSAY_LIMIT_IG_8},
+			${ASSAY_LIMIT_AMT_8},
+			#{ASSAY_LIMIT_UNIT_8},
+			#{ASSAY_LIMIT_IG_9},
+			${ASSAY_LIMIT_AMT_9},
+			#{ASSAY_LIMIT_UNIT_9},
+			#{ASSAY_LIMIT_IG_10},
+			${ASSAY_LIMIT_AMT_10},
+			#{ASSAY_LIMIT_UNIT_10},
+			#{ASSAY_LIMIT_IG_11},
+			${ASSAY_LIMIT_AMT_11},
+			#{ASSAY_LIMIT_UNIT_11},
+			#{ASSAY_LIMIT_IG_12},
+			${ASSAY_LIMIT_AMT_12},
+			#{ASSAY_LIMIT_UNIT_12},
+			#{QP},
+			#{SURVEYOR},
+			#{LC_NO},
+			#{CLEARANCE_DATE},
+			#{AMOUNT_DECISION},
+			#{UNLOADING},
+			#{IMPORT_STORAGE},
+			#{DOCK_NO},
+			#{SPECIAL_SCHEDULE},
+			#{CPS_IG_1},
+			#{CPS_IG_2},
+			#{CPS_IG_3},
+			#{CPS_IG_4},
+			#{CPS_IG_5}
+		)
+	</insert>
+
+	<insert id="zpp_ore_insert_master_info" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_insert_master_info */
+		INSERT INTO TBL_ORE_ANALYSIS_MASTER (
+			MASTER_ID,
+			SELLER_ID,
+			MATERIAL_ID,
+			IMPORT_DATE,
+			VESSEL_NAME,
+			STATUS,
+			SHEET
+			)VALUES(
+			#{MASTER_ID},
+			#{SELLER_ID},
+			#{MATERIAL_ID},
+			#{IMPORT_DATE},
+			#{VESSEL_NAME},
+			0,
+			#{SHEET_ID}
+		)
+	</insert>
+
+	<update id="zpp_ore_update_bl_info" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_update_bl_info */
+		UPDATE TBL_ORE_BL_INFO
+		   SET
+			IMPORT_NO = #{IMPORT_NO},
+			PO_NO = #{PO_NO},
+			DISCHARGING_RATE = ${DISCHARGING_RATE},
+			DEM_DES = ${DEM_DES},
+			DMT = ${DMT},
+			WMT = ${WMT},
+			MOISTURE = ${MOISTURE},
+			LBL_IG_1 = #{LBL_IG_1},
+			LBL_IG_2 = #{LBL_IG_2},
+			LBL_IG_3 = #{LBL_IG_3},
+			LBL_IG_4 = #{LBL_IG_4},
+			ASSAY_LIMIT_IG_1 = #{ASSAY_LIMIT_IG_1},
+			ASSAY_LIMIT_IG_2 = #{ASSAY_LIMIT_IG_2},
+			ASSAY_LIMIT_IG_3 = #{ASSAY_LIMIT_IG_3},
+			ASSAY_LIMIT_IG_4 = #{ASSAY_LIMIT_IG_4},
+			ASSAY_LIMIT_IG_5 = #{ASSAY_LIMIT_IG_5},
+			ASSAY_LIMIT_IG_6 = #{ASSAY_LIMIT_IG_6},
+			ASSAY_LIMIT_IG_7 = #{ASSAY_LIMIT_IG_7},
+			ASSAY_LIMIT_IG_8 = #{ASSAY_LIMIT_IG_8},
+			ASSAY_LIMIT_IG_9 = #{ASSAY_LIMIT_IG_9},
+			ASSAY_LIMIT_IG_10 = #{ASSAY_LIMIT_IG_10},
+			ASSAY_LIMIT_IG_11 = #{ASSAY_LIMIT_IG_11},
+			ASSAY_LIMIT_IG_12 = #{ASSAY_LIMIT_IG_12},
+			ASSAY_LIMIT_AMT_1 = ${ASSAY_LIMIT_AMT_1},
+			ASSAY_LIMIT_AMT_2 = ${ASSAY_LIMIT_AMT_2},
+			ASSAY_LIMIT_AMT_3 = ${ASSAY_LIMIT_AMT_3},
+			ASSAY_LIMIT_AMT_4 = ${ASSAY_LIMIT_AMT_4},
+			ASSAY_LIMIT_AMT_5 = ${ASSAY_LIMIT_AMT_5},
+			ASSAY_LIMIT_AMT_6 = ${ASSAY_LIMIT_AMT_6},
+			ASSAY_LIMIT_AMT_7 = ${ASSAY_LIMIT_AMT_7},
+			ASSAY_LIMIT_AMT_8 = ${ASSAY_LIMIT_AMT_8},
+			ASSAY_LIMIT_AMT_9 = ${ASSAY_LIMIT_AMT_9},
+			ASSAY_LIMIT_AMT_10 = ${ASSAY_LIMIT_AMT_10},
+			ASSAY_LIMIT_AMT_11 = ${ASSAY_LIMIT_AMT_11},
+			ASSAY_LIMIT_AMT_12 = ${ASSAY_LIMIT_AMT_12},
+			ASSAY_LIMIT_UNIT_1 = #{ASSAY_LIMIT_UNIT_1},
+			ASSAY_LIMIT_UNIT_2 = #{ASSAY_LIMIT_UNIT_2},
+			ASSAY_LIMIT_UNIT_3 = #{ASSAY_LIMIT_UNIT_3},
+			ASSAY_LIMIT_UNIT_4 = #{ASSAY_LIMIT_UNIT_4},
+			ASSAY_LIMIT_UNIT_5 = #{ASSAY_LIMIT_UNIT_5},
+			ASSAY_LIMIT_UNIT_6 = #{ASSAY_LIMIT_UNIT_6},
+			ASSAY_LIMIT_UNIT_7 = #{ASSAY_LIMIT_UNIT_7},
+			ASSAY_LIMIT_UNIT_8 = #{ASSAY_LIMIT_UNIT_8},
+			ASSAY_LIMIT_UNIT_9 = #{ASSAY_LIMIT_UNIT_9},
+			ASSAY_LIMIT_UNIT_10 = #{ASSAY_LIMIT_UNIT_10},
+			ASSAY_LIMIT_UNIT_11 = #{ASSAY_LIMIT_UNIT_11},
+			ASSAY_LIMIT_UNIT_12 = #{ASSAY_LIMIT_UNIT_12},
+			QP = #{QP},
+			SURVEYOR = #{SURVEYOR},
+			LC_NO = #{LC_NO},
+			CLEARANCE_DATE = #{CLEARANCE_DATE},
+			AMOUNT_DECISION = #{AMOUNT_DECISION},
+			UNLOADING = #{UNLOADING},
+			IMPORT_STORAGE = #{IMPORT_STORAGE},
+			DOCK_NO = #{DOCK_NO},
+			SPECIAL_SCHEDULE = #{SPECIAL_SCHEDULE},
+			CPS_IG_1 = #{CPS_IG_1},
+			CPS_IG_2 = #{CPS_IG_2},
+			CPS_IG_3 = #{CPS_IG_3},
+			CPS_IG_4 = #{CPS_IG_4},
+			CPS_IG_5 = #{CPS_IG_5}
+		 WHERE #{MASTER_ID} = MASTER_ID
+	</update>
+
+	<update id="zpp_ore_update_master_info" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_update_master_info */
+		UPDATE TBL_ORE_ANALYSIS_MASTER
+		   SET
+			VESSEL_NAME = #{VESSEL_NAME},
+			SHEET = #{SHEET_ID}
+		 WHERE MASTER_ID = #{MASTER_ID}
+	</update>
+
+	<insert id="zpp_ore_insert_analysis_result" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_insert_analysis_result */
+		INSERT INTO TBL_ORE_MT_INFO (
+			MASTER_ID,
+			LOT_COUNT,
+			WMT_1,
+			MOISTURE_1,
+			DMT_1,
+			WMT_2,
+			MOISTURE_2,
+			DMT_2,
+			WMT_3,
+			MOISTURE_3,
+			DMT_3,
+			WMT_4,
+			MOISTURE_4,
+			DMT_4,
+			WMT_5,
+			MOISTURE_5,
+			DMT_5,
+			WMT_6,
+			MOISTURE_6,
+			DMT_6,
+			WMT_7,
+			MOISTURE_7,
+			DMT_7,
+			WMT_8,
+			MOISTURE_8,
+			DMT_8,
+			WMT_9,
+			MOISTURE_9,
+			DMT_9,
+			WMT_10,
+			MOISTURE_10,
+			DMT_10,
+			WMT_11,
+			MOISTURE_11,
+			DMT_11,
+			WMT_12,
+			MOISTURE_12,
+			DMT_12,
+			WMT_13,
+			MOISTURE_13,
+			DMT_13,
+			WMT_14,
+			MOISTURE_14,
+			DMT_14,
+			WMT_15,
+			MOISTURE_15,
+			DMT_15,
+			WMT_16,
+			MOISTURE_16,
+			DMT_16,
+			WMT_17,
+			MOISTURE_17,
+			DMT_17,
+			WMT_18,
+			MOISTURE_18,
+			DMT_18,
+			WMT_19,
+			MOISTURE_19,
+			DMT_19,
+			WMT_20,
+			MOISTURE_20,
+			DMT_20,
+			WMT_21,
+			MOISTURE_21,
+			DMT_21,
+			WMT_22,
+			MOISTURE_22,
+			DMT_22,
+			WMT_23,
+			MOISTURE_23,
+			DMT_23,
+			WMT_24,
+			MOISTURE_24,
+			DMT_24,
+			WMT_25,
+			MOISTURE_25,
+			DMT_25,
+			WMT_26,
+			MOISTURE_26,
+			DMT_26,
+			WMT_27,
+			MOISTURE_27,
+			DMT_27,
+			WMT_28,
+			MOISTURE_28,
+			DMT_28,
+			WMT_29,
+			MOISTURE_29,
+			DMT_29,
+			WMT_30,
+			MOISTURE_30,
+			DMT_30
+			)VALUES(
+			#{MASTER_ID},
+			${LOT_COUNT},
+			${WMT_1},
+			${MOISTURE_1},
+			${DMT_1},
+			${WMT_2},
+			${MOISTURE_2},
+			${DMT_2},
+			${WMT_3},
+			${MOISTURE_3},
+			${DMT_3},
+			${WMT_4},
+			${MOISTURE_4},
+			${DMT_4},
+			${WMT_5},
+			${MOISTURE_5},
+			${DMT_5},
+			${WMT_6},
+			${MOISTURE_6},
+			${DMT_6},
+			${WMT_7},
+			${MOISTURE_7},
+			${DMT_7},
+			${WMT_8},
+			${MOISTURE_8},
+			${DMT_8},
+			${WMT_9},
+			${MOISTURE_9},
+			${DMT_9},
+			${WMT_10},
+			${MOISTURE_10},
+			${DMT_10},
+			${WMT_11},
+			${MOISTURE_11},
+			${DMT_11},
+			${WMT_12},
+			${MOISTURE_12},
+			${DMT_12},
+			${WMT_13},
+			${MOISTURE_13},
+			${DMT_13},
+			${WMT_14},
+			${MOISTURE_14},
+			${DMT_14},
+			${WMT_15},
+			${MOISTURE_15},
+			${DMT_15},
+			${WMT_16},
+			${MOISTURE_16},
+			${DMT_16},
+			${WMT_17},
+			${MOISTURE_17},
+			${DMT_17},
+			${WMT_18},
+			${MOISTURE_18},
+			${DMT_18},
+			${WMT_19},
+			${MOISTURE_19},
+			${DMT_19},
+			${WMT_20},
+			${MOISTURE_20},
+			${DMT_20},
+			${WMT_21},
+			${MOISTURE_21},
+			${DMT_21},
+			${WMT_22},
+			${MOISTURE_22},
+			${DMT_22},
+			${WMT_23},
+			${MOISTURE_23},
+			${DMT_23},
+			${WMT_24},
+			${MOISTURE_24},
+			${DMT_24},
+			${WMT_25},
+			${MOISTURE_25},
+			${DMT_25},
+			${WMT_26},
+			${MOISTURE_26},
+			${DMT_26},
+			${WMT_27},
+			${MOISTURE_27},
+			${DMT_27},
+			${WMT_28},
+			${MOISTURE_28},
+			${DMT_28},
+			${WMT_29},
+			${MOISTURE_29},
+			${DMT_29},
+			${WMT_30},
+			${MOISTURE_30},
+			${DMT_30}
+		)
+	</insert>
+
+	<update id="zpp_ore_update_analysis_result" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_update_analysis_result */
+		UPDATE TBL_ORE_MT_INFO
+		   SET
+			LOT_COUNT = ${LOT_COUNT},
+			WMT_1 = ${WMT_1},
+			MOISTURE_1 = ${MOISTURE_1},
+			DMT_1 = ${DMT_1},
+			WMT_2 = ${WMT_2},
+			MOISTURE_2 = ${MOISTURE_2},
+			DMT_2 = ${DMT_2},
+			WMT_3 = ${WMT_3},
+			MOISTURE_3 = ${MOISTURE_3},
+			DMT_3 = ${DMT_3},
+			WMT_4 = ${WMT_4},
+			MOISTURE_4 = ${MOISTURE_4},
+			DMT_4 = ${DMT_4},
+			WMT_5 = ${WMT_5},
+			MOISTURE_5 = ${MOISTURE_5},
+			DMT_5 = ${DMT_5},
+			WMT_6 = ${WMT_6},
+			MOISTURE_6 = ${MOISTURE_6},
+			DMT_6 = ${DMT_6},
+			WMT_7 = ${WMT_7},
+			MOISTURE_7 = ${MOISTURE_7},
+			DMT_7 = ${DMT_7},
+			WMT_8 = ${WMT_8},
+			MOISTURE_8 = ${MOISTURE_8},
+			DMT_8 = ${DMT_8},
+			WMT_9 = ${WMT_9},
+			MOISTURE_9 = ${MOISTURE_9},
+			DMT_9 = ${DMT_9},
+			WMT_10 = ${WMT_10},
+			MOISTURE_10 = ${MOISTURE_10},
+			DMT_10 = ${DMT_10},
+			WMT_11 = ${WMT_11},
+			MOISTURE_11 = ${MOISTURE_11},
+			DMT_11 = ${DMT_11},
+			WMT_12 = ${WMT_12},
+			MOISTURE_12 = ${MOISTURE_12},
+			DMT_12 = ${DMT_12},
+			WMT_13 = ${WMT_13},
+			MOISTURE_13 = ${MOISTURE_13},
+			DMT_13 = ${DMT_13},
+			WMT_14 = ${WMT_14},
+			MOISTURE_14 = ${MOISTURE_14},
+			DMT_14 = ${DMT_14},
+			WMT_15 = ${WMT_15},
+			MOISTURE_15 = ${MOISTURE_15},
+			DMT_15 = ${DMT_15},
+			WMT_16 = ${WMT_16},
+			MOISTURE_16 = ${MOISTURE_16},
+			DMT_16 = ${DMT_16},
+			WMT_17 = ${WMT_17},
+			MOISTURE_17 = ${MOISTURE_17},
+			DMT_17 = ${DMT_17},
+			WMT_18 = ${WMT_18},
+			MOISTURE_18 = ${MOISTURE_18},
+			DMT_18 = ${DMT_18},
+			WMT_19 = ${WMT_19},
+			MOISTURE_19 = ${MOISTURE_19},
+			DMT_19 = ${DMT_19},
+			WMT_20 = ${WMT_20},
+			MOISTURE_20 = ${MOISTURE_20},
+			DMT_20 = ${DMT_20},
+			WMT_21 = ${WMT_21},
+			MOISTURE_21 = ${MOISTURE_21},
+			DMT_21 = ${DMT_21},
+			WMT_22 = ${WMT_22},
+			MOISTURE_22 = ${MOISTURE_22},
+			DMT_22 = ${DMT_22},
+			WMT_23 = ${WMT_23},
+			MOISTURE_23 = ${MOISTURE_23},
+			DMT_23 = ${DMT_23},
+			WMT_24 = ${WMT_24},
+			MOISTURE_24 = ${MOISTURE_24},
+			DMT_24 = ${DMT_24},
+			WMT_25 = ${WMT_25},
+			MOISTURE_25 = ${MOISTURE_25},
+			DMT_25 = ${DMT_25},
+			WMT_26 = ${WMT_26},
+			MOISTURE_26 = ${MOISTURE_26},
+			DMT_26 = ${DMT_26},
+			WMT_27 = ${WMT_27},
+			MOISTURE_27 = ${MOISTURE_27},
+			DMT_27 = ${DMT_27},
+			WMT_28 = ${WMT_28},
+			MOISTURE_28 = ${MOISTURE_28},
+			DMT_28 = ${DMT_28},
+			WMT_29 = ${WMT_29},
+			MOISTURE_29 = ${MOISTURE_29},
+			DMT_29 = ${DMT_29},
+			WMT_30 = ${WMT_30},
+			MOISTURE_30 = ${MOISTURE_30},
+			DMT_30 = ${DMT_30}
+	  	 WHERE MASTER_ID = #{MASTER_ID}
+	</update>
+
+	<update id="zpp_ore_update_state" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_update_state */
+		UPDATE TBL_ORE_ANALYSIS_MASTER
+		   SET STATUS = ${status}
+		 WHERE MASTER_ID = #{MASTER_ID}
+	</update>
+
+	<insert id="zpp_ore_insert_init_value" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_insert_init_value */
+		INSERT INTO TBL_ORE_COMPONENT_ANALYSIS (
+			MASTER_ID,
+			IG_CODE_1,
+			IG_VALUE_1,
+			IG_CODE_2,
+			IG_VALUE_2,
+			IG_CODE_3,
+			IG_VALUE_3,
+			IG_CODE_4,
+			IG_VALUE_4,
+			IG_CODE_5,
+			IG_VALUE_5,
+			IG_CODE_6,
+			IG_VALUE_6,
+			IG_CODE_7,
+			IG_VALUE_7,
+			IG_CODE_8,
+			IG_VALUE_8,
+			IG_CODE_9,
+			IG_VALUE_9,
+			IG_CODE_10,
+			IG_VALUE_10,
+			IG_CODE_11,
+			IG_VALUE_11,
+			IG_CODE_12,
+			IG_VALUE_12,
+			IG_CODE_13,
+			IG_VALUE_13,
+			IG_CODE_14,
+			IG_VALUE_14,
+			IG_CODE_15,
+			IG_VALUE_15,
+			IG_CODE_16,
+			IG_VALUE_16,
+			IG_CODE_17,
+			IG_VALUE_17,
+			IG_CODE_18,
+			IG_VALUE_18,
+			IG_CODE_19,
+			IG_VALUE_19,
+			IG_CODE_20,
+			IG_VALUE_20,
+			IG_CODE_21,
+			IG_VALUE_21,
+			IG_CODE_22,
+			IG_VALUE_22,
+			IG_CODE_23,
+			IG_VALUE_23,
+			IG_CODE_24,
+			IG_VALUE_24,
+			IG_CODE_25,
+			IG_VALUE_25,
+			IG_CODE_26,
+			IG_VALUE_26,
+			IG_CODE_27,
+			IG_VALUE_27,
+			IG_CODE_28,
+			IG_VALUE_28,
+			IG_CODE_29,
+			IG_VALUE_29,
+			IG_CODE_30,
+			IG_VALUE_30,
+			IG_CODE_31,
+			IG_VALUE_31,
+			IG_CODE_32,
+			IG_VALUE_32,
+			PM_100_VALUE,
+			PM_200_VALUE,
+			PM_325_VALUE,
+			PM_400_VALUE,
+			PM_M400_VALUE,
+			LOT_1_IG_1_VALUE,
+			LOT_1_IG_2_VALUE,
+			LOT_1_IG_3_VALUE,
+			LOT_1_IG_4_VALUE,
+			LOT_2_IG_1_VALUE,
+			LOT_2_IG_2_VALUE,
+			LOT_2_IG_3_VALUE,
+			LOT_2_IG_4_VALUE,
+			LOT_3_IG_1_VALUE,
+			LOT_3_IG_2_VALUE,
+			LOT_3_IG_3_VALUE,
+			LOT_3_IG_4_VALUE,
+			LOT_4_IG_1_VALUE,
+			LOT_4_IG_2_VALUE,
+			LOT_4_IG_3_VALUE,
+			LOT_4_IG_4_VALUE,
+			LOT_5_IG_1_VALUE,
+			LOT_5_IG_2_VALUE,
+			LOT_5_IG_3_VALUE,
+			LOT_5_IG_4_VALUE,
+			LOT_6_IG_1_VALUE,
+			LOT_6_IG_2_VALUE,
+			LOT_6_IG_3_VALUE,
+			LOT_6_IG_4_VALUE,
+			LOT_7_IG_1_VALUE,
+			LOT_7_IG_2_VALUE,
+			LOT_7_IG_3_VALUE,
+			LOT_7_IG_4_VALUE,
+			LOT_8_IG_1_VALUE,
+			LOT_8_IG_2_VALUE,
+			LOT_8_IG_3_VALUE,
+			LOT_8_IG_4_VALUE,
+			LOT_9_IG_1_VALUE,
+			LOT_9_IG_2_VALUE,
+			LOT_9_IG_3_VALUE,
+			LOT_9_IG_4_VALUE,
+			LOT_10_IG_1_VALUE,
+			LOT_10_IG_2_VALUE,
+			LOT_10_IG_3_VALUE,
+			LOT_10_IG_4_VALUE,
+			LOT_11_IG_1_VALUE,
+			LOT_11_IG_2_VALUE,
+			LOT_11_IG_3_VALUE,
+			LOT_11_IG_4_VALUE,
+			LOT_12_IG_1_VALUE,
+			LOT_12_IG_2_VALUE,
+			LOT_12_IG_3_VALUE,
+			LOT_12_IG_4_VALUE,
+			LOT_13_IG_1_VALUE,
+			LOT_13_IG_2_VALUE,
+			LOT_13_IG_3_VALUE,
+			LOT_13_IG_4_VALUE,
+			LOT_14_IG_1_VALUE,
+			LOT_14_IG_2_VALUE,
+			LOT_14_IG_3_VALUE,
+			LOT_14_IG_4_VALUE,
+			LOT_15_IG_1_VALUE,
+			LOT_15_IG_2_VALUE,
+			LOT_15_IG_3_VALUE,
+			LOT_15_IG_4_VALUE,
+			LOT_16_IG_1_VALUE,
+			LOT_16_IG_2_VALUE,
+			LOT_16_IG_3_VALUE,
+			LOT_16_IG_4_VALUE,
+			LOT_17_IG_1_VALUE,
+			LOT_17_IG_2_VALUE,
+			LOT_17_IG_3_VALUE,
+			LOT_17_IG_4_VALUE,
+			LOT_18_IG_1_VALUE,
+			LOT_18_IG_2_VALUE,
+			LOT_18_IG_3_VALUE,
+			LOT_18_IG_4_VALUE,
+			LOT_19_IG_1_VALUE,
+			LOT_19_IG_2_VALUE,
+			LOT_19_IG_3_VALUE,
+			LOT_19_IG_4_VALUE,
+			LOT_20_IG_1_VALUE,
+			LOT_20_IG_2_VALUE,
+			LOT_20_IG_3_VALUE,
+			LOT_20_IG_4_VALUE,
+			LOT_21_IG_1_VALUE,
+			LOT_21_IG_2_VALUE,
+			LOT_21_IG_3_VALUE,
+			LOT_21_IG_4_VALUE,
+			LOT_22_IG_1_VALUE,
+			LOT_22_IG_2_VALUE,
+			LOT_22_IG_3_VALUE,
+			LOT_22_IG_4_VALUE,
+			LOT_23_IG_1_VALUE,
+			LOT_23_IG_2_VALUE,
+			LOT_23_IG_3_VALUE,
+			LOT_23_IG_4_VALUE,
+			LOT_24_IG_1_VALUE,
+			LOT_24_IG_2_VALUE,
+			LOT_24_IG_3_VALUE,
+			LOT_24_IG_4_VALUE,
+			LOT_25_IG_1_VALUE,
+			LOT_25_IG_2_VALUE,
+			LOT_25_IG_3_VALUE,
+			LOT_25_IG_4_VALUE,
+			LOT_26_IG_1_VALUE,
+			LOT_26_IG_2_VALUE,
+			LOT_26_IG_3_VALUE,
+			LOT_26_IG_4_VALUE,
+			LOT_27_IG_1_VALUE,
+			LOT_27_IG_2_VALUE,
+			LOT_27_IG_3_VALUE,
+			LOT_27_IG_4_VALUE,
+			LOT_28_IG_1_VALUE,
+			LOT_28_IG_2_VALUE,
+			LOT_28_IG_3_VALUE,
+			LOT_28_IG_4_VALUE,
+			LOT_29_IG_1_VALUE,
+			LOT_29_IG_2_VALUE,
+			LOT_29_IG_3_VALUE,
+			LOT_29_IG_4_VALUE,
+			LOT_30_IG_1_VALUE,
+			LOT_30_IG_2_VALUE,
+			LOT_30_IG_3_VALUE,
+			LOT_30_IG_4_VALUE
+			)VALUES(
+			#{MASTER_ID},
+			#{IG_CODE_1},
+			${IG_VALUE_1},
+			#{IG_CODE_2},
+			${IG_VALUE_2},
+			#{IG_CODE_3},
+			${IG_VALUE_3},
+			#{IG_CODE_4},
+			${IG_VALUE_4},
+			#{IG_CODE_5},
+			${IG_VALUE_5},
+			#{IG_CODE_6},
+			${IG_VALUE_6},
+			#{IG_CODE_7},
+			${IG_VALUE_7},
+			#{IG_CODE_8},
+			${IG_VALUE_8},
+			#{IG_CODE_9},
+			${IG_VALUE_9},
+			#{IG_CODE_10},
+			${IG_VALUE_10},
+			#{IG_CODE_11},
+			${IG_VALUE_11},
+			#{IG_CODE_12},
+			${IG_VALUE_12},
+			#{IG_CODE_13},
+			${IG_VALUE_13},
+			#{IG_CODE_14},
+			${IG_VALUE_14},
+			#{IG_CODE_15},
+			${IG_VALUE_15},
+			#{IG_CODE_16},
+			${IG_VALUE_16},
+			#{IG_CODE_17},
+			${IG_VALUE_17},
+			#{IG_CODE_18},
+			${IG_VALUE_18},
+			#{IG_CODE_19},
+			${IG_VALUE_19},
+			#{IG_CODE_20},
+			${IG_VALUE_20},
+			#{IG_CODE_21},
+			${IG_VALUE_21},
+			#{IG_CODE_22},
+			${IG_VALUE_22},
+			#{IG_CODE_23},
+			${IG_VALUE_23},
+			#{IG_CODE_24},
+			${IG_VALUE_24},
+			#{IG_CODE_25},
+			${IG_VALUE_25},
+			#{IG_CODE_26},
+			${IG_VALUE_26},
+			#{IG_CODE_27},
+			${IG_VALUE_27},
+			#{IG_CODE_28},
+			${IG_VALUE_28},
+			#{IG_CODE_29},
+			${IG_VALUE_29},
+			#{IG_CODE_30},
+			${IG_VALUE_30},
+			#{IG_CODE_31},
+			${IG_VALUE_31},
+			#{IG_CODE_32},
+			${IG_VALUE_32},
+			${PM_100_VALUE},
+			${PM_200_VALUE},
+			${PM_325_VALUE},
+			${PM_400_VALUE},
+			${PM_M400_VALUE},
+			${LOT_1_IG_1_VALUE},
+			${LOT_1_IG_2_VALUE},
+			${LOT_1_IG_3_VALUE},
+			${LOT_1_IG_4_VALUE},
+			${LOT_2_IG_1_VALUE},
+			${LOT_2_IG_2_VALUE},
+			${LOT_2_IG_3_VALUE},
+			${LOT_2_IG_4_VALUE},
+			${LOT_3_IG_1_VALUE},
+			${LOT_3_IG_2_VALUE},
+			${LOT_3_IG_3_VALUE},
+			${LOT_3_IG_4_VALUE},
+			${LOT_4_IG_1_VALUE},
+			${LOT_4_IG_2_VALUE},
+			${LOT_4_IG_3_VALUE},
+			${LOT_4_IG_4_VALUE},
+			${LOT_5_IG_1_VALUE},
+			${LOT_5_IG_2_VALUE},
+			${LOT_5_IG_3_VALUE},
+			${LOT_5_IG_4_VALUE},
+			${LOT_6_IG_1_VALUE},
+			${LOT_6_IG_2_VALUE},
+			${LOT_6_IG_3_VALUE},
+			${LOT_6_IG_4_VALUE},
+			${LOT_7_IG_1_VALUE},
+			${LOT_7_IG_2_VALUE},
+			${LOT_7_IG_3_VALUE},
+			${LOT_7_IG_4_VALUE},
+			${LOT_8_IG_1_VALUE},
+			${LOT_8_IG_2_VALUE},
+			${LOT_8_IG_3_VALUE},
+			${LOT_8_IG_4_VALUE},
+			${LOT_9_IG_1_VALUE},
+			${LOT_9_IG_2_VALUE},
+			${LOT_9_IG_3_VALUE},
+			${LOT_9_IG_4_VALUE},
+			${LOT_10_IG_1_VALUE},
+			${LOT_10_IG_2_VALUE},
+			${LOT_10_IG_3_VALUE},
+			${LOT_10_IG_4_VALUE},
+			${LOT_11_IG_1_VALUE},
+			${LOT_11_IG_2_VALUE},
+			${LOT_11_IG_3_VALUE},
+			${LOT_11_IG_4_VALUE},
+			${LOT_12_IG_1_VALUE},
+			${LOT_12_IG_2_VALUE},
+			${LOT_12_IG_3_VALUE},
+			${LOT_12_IG_4_VALUE},
+			${LOT_13_IG_1_VALUE},
+			${LOT_13_IG_2_VALUE},
+			${LOT_13_IG_3_VALUE},
+			${LOT_13_IG_4_VALUE},
+			${LOT_14_IG_1_VALUE},
+			${LOT_14_IG_2_VALUE},
+			${LOT_14_IG_3_VALUE},
+			${LOT_14_IG_4_VALUE},
+			${LOT_15_IG_1_VALUE},
+			${LOT_15_IG_2_VALUE},
+			${LOT_15_IG_3_VALUE},
+			${LOT_15_IG_4_VALUE},
+			${LOT_16_IG_1_VALUE},
+			${LOT_16_IG_2_VALUE},
+			${LOT_16_IG_3_VALUE},
+			${LOT_16_IG_4_VALUE},
+			${LOT_17_IG_1_VALUE},
+			${LOT_17_IG_2_VALUE},
+			${LOT_17_IG_3_VALUE},
+			${LOT_17_IG_4_VALUE},
+			${LOT_18_IG_1_VALUE},
+			${LOT_18_IG_2_VALUE},
+			${LOT_18_IG_3_VALUE},
+			${LOT_18_IG_4_VALUE},
+			${LOT_19_IG_1_VALUE},
+			${LOT_19_IG_2_VALUE},
+			${LOT_19_IG_3_VALUE},
+			${LOT_19_IG_4_VALUE},
+			${LOT_20_IG_1_VALUE},
+			${LOT_20_IG_2_VALUE},
+			${LOT_20_IG_3_VALUE},
+			${LOT_20_IG_4_VALUE},
+			${LOT_21_IG_1_VALUE},
+			${LOT_21_IG_2_VALUE},
+			${LOT_21_IG_3_VALUE},
+			${LOT_21_IG_4_VALUE},
+			${LOT_22_IG_1_VALUE},
+			${LOT_22_IG_2_VALUE},
+			${LOT_22_IG_3_VALUE},
+			${LOT_22_IG_4_VALUE},
+			${LOT_23_IG_1_VALUE},
+			${LOT_23_IG_2_VALUE},
+			${LOT_23_IG_3_VALUE},
+			${LOT_23_IG_4_VALUE},
+			${LOT_24_IG_1_VALUE},
+			${LOT_24_IG_2_VALUE},
+			${LOT_24_IG_3_VALUE},
+			${LOT_24_IG_4_VALUE},
+			${LOT_25_IG_1_VALUE},
+			${LOT_25_IG_2_VALUE},
+			${LOT_25_IG_3_VALUE},
+			${LOT_25_IG_4_VALUE},
+			${LOT_26_IG_1_VALUE},
+			${LOT_26_IG_2_VALUE},
+			${LOT_26_IG_3_VALUE},
+			${LOT_26_IG_4_VALUE},
+			${LOT_27_IG_1_VALUE},
+			${LOT_27_IG_2_VALUE},
+			${LOT_27_IG_3_VALUE},
+			${LOT_27_IG_4_VALUE},
+			${LOT_28_IG_1_VALUE},
+			${LOT_28_IG_2_VALUE},
+			${LOT_28_IG_3_VALUE},
+			${LOT_28_IG_4_VALUE},
+			${LOT_29_IG_1_VALUE},
+			${LOT_29_IG_2_VALUE},
+			${LOT_29_IG_3_VALUE},
+			${LOT_29_IG_4_VALUE},
+			${LOT_30_IG_1_VALUE},
+			${LOT_30_IG_2_VALUE},
+			${LOT_30_IG_3_VALUE},
+			${LOT_30_IG_4_VALUE}
+		)
+	</insert>
+
+	<update id="zpp_ore_update_init_value" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_update_init_value */
+		UPDATE TBL_ORE_COMPONENT_ANALYSIS
+		   SET 
+			IG_CODE_1 = #{IG_CODE_1},
+			IG_CODE_2 = #{IG_CODE_2},
+			IG_CODE_3 = #{IG_CODE_3},
+			IG_CODE_4 = #{IG_CODE_4},
+			IG_CODE_5 = #{IG_CODE_5},
+			IG_CODE_6 = #{IG_CODE_6},
+			IG_CODE_7 = #{IG_CODE_7},
+			IG_CODE_8 = #{IG_CODE_8},
+			IG_CODE_9 = #{IG_CODE_9},
+			IG_CODE_10 = #{IG_CODE_10},
+			IG_CODE_11 = #{IG_CODE_11},
+			IG_CODE_12 = #{IG_CODE_12},
+			IG_CODE_13 = #{IG_CODE_13},
+			IG_CODE_14 = #{IG_CODE_14},
+			IG_CODE_15 = #{IG_CODE_15},
+			IG_CODE_16 = #{IG_CODE_16},
+			IG_CODE_17 = #{IG_CODE_17},
+			IG_CODE_18 = #{IG_CODE_18},
+			IG_CODE_19 = #{IG_CODE_19},
+			IG_CODE_20 = #{IG_CODE_20},
+			IG_CODE_21 = #{IG_CODE_21},
+			IG_CODE_22 = #{IG_CODE_22},
+			IG_CODE_23 = #{IG_CODE_23},
+			IG_CODE_24 = #{IG_CODE_24},
+			IG_CODE_25 = #{IG_CODE_25},
+			IG_CODE_26 = #{IG_CODE_26},
+			IG_CODE_27 = #{IG_CODE_27},
+			IG_CODE_28 = #{IG_CODE_28},
+			IG_CODE_29 = #{IG_CODE_29},
+			IG_CODE_30 = #{IG_CODE_30},
+			IG_CODE_31 = #{IG_CODE_31},
+			IG_CODE_32 = #{IG_CODE_32},
+			IG_VALUE_1 = ${IG_VALUE_1},
+			IG_VALUE_2 = ${IG_VALUE_2},
+			IG_VALUE_3 = ${IG_VALUE_3},
+			IG_VALUE_4 = ${IG_VALUE_4},
+			IG_VALUE_5 = ${IG_VALUE_5},
+			IG_VALUE_6 = ${IG_VALUE_6},
+			IG_VALUE_7 = ${IG_VALUE_7},
+			IG_VALUE_8 = ${IG_VALUE_8},
+			IG_VALUE_9 = ${IG_VALUE_9},
+			IG_VALUE_10 = ${IG_VALUE_10},
+			IG_VALUE_11 = ${IG_VALUE_11},
+			IG_VALUE_12 = ${IG_VALUE_12},
+			IG_VALUE_13 = ${IG_VALUE_13},
+			IG_VALUE_14 = ${IG_VALUE_14},
+			IG_VALUE_15 = ${IG_VALUE_15},
+			IG_VALUE_16 = ${IG_VALUE_16},
+			IG_VALUE_17 = ${IG_VALUE_17},
+			IG_VALUE_18 = ${IG_VALUE_18},
+			IG_VALUE_19 = ${IG_VALUE_19},
+			IG_VALUE_20 = ${IG_VALUE_20},
+			IG_VALUE_21 = ${IG_VALUE_21},
+			IG_VALUE_22 = ${IG_VALUE_22},
+			IG_VALUE_23 = ${IG_VALUE_23},
+			IG_VALUE_24 = ${IG_VALUE_24},
+			IG_VALUE_25 = ${IG_VALUE_25},
+			IG_VALUE_26 = ${IG_VALUE_26},
+			IG_VALUE_27 = ${IG_VALUE_27},
+			IG_VALUE_28 = ${IG_VALUE_28},
+			IG_VALUE_29 = ${IG_VALUE_29},
+			IG_VALUE_30 = ${IG_VALUE_30},
+			IG_VALUE_31 = ${IG_VALUE_31},
+			IG_VALUE_32 = ${IG_VALUE_32},
+			PM_100_VALUE = ${PM_100_VALUE},
+			PM_200_VALUE = ${PM_200_VALUE},
+			PM_325_VALUE = ${PM_325_VALUE},
+			PM_400_VALUE = ${PM_400_VALUE},
+			PM_M400_VALUE = ${PM_M400_VALUE},
+			LOT_1_IG_1_VALUE = ${LOT_1_IG_1_VALUE},
+			LOT_2_IG_1_VALUE = ${LOT_2_IG_1_VALUE},
+			LOT_3_IG_1_VALUE = ${LOT_3_IG_1_VALUE},
+			LOT_4_IG_1_VALUE = ${LOT_4_IG_1_VALUE},
+			LOT_5_IG_1_VALUE = ${LOT_5_IG_1_VALUE},
+			LOT_6_IG_1_VALUE = ${LOT_6_IG_1_VALUE},
+			LOT_7_IG_1_VALUE = ${LOT_7_IG_1_VALUE},
+			LOT_8_IG_1_VALUE = ${LOT_8_IG_1_VALUE},
+			LOT_9_IG_1_VALUE = ${LOT_9_IG_1_VALUE},
+			LOT_10_IG_1_VALUE = ${LOT_10_IG_1_VALUE},
+			LOT_11_IG_1_VALUE = ${LOT_11_IG_1_VALUE},
+			LOT_12_IG_1_VALUE = ${LOT_12_IG_1_VALUE},
+			LOT_13_IG_1_VALUE = ${LOT_13_IG_1_VALUE},
+			LOT_14_IG_1_VALUE = ${LOT_14_IG_1_VALUE},
+			LOT_15_IG_1_VALUE = ${LOT_15_IG_1_VALUE},
+			LOT_16_IG_1_VALUE = ${LOT_16_IG_1_VALUE},
+			LOT_17_IG_1_VALUE = ${LOT_17_IG_1_VALUE},
+			LOT_18_IG_1_VALUE = ${LOT_18_IG_1_VALUE},
+			LOT_19_IG_1_VALUE = ${LOT_19_IG_1_VALUE},
+			LOT_20_IG_1_VALUE = ${LOT_20_IG_1_VALUE},
+			LOT_21_IG_1_VALUE = ${LOT_21_IG_1_VALUE},
+			LOT_22_IG_1_VALUE = ${LOT_22_IG_1_VALUE},
+			LOT_23_IG_1_VALUE = ${LOT_23_IG_1_VALUE},
+			LOT_24_IG_1_VALUE = ${LOT_24_IG_1_VALUE},
+			LOT_25_IG_1_VALUE = ${LOT_25_IG_1_VALUE},
+			LOT_26_IG_1_VALUE = ${LOT_26_IG_1_VALUE},
+			LOT_27_IG_1_VALUE = ${LOT_27_IG_1_VALUE},
+			LOT_28_IG_1_VALUE = ${LOT_28_IG_1_VALUE},
+			LOT_29_IG_1_VALUE = ${LOT_29_IG_1_VALUE},
+			LOT_30_IG_1_VALUE = ${LOT_30_IG_1_VALUE},
+			LOT_1_IG_2_VALUE = ${LOT_1_IG_2_VALUE},
+			LOT_2_IG_2_VALUE = ${LOT_2_IG_2_VALUE},
+			LOT_3_IG_2_VALUE = ${LOT_3_IG_2_VALUE},
+			LOT_4_IG_2_VALUE = ${LOT_4_IG_2_VALUE},
+			LOT_5_IG_2_VALUE = ${LOT_5_IG_2_VALUE},
+			LOT_6_IG_2_VALUE = ${LOT_6_IG_2_VALUE},
+			LOT_7_IG_2_VALUE = ${LOT_7_IG_2_VALUE},
+			LOT_8_IG_2_VALUE = ${LOT_8_IG_2_VALUE},
+			LOT_9_IG_2_VALUE = ${LOT_9_IG_2_VALUE},
+			LOT_10_IG_2_VALUE = ${LOT_10_IG_2_VALUE},
+			LOT_11_IG_2_VALUE = ${LOT_11_IG_2_VALUE},
+			LOT_12_IG_2_VALUE = ${LOT_12_IG_2_VALUE},
+			LOT_13_IG_2_VALUE = ${LOT_13_IG_2_VALUE},
+			LOT_14_IG_2_VALUE = ${LOT_14_IG_2_VALUE},
+			LOT_15_IG_2_VALUE = ${LOT_15_IG_2_VALUE},
+			LOT_16_IG_2_VALUE = ${LOT_16_IG_2_VALUE},
+			LOT_17_IG_2_VALUE = ${LOT_17_IG_2_VALUE},
+			LOT_18_IG_2_VALUE = ${LOT_18_IG_2_VALUE},
+			LOT_19_IG_2_VALUE = ${LOT_19_IG_2_VALUE},
+			LOT_20_IG_2_VALUE = ${LOT_20_IG_2_VALUE},
+			LOT_21_IG_2_VALUE = ${LOT_21_IG_2_VALUE},
+			LOT_22_IG_2_VALUE = ${LOT_22_IG_2_VALUE},
+			LOT_23_IG_2_VALUE = ${LOT_23_IG_2_VALUE},
+			LOT_24_IG_2_VALUE = ${LOT_24_IG_2_VALUE},
+			LOT_25_IG_2_VALUE = ${LOT_25_IG_2_VALUE},
+			LOT_26_IG_2_VALUE = ${LOT_26_IG_2_VALUE},
+			LOT_27_IG_2_VALUE = ${LOT_27_IG_2_VALUE},
+			LOT_28_IG_2_VALUE = ${LOT_28_IG_2_VALUE},
+			LOT_29_IG_2_VALUE = ${LOT_29_IG_2_VALUE},
+			LOT_30_IG_2_VALUE = ${LOT_30_IG_2_VALUE},
+			LOT_1_IG_3_VALUE = ${LOT_1_IG_3_VALUE},
+			LOT_2_IG_3_VALUE = ${LOT_2_IG_3_VALUE},
+			LOT_3_IG_3_VALUE = ${LOT_3_IG_3_VALUE},
+			LOT_4_IG_3_VALUE = ${LOT_4_IG_3_VALUE},
+			LOT_5_IG_3_VALUE = ${LOT_5_IG_3_VALUE},
+			LOT_6_IG_3_VALUE = ${LOT_6_IG_3_VALUE},
+			LOT_7_IG_3_VALUE = ${LOT_7_IG_3_VALUE},
+			LOT_8_IG_3_VALUE = ${LOT_8_IG_3_VALUE},
+			LOT_9_IG_3_VALUE = ${LOT_9_IG_3_VALUE},
+			LOT_10_IG_3_VALUE = ${LOT_10_IG_3_VALUE},
+			LOT_11_IG_3_VALUE = ${LOT_11_IG_3_VALUE},
+			LOT_12_IG_3_VALUE = ${LOT_12_IG_3_VALUE},
+			LOT_13_IG_3_VALUE = ${LOT_13_IG_3_VALUE},
+			LOT_14_IG_3_VALUE = ${LOT_14_IG_3_VALUE},
+			LOT_15_IG_3_VALUE = ${LOT_15_IG_3_VALUE},
+			LOT_16_IG_3_VALUE = ${LOT_16_IG_3_VALUE},
+			LOT_17_IG_3_VALUE = ${LOT_17_IG_3_VALUE},
+			LOT_18_IG_3_VALUE = ${LOT_18_IG_3_VALUE},
+			LOT_19_IG_3_VALUE = ${LOT_19_IG_3_VALUE},
+			LOT_20_IG_3_VALUE = ${LOT_20_IG_3_VALUE},
+			LOT_21_IG_3_VALUE = ${LOT_21_IG_3_VALUE},
+			LOT_22_IG_3_VALUE = ${LOT_22_IG_3_VALUE},
+			LOT_23_IG_3_VALUE = ${LOT_23_IG_3_VALUE},
+			LOT_24_IG_3_VALUE = ${LOT_24_IG_3_VALUE},
+			LOT_25_IG_3_VALUE = ${LOT_25_IG_3_VALUE},
+			LOT_26_IG_3_VALUE = ${LOT_26_IG_3_VALUE},
+			LOT_27_IG_3_VALUE = ${LOT_27_IG_3_VALUE},
+			LOT_28_IG_3_VALUE = ${LOT_28_IG_3_VALUE},
+			LOT_29_IG_3_VALUE = ${LOT_29_IG_3_VALUE},
+			LOT_30_IG_3_VALUE = ${LOT_30_IG_3_VALUE},
+			LOT_1_IG_4_VALUE = ${LOT_1_IG_4_VALUE},
+			LOT_2_IG_4_VALUE = ${LOT_2_IG_4_VALUE},
+			LOT_3_IG_4_VALUE = ${LOT_3_IG_4_VALUE},
+			LOT_4_IG_4_VALUE = ${LOT_4_IG_4_VALUE},
+			LOT_5_IG_4_VALUE = ${LOT_5_IG_4_VALUE},
+			LOT_6_IG_4_VALUE = ${LOT_6_IG_4_VALUE},
+			LOT_7_IG_4_VALUE = ${LOT_7_IG_4_VALUE},
+			LOT_8_IG_4_VALUE = ${LOT_8_IG_4_VALUE},
+			LOT_9_IG_4_VALUE = ${LOT_9_IG_4_VALUE},
+			LOT_10_IG_4_VALUE = ${LOT_10_IG_4_VALUE},
+			LOT_11_IG_4_VALUE = ${LOT_11_IG_4_VALUE},
+			LOT_12_IG_4_VALUE = ${LOT_12_IG_4_VALUE},
+			LOT_13_IG_4_VALUE = ${LOT_13_IG_4_VALUE},
+			LOT_14_IG_4_VALUE = ${LOT_14_IG_4_VALUE},
+			LOT_15_IG_4_VALUE = ${LOT_15_IG_4_VALUE},
+			LOT_16_IG_4_VALUE = ${LOT_16_IG_4_VALUE},
+			LOT_17_IG_4_VALUE = ${LOT_17_IG_4_VALUE},
+			LOT_18_IG_4_VALUE = ${LOT_18_IG_4_VALUE},
+			LOT_19_IG_4_VALUE = ${LOT_19_IG_4_VALUE},
+			LOT_20_IG_4_VALUE = ${LOT_20_IG_4_VALUE},
+			LOT_21_IG_4_VALUE = ${LOT_21_IG_4_VALUE},
+			LOT_22_IG_4_VALUE = ${LOT_22_IG_4_VALUE},
+			LOT_23_IG_4_VALUE = ${LOT_23_IG_4_VALUE},
+			LOT_24_IG_4_VALUE = ${LOT_24_IG_4_VALUE},
+			LOT_25_IG_4_VALUE = ${LOT_25_IG_4_VALUE},
+			LOT_26_IG_4_VALUE = ${LOT_26_IG_4_VALUE},
+			LOT_27_IG_4_VALUE = ${LOT_27_IG_4_VALUE},
+			LOT_28_IG_4_VALUE = ${LOT_28_IG_4_VALUE},
+			LOT_29_IG_4_VALUE = ${LOT_29_IG_4_VALUE},
+			LOT_30_IG_4_VALUE = ${LOT_30_IG_4_VALUE}
+		  WHERE MASTER_ID = #{MASTER_ID}
+	</update>
+
+	<select id="zpp_ore_get_init_value" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_get_init_value */
+		SELECT
+		  b.SELLER_NAME
+		  ,c.MATERIAL_NAME
+		  ,a.*
+		FROM(
+		  SELECT 
+		    REGEXP_SUBSTR(a.MASTER_ID, '[^_]+', 1, 1) AS SELLER_ID
+		    ,REGEXP_SUBSTR(a.MASTER_ID, '[^_]+', 1, 2) AS MATERIAL_ID
+		    ,REGEXP_SUBSTR(a.MASTER_ID, '[^_]+', 1, 3) AS IMPORT_DATE
+		    ,b.lot_count
+		    ,a.*
+		  FROM TBL_ORE_COMPONENT_ANALYSIS a
+		  INNER JOIN TBL_ORE_MT_INFO b
+		  ON a.MASTER_ID = b.MASTER_ID
+		  WHERE a.MASTER_ID = #{MASTER_ID }
+		) a
+		LEFT OUTER JOIN TBL_ORE_SELLER_INFO b
+		ON a.SELLER_ID = b.SELLER_ID
+		LEFT OUTER JOIN TBL_ORE_MATERIAL_INFO c
+		ON a.MATERIAL_ID = c.MATERIAL_ID
+	</select>
+
+	<update id="zpp_ore_update_adjust_value" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_update_adjust_value */
+		UPDATE TBL_ORE_COMPONENT_ANALYSIS
+		   SET
+		   	   ADJUST_IG_1 = ${ADJUST_IG_1},
+		   	   ADJUST_IG_2 = ${ADJUST_IG_2},
+		   	   ADJUST_IG_3 = ${ADJUST_IG_3},
+		   	   ADJUST_IG_4 = ${ADJUST_IG_4}
+		 WHERE MASTER_ID = #{MASTER_ID}
+	</update>
+
+	<select id="zpp_ore_get_fixed_value" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_get_fixed_value */
+		SELECT *
+		  FROM TBL_ORE_COMPONENT_ANALYSIS a, TBL_ORE_MT_INFO b
+	     WHERE a.MASTER_ID = #{MASTER_ID}
+		   AND a.MASTER_ID = b.MASTER_ID
+		   AND ROWNUM=1
+	</select>
+
+	<select id="zpp_ore_mt_info_count" parameterType="java.util.HashMap" resultType="int">
+		/* oracle.yp_zpp.zpp_ore_mt_info_count */
+		SELECT COUNT(*)
+		  FROM TBL_ORE_MT_INFO
+	     WHERE MASTER_ID = #{MASTER_ID}
+	</select>
+
+	<select id="zpp_ore_load_mt_info" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_load_mt_info */
+		SELECT *
+		  FROM TBL_ORE_MT_INFO
+	     WHERE MASTER_ID = #{MASTER_ID}
+	       AND ROWNUM = 1
+	</select>
+
+	<select id="zpp_ore_component_analysis_info_count" parameterType="java.util.HashMap" resultType="int">
+		/* oracle.yp_zpp.zpp_ore_component_analysis_info_count */
+		SELECT COUNT(*)
+		  FROM TBL_ORE_COMPONENT_ANALYSIS
+	     WHERE MASTER_ID = #{MASTER_ID}
+	</select>
+
+	<select id="zpp_ore_load_component_analysis_info" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_load_component_analysis_info */
+		SELECT *
+		  FROM TBL_ORE_COMPONENT_ANALYSIS
+	     WHERE MASTER_ID = #{MASTER_ID}
+	       AND ROWNUM = 1
+	</select>
+
+	<select id="zpp_ore_bl_info_count" parameterType="java.util.HashMap" resultType="int">
+		/* oracle.yp_zpp.zpp_ore_bl_info_count */
+		SELECT COUNT(*)
+		  FROM TBL_ORE_BL_INFO
+	     WHERE MASTER_ID = #{MASTER_ID}
+	</select>
+
+	<select id="zpp_ore_master_info_count" parameterType="java.util.HashMap" resultType="int">
+		/* oracle.yp_zpp.zpp_ore_master_info_count */
+		SELECT COUNT(*)
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE MASTER_ID = #{MASTER_ID}
+	</select>
+
+	<select id="zpp_ore_load_bl_info" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_load_bl_info */
+		SELECT *
+		  FROM TBL_ORE_BL_INFO
+	     WHERE MASTER_ID = #{MASTER_ID}
+	       AND ROWNUM = 1
+	</select>
+
+	<select id="zpp_ore_get_lot_count" parameterType="java.util.HashMap" resultType="int">
+		/* oracle.yp_zpp.zpp_ore_get_lot_count */
+		SELECT NVL(LOT_COUNT, 0)
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE MASTER_ID = #{MASTER_ID}
+	</select>
+
+	<select id="zpp_ore_req_bl_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_req_bl_list */
+		SELECT am.MASTER_ID, am.MATERIAL_ID, NVL(am.SHEET, '0') SHEET, am.SELLER_ID, am.IMPORT_DATE, NVL(am.VESSEL_NAME, '') VESSEL_NAME, bi.DMT, bi.WMT, NVL(am.STATUS, 0) STATUS
+		  FROM TBL_ORE_ANALYSIS_MASTER am, TBL_ORE_BL_INFO bi
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND am.MATERIAL_ID = #{ore_id}
+		   AND am.MASTER_ID = bi.MASTER_ID
+		   <if test='seller_id != null and seller_id != "ALL"'>AND am.SELLER_ID = #{seller_id}</if>
+		   <if test='sheet_id != null and sheet_id != "ALL"'>AND am.SHEET = #{sheet_id}</if>
+	     ORDER BY am.IMPORT_DATE
+	</select>
+
+	<select id="zpp_ore_req_bl_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_req_bl_cnt */
+		SELECT COUNT(am.MASTER_ID) AS CNT
+		  FROM TBL_ORE_ANALYSIS_MASTER am, TBL_ORE_BL_INFO bi
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND am.MATERIAL_ID = #{ore_id}
+		   AND am.MASTER_ID = bi.MASTER_ID
+		   <if test='seller_id != null and seller_id != "ALL"'>AND am.SELLER_ID = #{seller_id}</if>
+		   <if test='sheet_id != null and sheet_id != "ALL"'>AND am.SHEET = #{sheet_id}</if>
+	     ORDER BY am.IMPORT_DATE
+	</select>
+
+	<insert id="zpp_ore_insert_analysis_dmt" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_insert_analysis_dmt */
+		INSERT INTO TBL_ORE_ANALYSIS_RESULT
+			(MASTER_ID, INGREDIENT_ID, LOT_NO, DMT)
+			VALUES
+			(#{MASTER_ID}, #{INGREDIENT_ID}, ${LOT_NO}, ${DMT})
+	</insert>
+
+	<update id="zpp_ore_update_analysis_dmt" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_insert_analysis_dmt */
+		UPDATE TBL_ORE_ANALYSIS_RESULT
+		   SET DMT = ${DMT}
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND INGREDIENT_ID = #{INGREDIENT_ID}
+		   AND LOT_NO = ${LOT_NO}
+	</update>
+
+	<update id="zpp_ore_update_analysis_yp" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_insert_analysis_yp */
+		UPDATE TBL_ORE_ANALYSIS_RESULT
+		   SET YP = ${YP}
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND INGREDIENT_ID = #{INGREDIENT_ID}
+		   AND LOT_NO = ${LOT_NO}
+	</update>
+
+	<select id="zpp_ore_get_seller_value" parameterType="java.util.HashMap" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_get_seller_value */
+		SELECT NVL(SELLER, 0)
+		  FROM TBL_ORE_ANALYSIS_RESULT
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND INGREDIENT_ID = #{INGREDIENT_ID}
+		   AND LOT_NO = ${LOT_NO}
+	</select>
+
+	<update id="zpp_ore_set_seller_value" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_set_seller_value */
+		UPDATE TBL_ORE_ANALYSIS_RESULT
+		   SET SELLER = ${SELLER}
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND INGREDIENT_ID = #{INGREDIENT_ID}
+		   AND LOT_NO = ${LOT_NO}
+	</update>
+
+	<select id="zpp_ore_get_yp_value" parameterType="java.util.HashMap" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_get_yp_value */
+		SELECT NVL(YP, 0)
+		  FROM TBL_ORE_ANALYSIS_RESULT
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND INGREDIENT_ID = #{INGREDIENT_ID}
+		   AND LOT_NO = ${LOT_NO}
+	</select>
+
+	<select id="zpp_ore_get_dmt_value" parameterType="java.util.HashMap" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_get_yp_value */
+		SELECT NVL(DMT, 0)
+		  FROM TBL_ORE_ANALYSIS_RESULT
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND INGREDIENT_ID = #{INGREDIENT_ID}
+		   AND LOT_NO = ${LOT_NO}
+	</select>
+
+	<update id="zpp_ore_set_yp_action" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_set_yp_action */
+		UPDATE TBL_ORE_ANALYSIS_RESULT
+		   SET YP_ACTION = #{YP_ACTION}
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND INGREDIENT_ID = #{INGREDIENT_ID}
+		   AND LOT_NO = ${LOT_NO}
+	</update>
+
+	<update id="zpp_ore_set_seller_action" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_set_seller_action */
+		UPDATE TBL_ORE_ANALYSIS_RESULT
+		   SET SELLER_ACTION = #{SELLER_ACTION}
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND INGREDIENT_ID = #{INGREDIENT_ID}
+		   AND LOT_NO = ${LOT_NO}
+	</update>
+
+	<select id="zpp_ore_get_yp_action" parameterType="java.util.HashMap" resultType="String">
+		/* oracle.yp_zpp.zpp_ore_get_yp_action */
+		SELECT NVL(YP_ACTION, ' ')
+		  FROM TBL_ORE_ANALYSIS_RESULT
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND INGREDIENT_ID = #{INGREDIENT_ID}
+		   AND LOT_NO = ${LOT_NO}
+	</select>
+
+	<select id="zpp_ore_get_seller_action" parameterType="java.util.HashMap" resultType="String">
+		/* oracle.yp_zpp.zpp_ore_get_seller_action */
+		SELECT NVL(SELLER_ACTION, ' ')
+		  FROM TBL_ORE_ANALYSIS_RESULT
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND INGREDIENT_ID = #{INGREDIENT_ID}
+		   AND LOT_NO = ${LOT_NO}
+	</select>
+
+	<select id="zpp_ore_get_settle_value" parameterType="java.util.HashMap" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_get_settle_value */
+		SELECT NVL(SETTLE, 0)
+		  FROM TBL_ORE_ANALYSIS_RESULT
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND INGREDIENT_ID = #{INGREDIENT_ID}
+		   AND LOT_NO = ${LOT_NO}
+	</select>
+
+	<select id="zpp_ore_get_umpire_value" parameterType="java.util.HashMap" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_get_umpire_value */
+		SELECT NVL(UMPIRE, 0)
+		  FROM TBL_ORE_ANALYSIS_RESULT
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND INGREDIENT_ID = #{INGREDIENT_ID}
+		   AND LOT_NO = ${LOT_NO}
+	</select>
+
+	<select id="zpp_ore_get_state_value" parameterType="java.util.HashMap" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_get_state_value */
+		SELECT NVL(STATE, 0)
+		  FROM TBL_ORE_ANALYSIS_RESULT
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND INGREDIENT_ID = #{INGREDIENT_ID}
+		   AND LOT_NO = ${LOT_NO}
+	</select>
+
+	<select id="zpp_ore_get_ar_value" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_get_state_value */
+		SELECT 
+			NVL(DMT, 0) as DMT,
+			NVL(YP, 0) as YP,
+			NVL(SELLER, 0) as SELLER,
+			NVL(UMPIRE, 0) as UMPIRE,
+			NVL(SETTLE, 0) as SETTLE,
+			NVL(STATE, 0) as STATE,
+			NVL(YP_ACTION, ' ') as YP_ACTION,
+			NVL(SELLER_ACTION, ' ') as SELLER_ACTION
+		  FROM TBL_ORE_ANALYSIS_RESULT
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND INGREDIENT_ID = #{INGREDIENT_ID}
+		   AND LOT_NO = ${LOT_NO}
+	</select>
+
+	<update id="zpp_ore_set_settle_umpire_value" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_set_settle_umpire_value */
+		UPDATE TBL_ORE_ANALYSIS_RESULT
+		   SET SETTLE = ${SETTLE},
+		   	   UMPIRE = ${UMPIRE},
+			   STATE = ${STATE}
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND INGREDIENT_ID = #{INGREDIENT_ID}
+		   AND LOT_NO = ${LOT_NO}
+	</update>
+
+	<update id="zpp_ore_set_master_split_umpire" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_set_master_split_umpire */
+		UPDATE TBL_ORE_ANALYSIS_MASTER
+		   SET IG_1_SPLIT = ${IG_1_SPLIT},
+		   	   IG_1_UMPIRE = ${IG_1_UMPIRE},
+			   IG_2_SPLIT = ${IG_2_SPLIT},
+		   	   IG_2_UMPIRE = ${IG_2_UMPIRE},
+			   IG_3_SPLIT = ${IG_3_SPLIT},
+		   	   IG_3_UMPIRE = ${IG_3_UMPIRE}
+	     WHERE MASTER_ID = #{MASTER_ID}
+	</update>
+
+	<update id="zpp_ore_set_master_win_fail" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_set_master_win_fail */
+		UPDATE TBL_ORE_ANALYSIS_MASTER
+		   SET IG_1_WIN = ${IG_1_WIN},
+		   	   IG_1_FAIL = ${IG_1_FAIL},
+			   IG_2_WIN = ${IG_2_WIN},
+		   	   IG_2_FAIL = ${IG_2_FAIL},
+			   IG_3_WIN = ${IG_3_WIN},
+		   	   IG_3_FAIL = ${IG_3_FAIL}
+	     WHERE MASTER_ID = #{MASTER_ID}
+	</update>
+
+	<update id="zpp_ore_update_master_lot_count" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_update_master_lot_count */
+		UPDATE TBL_ORE_ANALYSIS_MASTER
+		   SET LOT_COUNT = ${LOT_COUNT}
+	     WHERE MASTER_ID = #{MASTER_ID}
+	</update>
+
+	<select id="zpp_ore_req_master_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_req_master_list */
+		SELECT *
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+		 <if test='ore_id != null and ore_id != "ALL"'>AND MATERIAL_ID = #{ore_id}</if>
+		 <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+		 <if test='sheet_id != null and sheet_id != "ALL"'>AND SHEET = #{sheet_id}</if>
+	     ORDER BY IMPORT_DATE
+	</select>
+
+	<select id="zpp_ore_get_ig_avg" parameterType="java.util.HashMap" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_get_ig_avg */
+ 		<![CDATA[
+			SELECT NVL(AVG(YP), 0)
+			FROM TBL_ORE_ANALYSIS_RESULT ar, TBL_ORE_ANALYSIS_MASTER am
+			WHERE ar.MASTER_ID = #{MASTER_ID}
+			AND ar.INGREDIENT_ID = #{INGREDIENT_ID}
+			AND ar.MASTER_ID = am.MASTER_ID
+			AND LOT_NO <= am.LOT_COUNT
+		]]>
+	</select>
+
+	<select id="zpp_ore_get_master_list_avg" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_get_master_list_avg */
+ 		<![CDATA[
+		SELECT master.*, oca.ADJUST_IG_1, oca.ADJUST_IG_2, oca.ADJUST_IG_3, 
+			(	SELECT NVL(AVG(YP), 0)
+				FROM TBL_ORE_ANALYSIS_RESULT ar
+				WHERE ar.MASTER_ID = master.MASTER_ID
+				AND ar.INGREDIENT_ID = 'YPIG-0001'
+				AND LOT_NO <= master.LOT_COUNT
+			) AS IG_1_AVG,
+			(	SELECT NVL(AVG(YP), 0)
+				FROM TBL_ORE_ANALYSIS_RESULT ar
+				WHERE ar.MASTER_ID = master.MASTER_ID
+				AND ar.INGREDIENT_ID = 'YPIG-0007'
+				AND LOT_NO <= master.LOT_COUNT
+			) AS IG_2_AVG,
+			(	SELECT NVL(AVG(YP), 0)
+				FROM TBL_ORE_ANALYSIS_RESULT ar
+				WHERE ar.MASTER_ID = master.MASTER_ID
+				AND ar.INGREDIENT_ID = 'YPIG-0031'
+				AND LOT_NO <= master.LOT_COUNT
+			) AS IG_3_AVG
+		]]>
+		FROM TBL_ORE_ANALYSIS_MASTER master, TBL_ORE_COMPONENT_ANALYSIS oca
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+		   AND master.MASTER_ID = oca.MASTER_ID
+		   <if test='ore_id != null and ore_id != "ALL"'>AND MATERIAL_ID = #{ore_id}</if>
+		   <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+		   <if test='sheet_id != null and sheet_id != "ALL"'>AND SHEET = #{sheet_id}</if>
+		ORDER BY IMPORT_DATE
+	</select>
+
+	<select id="zpp_ore_get_master_list_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_get_master_list_cnt */
+		SELECT COUNT(*) AS CNT
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+		 <if test='ore_id != null and ore_id != "ALL"'>AND MATERIAL_ID = #{ore_id}</if>
+		 <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+		 <if test='sheet_id != null and sheet_id != "ALL"'>AND SHEET = #{sheet_id}</if>
+	</select>
+
+	<select id="zpp_ore_umpire_detail_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_umpire_detail_list */
+ 		<![CDATA[
+			SELECT *
+			FROM TBL_ORE_ANALYSIS_RESULT ar, TBL_ORE_ANALYSIS_MASTER am
+			WHERE ar.MASTER_ID = #{MASTER_ID}
+			AND ar.INGREDIENT_ID = #{INGREDIENT_ID}
+			AND ar.MASTER_ID = am.MASTER_ID
+			AND LOT_NO <= am.LOT_COUNT
+			ORDER BY LOT_NO
+		]]>
+	</select>
+
+	<select id="zpp_ore_umpire_detail_cnt" resultType="Double">
+		/* oracle.yp_zpp.zpp_ore_umpire_detail_cnt */
+		SELECT LOT_COUNT AS CNT
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE MASTER_ID = #{MASTER_ID}
+	</select>
+
+	<select id="zpp_ore_get_lbl_ig" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_get_lbl_ig */
+		SELECT 	LBL_IG_1,
+				LBL_IG_2,
+				LBL_IG_3,
+				LBL_IG_4
+		  FROM TBL_ORE_BL_INFO
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND ROWNUM=1
+	</select>
+
+	<select id="zpp_ore_get_cps_ig" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_get_cps_ig */
+		SELECT 	CPS_IG_1,
+				CPS_IG_2,
+				CPS_IG_3,
+				CPS_IG_4,
+				CPS_IG_5
+		  FROM TBL_ORE_BL_INFO
+		 WHERE MASTER_ID = #{MASTER_ID}
+		   AND ROWNUM=1
+	</select>
+
+	<select id="zpp_ore_get_ingredient_name" parameterType="java.util.HashMap" resultType="String">
+		/* oracle.yp_zpp.zpp_ore_get_ingredient_name */
+		SELECT 	INGREDIENT_NAME
+		  FROM TBL_ORE_INGREDIENT_INFO
+		 WHERE INGREDIENT_ID = #{INGREDIENT_ID}
+	</select>
+
+	<select id="zpp_ore_load_analysis_master" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_load_analysis_master */
+		SELECT *
+		  FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE MASTER_ID = #{MASTER_ID}
+	       AND ROWNUM=1
+	</select>
+
+	<delete id="zpp_ore_delete_analysis_master" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_delete_analysis_master */
+		DELETE FROM TBL_ORE_ANALYSIS_MASTER
+	     WHERE MASTER_ID = #{MASTER_ID}
+	</delete>
+
+	<delete id="zpp_ore_delete_analysis_result" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_delete_analysis_result */
+		DELETE FROM TBL_ORE_ANALYSIS_RESULT
+	     WHERE MASTER_ID = #{MASTER_ID}
+	</delete>
+
+	<delete id="zpp_ore_delete_bl_info" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_delete_bl_info */
+		DELETE FROM TBL_ORE_BL_INFO
+	     WHERE MASTER_ID = #{MASTER_ID}
+	</delete>
+
+	<delete id="zpp_ore_delete_component_analysis" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_delete_component_analysis */
+		DELETE FROM TBL_ORE_COMPONENT_ANALYSIS
+	     WHERE MASTER_ID = #{MASTER_ID}
+	</delete>
+
+	<delete id="zpp_ore_delete_mt_info" parameterType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_delete_mt_info */
+		DELETE FROM TBL_ORE_MT_INFO
+	     WHERE MASTER_ID = #{MASTER_ID}
+	</delete>
+
+	<select id="zpp_ore_get_master_list_xls" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_get_master_list_avg */
+ 		<![CDATA[
+		SELECT 
+			master.MATERIAL_ID, master.SHEET, master.SELLER_ID, master.IMPORT_DATE, master.LOT_COUNT,
+			master.IG_1_SPLIT, master.IG_1_UMPIRE, IG_1_WIN, IG_1_FAIL,
+            master.IG_2_SPLIT, master.IG_2_UMPIRE, IG_2_WIN, IG_2_FAIL,
+			master.IG_3_SPLIT, master.IG_3_UMPIRE, IG_3_WIN, IG_3_FAIL,
+			oca.ADJUST_IG_1, oca.ADJUST_IG_2, oca.ADJUST_IG_3, 
+			ROUND((	SELECT NVL(AVG(YP), 0)
+				FROM TBL_ORE_ANALYSIS_RESULT ar
+				WHERE ar.MASTER_ID = master.MASTER_ID
+				AND ar.INGREDIENT_ID = 'YPIG-0001'
+				AND LOT_NO <= master.LOT_COUNT
+			), 2) AS IG_1_AVG,
+			ROUND((	SELECT NVL(AVG(YP), 0)
+				FROM TBL_ORE_ANALYSIS_RESULT ar
+				WHERE ar.MASTER_ID = master.MASTER_ID
+				AND ar.INGREDIENT_ID = 'YPIG-0007'
+				AND LOT_NO <= master.LOT_COUNT
+			), 2) AS IG_2_AVG,
+			ROUND((	SELECT NVL(AVG(YP), 0)
+				FROM TBL_ORE_ANALYSIS_RESULT ar
+				WHERE ar.MASTER_ID = master.MASTER_ID
+				AND ar.INGREDIENT_ID = 'YPIG-0031'
+				AND LOT_NO <= master.LOT_COUNT
+			), 2) AS IG_3_AVG
+		]]>
+		FROM TBL_ORE_ANALYSIS_MASTER master, TBL_ORE_COMPONENT_ANALYSIS oca
+	   WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	     AND master.MASTER_ID = oca.MASTER_ID
+		 <if test='ore_id != null and ore_id != "ALL"'>AND MATERIAL_ID = #{ore_id}</if>
+		 <if test='seller_id != null and seller_id != "ALL"'>AND SELLER_ID = #{seller_id}</if>
+		 <if test='sheet_id != null and sheet_id != "ALL"'>AND SHEET = #{sheet_id}</if>
+		ORDER BY IMPORT_DATE
+	</select>
+
+	<select id="zpp_ore_get_material_name" resultType="String">
+		/* oracle.yp_zpp.zpp_ore_get_material_name */
+		SELECT MATERIAL_NAME
+		  FROM TBL_ORE_MATERIAL_INFO
+	     WHERE MATERIAL_ID = #{MATERIAL_ID}
+		   AND ROWNUM = 1
+	</select>
+
+	<select id="zpp_ore_get_seller_name" resultType="String">
+		/* oracle.yp_zpp.zpp_ore_get_seller_name */
+		SELECT SELLER_NAME
+		  FROM TBL_ORE_SELLER_INFO
+	     WHERE SELLER_ID = #{SELLER_ID}
+		   AND ROWNUM = 1
+	</select>
+
+	<select id="zpp_ore_req_bl_list_xls" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_req_bl_list_xls */
+		SELECT am.MASTER_ID, am.MATERIAL_ID, NVL(am.SHEET, '0') SHEET, am.SELLER_ID, am.IMPORT_DATE, NVL(am.VESSEL_NAME, '') VESSEL_NAME, bi.DMT, bi.WMT, NVL(am.STATUS, 0) STATUS
+		  FROM TBL_ORE_ANALYSIS_MASTER am, TBL_ORE_BL_INFO bi
+	     WHERE IMPORT_DATE BETWEEN #{sdate} AND #{edate}
+	       AND am.MATERIAL_ID = #{ore_id}
+		   AND am.MASTER_ID = bi.MASTER_ID
+		   <if test='seller_id != null and seller_id != "ALL"'>AND am.SELLER_ID = #{seller_id}</if>
+		   <if test='sheet_id != null and sheet_id != "ALL"'>AND am.SHEET = #{sheet_id}</if>
+	     ORDER BY am.IMPORT_DATE
+	</select>
+
+	<select id="zpp_ore_get_material_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_get_material_list */
+		SELECT MATERIAL_ID, MATERIAL_NAME
+		  FROM TBL_ORE_MATERIAL_INFO
+		 ORDER BY MATERIAL_ID
+	</select>
+
+	<select id="zpp_ore_get_seller_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_get_seller_list */
+		SELECT SELLER_ID, SELLER_NAME
+		  FROM TBL_ORE_SELLER_INFO
+		 ORDER BY SELLER_ID
+	</select>
+
+	<select id="zpp_ore_get_ingredient_list" resultType="java.util.HashMap">
+		/* oracle.yp_zpp.zpp_ore_get_ingredient_list */
+		SELECT INGREDIENT_ID, INGREDIENT_NAME
+		  FROM TBL_ORE_INGREDIENT_INFO
+		 ORDER BY INGREDIENT_ID
+	</select>
+
+</mapper>

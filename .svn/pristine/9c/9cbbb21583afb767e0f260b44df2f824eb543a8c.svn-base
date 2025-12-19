@@ -1,0 +1,192 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_zwc_mst">
+
+<select id="select_cb_enterprice_gubun" resultType="HashMap">
+/* oracle.yp_zwc_mst.select_cb_enterprice_gubun */
+SELECT
+	B.CODE_VALUE AS CODE,
+	B.CODE_NM AS CODE_NAME
+FROM COM_CODE_MASTER A
+INNER JOIN COM_CODE_DETAIL B
+	ON A.CODE = B.CODE
+	AND B.USE_YN = 'Y'
+WHERE 1=1
+AND A.USE_YN = 'Y'
+AND A.CODE = 'YP_ENTERPRICE_GUBUN'
+ORDER BY B.SORT_NO
+</select>
+
+<select id="select_zwc_mst_cnt" resultType="double">
+/* oracle.yp_zwc_mst.select_zwc_mst_cnt */
+SELECT COUNT(*) AS CNT
+FROM TBL_WORKING_MASTER A
+WHERE 1=1
+AND A.USE_YN = 'Y'
+AND SUBSTR(A.CODE, 1, 1) = #{CODE_TYPE}
+<if test='BASE_YYYY != null and "P".equalsIgnoreCase( CODE_TYPE )'>
+/* 【${CODE_TYPE}】 */
+AND BASE_YYYY = #{BASE_YYYY}
+</if>
+<if test='BASE_YYYY != null and "C".equalsIgnoreCase( CODE_TYPE )'>
+/* 【${CODE_TYPE}】 */
+AND BASE_YYYY = #{BASE_YYYY}
+</if>
+</select>
+
+<select id="select_zwc_mst" resultType="HashMap">
+/* oracle.yp_zwc_mst.select_zwc_mst */
+SELECT
+	SUBSTR(A.CODE, 1, 1) AS STATUS,
+	A.CODE,
+	A.SEQ,
+	A.CODE_NAME,
+	A.CONTENTS,
+	A.USE_YN,
+	A.SAP_CODE,
+	A.REPRESENTATIVE,
+	A.BASE_YYYY,
+	DECODE(REGEXP_INSTR(A.UNIT_PRICE, '[^0-9]'), 0, TO_CHAR(A.UNIT_PRICE, 'FM9,999,999,999,999,999,999'), A.UNIT_PRICE) AS UNIT_PRICE,
+	A.UNIT,
+	A.ENTERPRISE_CODE,
+	A.ENTERPRISE_GUBUN
+FROM TBL_WORKING_MASTER A
+WHERE 1=1
+AND A.USE_YN = 'Y'
+AND SUBSTR(A.CODE, 1, 1) = #{CODE_TYPE}
+<if test='BASE_YYYY != null and "P".equalsIgnoreCase( CODE_TYPE )'>
+/* 【${CODE_TYPE}】 */
+AND BASE_YYYY = #{BASE_YYYY}
+</if>
+<if test='BASE_YYYY != null and "C".equalsIgnoreCase( CODE_TYPE )'>
+/* 【${CODE_TYPE}】 */
+AND BASE_YYYY = #{BASE_YYYY}
+</if>
+ORDER BY A.BASE_YYYY, TO_NUMBER(REGEXP_REPLACE(A.CODE, '[^0-9]'))
+</select>
+
+<select id="select_seq_working_master_v" resultType="String">
+/* oracle.yp_zwc_mst.select_seq_working_master_v */
+SELECT SEQ_WORKING_MASTER_V.nextval FROM DUAL
+</select>
+<select id="select_seq_working_master_w" resultType="String">
+/* oracle.yp_zwc_mst.select_seq_working_master_w */
+SELECT SEQ_WORKING_MASTER_W.nextval FROM DUAL
+</select>
+<select id="select_seq_working_master_n" resultType="String">
+/* oracle.yp_zwc_mst.select_seq_working_master_n */
+SELECT SEQ_WORKING_MASTER_N.nextval FROM DUAL
+</select>
+<select id="select_seq_working_master_p" resultType="String">
+/* oracle.yp_zwc_mst.select_seq_working_master_p */
+SELECT
+	TO_NUMBER(NVL(MAX(SEQ), 0)) + 1 AS SEQ
+FROM TBL_WORKING_MASTER A
+WHERE 1=1
+AND A.CODE LIKE 'P%'
+AND A.BASE_YYYY = #{BASE_YYYY}
+</select>
+<select id="select_seq_working_master_c" resultType="String">
+/* oracle.yp_zwc_mst.select_seq_working_master_c */
+SELECT SEQ_WORKING_MASTER_C.nextval FROM DUAL
+</select>
+<select id="select_seq_working_master_u" resultType="String">
+/* oracle.yp_zwc_mst.select_seq_working_master_u */
+SELECT SEQ_WORKING_MASTER_U.nextval FROM DUAL
+</select>
+
+<insert id="insert_zwc_mst">
+/* oracle.yp_zwc_mst.insert_zwc_mst */
+INSERT INTO TBL_WORKING_MASTER (
+	CODE,
+	SEQ,
+	BASE_YYYY,
+	CODE_NAME,
+	SAP_CODE,
+	REPRESENTATIVE,
+	UNIT_PRICE,
+	UNIT,
+	ENTERPRISE_CODE,
+	ENTERPRISE_GUBUN,
+	USE_YN,
+	REG_EMP,
+	REG_DATE
+) VALUES (
+	#{CODE} || #{SEQ},
+	LPAD(#{SEQ}, 2, '0'),
+<choose>
+<when test='"P".equalsIgnoreCase( CODE )'>
+	#{BASE_YYYY},
+</when>
+<otherwise>
+	'-',
+</otherwise>
+</choose>
+	#{CODE_NAME},
+	#{SAP_CODE},
+	#{REPRESENTATIVE},
+	REPLACE(#{UNIT_PRICE}, ',', ''),
+	#{UNIT},
+	#{ENTERPRISE_CODE},
+	#{ENTERPRISE_GUBUN},
+	'Y',
+	#{s_emp_code},
+	SYSDATE
+)
+</insert>
+
+<update id="update_zwc_mst">
+/* oracle.yp_zwc_mst.update_zwc_mst */
+UPDATE TBL_WORKING_MASTER A SET
+/* 【${CODE_TYPE}】 */
+<choose>
+<when test='"V".equalsIgnoreCase( CODE_TYPE )'>
+	A.CODE_NAME = #{CODE_NAME},
+	A.SAP_CODE = #{SAP_CODE},
+	A.REPRESENTATIVE = #{REPRESENTATIVE},
+	A.CONTENTS = #{CONTENTS},
+	A.ENTERPRISE_CODE = #{ENTERPRISE_CODE},
+	A.ENTERPRISE_GUBUN = #{ENTERPRISE_GUBUN},
+</when>
+<when test='"W".equalsIgnoreCase( CODE_TYPE )'>
+	A.CODE_NAME = #{CODE_NAME},
+	A.CONTENTS = #{CONTENTS},
+</when>
+<when test='"N".equalsIgnoreCase( CODE_TYPE )'>
+	A.CODE_NAME = #{CODE_NAME},
+	A.CONTENTS = #{CONTENTS},
+</when>
+<when test='"P".equalsIgnoreCase( CODE_TYPE )'>
+	A.BASE_YYYY = #{BASE_YYYY},
+	A.CODE_NAME = #{CODE_NAME},
+	A.UNIT_PRICE = REPLACE(#{UNIT_PRICE}, ',', ''),
+	A.CONTENTS = #{CONTENTS},
+</when>
+<when test='"C".equalsIgnoreCase( CODE_TYPE )'>
+	A.BASE_YYYY = #{BASE_YYYY},
+	A.CODE_NAME = #{CODE_NAME},
+	A.CONTENTS = #{CONTENTS},
+	A.UNIT = #{UNIT},
+</when>
+<when test='"U".equalsIgnoreCase( CODE_TYPE )'>
+	A.CODE_NAME = #{CODE_NAME},
+	A.CONTENTS = #{CONTENTS},
+</when>
+</choose>
+	A.UPD_EMP = #{s_emp_code},
+	A.UPD_DATE = SYSDATE
+WHERE 1=1
+AND A.CODE = #{CODE}
+</update>
+
+<update id="delete_zwc_mst">
+/* oracle.yp_zwc_mst.delete_zwc_mst */
+UPDATE TBL_WORKING_MASTER A SET
+	A.USE_YN = 'N',
+	A.UPD_EMP = #{s_emp_code},
+	A.UPD_DATE = SYSDATE
+WHERE 1=1
+AND A.CODE = #{CODE}
+</update>
+
+</mapper>

@@ -1,0 +1,205 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.biz_sample">
+
+<select id="grid_cnt_sampleList1" resultType="double">
+/* biz_sample.grid_cnt_sampleList1 */
+SELECT count(1)
+FROM COM_SAMPLE euc 
+where 1=1
+</select>
+
+<select id="grid_sampleList1" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* biz_sample.grid_sampleList1 */
+SELECT '1' as euc_state
+      ,field1 as euc_no
+      ,field2 as euc_name
+      ,field3 as euc_desc
+      ,field4 as euc_repository
+      ,field5 as euc_owner
+      ,(select emp_name from com_user where emp_code = A.field5) as euc_owner_name
+      ,field6 as euc_user
+	  ,(select emp_name from com_user where emp_code = A.field6) as euc_user_name
+      ,field7 as macro_yn
+      ,field8 as euc_risklvl
+      ,field9 as euc_period
+FROM COM_SAMPLE A
+where 1 = 1
+</select>
+
+<update id="sample1Merge">
+/* biz_sample.sample1Merge */
+MERGE INTO COM_SAMPLE A
+USING (SELECT #{euc_no} as euc_no from dual) B
+ON    (A.field1 = B.euc_no)
+WHEN NOT MATCHED THEN
+	insert (
+         field1
+        ,field2
+      	,field3
+     	,field4
+     	,field5
+     	,field6
+     	,field7
+     	,field8
+     	,field9
+     	,reg_id
+     	,reg_dt
+     	,mod_id
+     	,mod_dt
+	) values (
+    	 #{euc_no}
+      	,#{euc_name}
+      	,#{euc_desc}
+        ,#{euc_repository}
+        ,#{euc_owner}
+        ,#{euc_user}
+        ,#{macro_yn}
+        ,#{euc_risklvl}
+        ,#{euc_period}
+        ,#{s_emp_code}
+        ,SYSTIMESTAMP
+        ,#{s_emp_code}
+        ,SYSTIMESTAMP
+	)
+WHEN MATCHED THEN
+	update
+	set  field2       = #{euc_name}
+      	,field3       = #{euc_desc}
+      	,field4       = #{euc_repository}
+      	,field5       = #{euc_owner}
+      	,field6       = #{euc_user}
+      	,field7       = #{macro_yn}
+      	,field8       = #{euc_risklvl}
+      	,field9       = #{euc_period}
+        ,mod_id       = #{s_emp_code}
+        ,mod_dt       = SYSTIMESTAMP
+;
+</update>
+
+<delete id="eucMasterDelete">
+/* icm_euc.eucMasterDelete */
+	delete ic_euc_master
+	where euc_no in
+	<foreach collection="list" item="euc"  open="(" close=")" separator=",">
+	    #{euc.euc_no}
+	</foreach>
+	and term_code = #{term_code}
+</delete>
+
+<delete id="eucMappingDelete">
+/* icm_euc.eucMappingDelete */
+	delete ic_euc_mapping
+	where euc_no in
+	<foreach collection="list" item="euc"  open="(" close=")" separator=",">
+	    #{euc.euc_no}
+	</foreach>
+	and term_code = #{term_code}
+</delete>
+
+<select id="grid_cnt_relationEuc" resultType="double">
+/* icm_euc.grid_cnt_relationEuc */
+	SELECT
+	 	COUNT(*) AS CNT
+	FROM IC_EUC_MAPPING a 
+	LEFT OUTER JOIN IC_EUC_MASTER b
+	ON    a.term_code = b.term_code
+	AND   a.euc_no    = b.euc_no
+	LEFT OUTER JOIN IC_CTRLITEM c
+	on    a.term_code = c.term_code
+	and   a.ctrl_no   = c.ctrl_no
+	WHERE a.term_code = #{termcode}
+	AND   a.euc_no    = #{euc_no}
+</select>
+
+<select id="grid_relationEuc" resultType="HashMap">
+/* icm_euc.grid_relationEuc */
+	SELECT
+	 a.term_code,
+	 a.euc_no,
+	 a.ctrl_no,
+	 b.euc_name,
+	 c.ctrl_actname,
+	 (SELECT PROCESS_NAME FROM IC_PROCESS WHERE TERM_CODE = a.TERM_CODE AND PROCESS_ID = LEFT(c.PROCESS_ID,2))  as cycle, 
+     (SELECT PROCESS_NAME FROM IC_PROCESS WHERE TERM_CODE = a.TERM_CODE AND PROCESS_ID = c.PROCESS_ID ) as process
+	FROM IC_EUC_MAPPING a 
+	LEFT OUTER JOIN IC_EUC_MASTER b
+	ON    a.term_code = b.term_code
+	AND   a.euc_no    = b.euc_no
+	LEFT OUTER JOIN IC_CTRLITEM c
+	on    a.term_code = c.term_code
+	and   a.ctrl_no   = c.ctrl_no
+	WHERE a.term_code = #{termcode}
+	AND   a.euc_no    = #{euc_no}
+</select>
+
+<delete id="eucRelationDelete">
+DELETE FROM IC_EUC_MAPPING 
+WHERE term_code = #{term_code} 
+AND   euc_no    = #{euc_no}
+</delete>
+
+<insert id="eucRelationInsert">
+INSERT INTO IC_EUC_MAPPING 
+(
+	term_code, 
+	euc_no, 
+	ctrl_no,
+	reg_id,
+	reg_date,
+	mod_id,
+	mod_date
+) VALUES (
+	#{term_code}, 
+	#{euc_no}, 
+	#{ctrl_no},
+	#{s_emp_code},
+	getdate(),
+	#{s_emp_code},
+	getdate() 
+)
+</insert>
+
+<select id="grid_cnt_plcOETesterCandidate" resultType="double">
+/* biz_sample.grid_cnt_plcOETesterCandidate */
+select  
+   count(*) as CNT
+ from com_user                                                                                                 
+ where dept_code = #{modal_dept_code}                                                                   
+ and status = 'C'
+</select>
+
+<select id="grid_plcOETesterCandidate" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* biz_sample.grid_plcOETesterCandidate */
+select  
+   emp_name as inspemp_name,                                                                        
+   (select dept_name from com_dept where dept_code = com_user.dept_code) as inspdept_name ,                         
+   (select position_name from com_position where position_code = com_user.position_code) as inspposition_name ,     
+   emp_code as inspemp_code, 
+   dept_code as inspdept_code, 
+   position_code as inspposition_code,                                                                        
+   #{modal_actdept_code} as actdept_code
+ from com_user                                                                                                 
+ where dept_code = #{modal_dept_code}                                                                               
+ and status = 'C'
+ order by position_code, emp_name
+</select>
+
+<select id="grid_allDept"  resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* biz_sample.grid_allDept */
+SELECT
+ dept_code,
+ dept_name
+FROM COM_DEPT
+where dept_code = #{modal_dept_code}
+</select>
+
+<select id="grid_cnt_allDept" resultType="double">
+/* biz_sample.grid_cnt_allDept */
+SELECT
+ count(*)
+FROM COM_DEPT
+where dept_code = #{modal_dept_code}
+</select>
+
+</mapper>

@@ -1,0 +1,576 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_zhr_tna">
+
+<select id="select_zhr_per_daily_report_cnt" resultType="double">
+/* oracle.yp_zhr_tna.select_zhr_per_daily_report_cnt */
+select count(*) as cnt
+from tbl_overtime_plan
+where 1=1
+and status != 'X'
+<if test='ser_status != null and !"".equals( ser_status )'>
+and status = #{ser_status}
+</if>
+<if test="sdate != '' and sdate != null">
+and work_startdate between #{sdate} and #{edate}
+</if>
+<if test="ser_name != '' and ser_name != null">
+and emp_name = #{ser_name}
+</if>
+<choose>
+	<when test='"US".equalsIgnoreCase( auth )'>
+and (emp_code = #{emp_code} or reg_worker = #{emp_code})
+	</when>
+	<otherwise>
+		<if test='ser_status != null and "" != ser_status'>
+and status = #{ser_status}
+		</if>
+		<if test='ser_teamname != null'>
+and team_code = #{ser_teamname} /* 부서 - NEW */
+		</if>
+		<if test='ser_class != null'>
+and nvl(work_group_code, '00000000') = #{ser_class} /* 반 - NEW */
+		</if>
+		<if test='ser_shift != null'>
+and work_shift_code = #{ser_shift} /* 근무조 - NEW */
+		</if>
+	</otherwise>
+</choose>
+<!--
+<choose>
+	<when test='"SA".equalsIgnoreCase( auth )'></when>
+	<when test='"팀장".equalsIgnoreCase( ofc_name )'>
+and team_name = #{user_dept} /* 팀장 */
+		<if test='ser_class != "" and ser_class != null'>
+and work_group like '%'||#{ser_class}||'%'
+		</if>
+		<if test='ser_shift != "" and ser_shift != null'>
+and work_shift like '%'||#{ser_shift}||'%'
+		</if>
+	</when>
+	<when test='"MA".equalsIgnoreCase( auth )'>
+		<if test='"".equalsIgnoreCase( ser_teamname ) || ser_teamname == null'></if>
+		<if test='ser_teamname != null'>
+and team_name = #{ser_teamname} /* MA */
+		</if>
+	</when>
+	<when test='userPosCd != "" and userPosCd lt 0043'>
+and team_name = #{user_dept} /* 0043 */
+	</when>
+	<otherwise>
+and (emp_code = #{emp_code} or reg_worker = #{emp_code})
+	</otherwise>
+</choose>
+-->
+</select>
+
+<select id="select_zhr_per_daily_report" resultType="HashMap">
+/* oracle.yp_zhr_tna.select_zhr_per_daily_report */
+select
+	  SEQ
+	, TO_CHAR(REG_DATE, 'YYYY/MM/DD') AS REG_DATE_DAY
+	, TO_CHAR(REG_DATE, 'HH24:MI') AS REG_DATE_TIME
+	, REG_WORKER
+	, EMP_CODE
+	, EMP_NAME
+	, WORK_PLACE
+	, TEAM_CODE
+	, TEAM_NAME
+	, WORK_GROUP_CODE
+	, WORK_GROUP
+	, WORK_SHIFT_CODE
+	, WORK_SHIFT
+	, WORK_TYPE1_CODE
+	, WORK_TYPE1
+	, WORK_TYPE2_CODE
+	, WORK_TYPE2
+	, OVER_WORK_CODE
+	, OVER_WORK
+	, ORIGIN_WORK_CODE
+	, ORIGIN_WORK
+	, ORIGIN_WORKER
+	, STATUS
+	, WORK_STARTDATE
+	, WORK_STARTTIME
+	, WORK_ENDDATE
+	, WORK_ENDTIME
+	, WORK_OVERTIME
+	, TRUE_WORK_STARTDATE
+	, TRUE_WORK_STARTTIME
+	, TRUE_WORK_ENDDATE
+	, TRUE_WORK_ENDTIME
+	, TIME_CARD1
+	, TIME_CARD2
+	, WORK_DSC
+	, MODIFY_DSC
+	, TRUE_OVERTIME AS OVERTIME
+	, CONFIRM_OT
+	, CONFIRM_WORKER_NAME
+	, REJECT_WORKER_NAME
+	, APPROVAL_WORKER_NAME
+	, TO_CHAR(MODIFY_DATE, 'YYYY/MM/DD HH24:MI:SS') AS MODIFY_DATE
+	, MODIFY_WORKER
+	, TO_CHAR(APPROVAL_DATE, 'YYYY/MM/DD') AS APPROVAL_DATE
+	, APPROVAL_WORKER
+	, TO_CHAR(CONFIRM_DATE, 'YYYY/MM/DD') AS CONFIRM_DATE_DAY
+	, TO_CHAR(CONFIRM_DATE, 'HH24:MI') AS CONFIRM_DATE_TIME
+	, CONFIRM_WORKER
+	, TO_CHAR(REJECT_DATE, 'YYYY/MM/DD') AS REJECT_DATE_DAY
+	, TO_CHAR(REJECT_DATE, 'HH24:MI') AS REJECT_DATE_TIME
+	, REJECT_WORKER
+	, EXTENSION
+	, HOLIDAY_EXTENSION
+	, HOLIDAY
+	, NIGHT
+	, REG_WORKER_NAME
+	, REGULAR_WORK1
+	, REGULAR_WORK2
+	, REST_STIME
+	, REST_ETIME
+	, ZNUMC
+	, ORIGIN_WORKER_NAME
+from tbl_overtime_plan
+where 1=1
+and status != 'X'
+<if test='ser_status != null and !"".equals( ser_status )'>
+and status = #{ser_status}
+</if>
+<if test="sdate != '' and sdate != null">
+and work_startdate between #{sdate} and #{edate}
+</if>
+<if test="ser_name != '' and ser_name != null">
+and emp_name = #{ser_name}
+</if>
+<choose>
+	<when test='"US".equalsIgnoreCase( auth )'>
+and (emp_code = #{emp_code} or reg_worker = #{emp_code})
+	</when>
+	<otherwise>
+		<if test='ser_status != null and "" != ser_status'>
+and status = #{ser_status}
+		</if>
+		<if test='ser_teamname != null'>
+and team_code = #{ser_teamname} /* 부서 - NEW */
+		</if>
+		<if test='ser_class != null'>
+and nvl(work_group_code, '00000000') = #{ser_class} /* 반 - NEW */
+		</if>
+		<if test='ser_shift != null'>
+and work_shift_code = #{ser_shift} /* 근무조 - NEW */
+		</if>
+	</otherwise>
+</choose>
+<!--
+<choose>
+	<when test='"SA".equalsIgnoreCase( auth )'></when>
+	<when test='"팀장".equalsIgnoreCase( ofc_name )'>
+and team_name = #{user_dept} /* 팀장 */
+		<if test='ser_class != "" and ser_class != null'>
+and work_group like '%'||#{ser_class}||'%'
+		</if>
+		<if test='ser_shift != "" and ser_shift != null'>
+and work_shift like '%'||#{ser_shift}||'%'
+		</if>
+	</when>
+	<when test='"MA".equalsIgnoreCase( auth )'>
+		<if test='"".equalsIgnoreCase( ser_teamname ) || ser_teamname == null'></if>
+		<if test='ser_teamname != null'>
+and team_name = #{ser_teamname} /* MA */
+		</if>
+	</when>
+	<when test='userPosCd != "" and userPosCd lt 0043'>
+and team_name = #{user_dept} /* 0043 */
+	</when>
+	<otherwise>
+and (emp_code = #{emp_code} or reg_worker = #{emp_code})
+	</otherwise>
+</choose>
+-->
+</select>
+
+<select id="retrieveEmpWorkInfo" parameterType="String" resultType="java.util.HashMap">
+/* oracle.yp_zhr_tna.retrieveEmpWorkInfo */
+select
+	u.emp_cd as emp_cd,
+	u.user_name as emp_name,
+	u.emp_status as status,
+	w.orgeh as orgeh,
+	w.orgtx as orgtx,
+	w.zclss as zclss,
+	w.zclst as zclst,
+	w.schkz as schkz,
+	w.jo_name as jo_name
+from gw_user u
+left outer join TBL_COMMON_EMP_WORK w
+	 on u.emp_cd = w.pernr
+where 1=1
+and u.emp_status = 'W'
+and u.user_name = #{search_name}
+</select>
+
+<select id="retrieveUpperDepartment" resultType="java.util.HashMap" parameterType="String">
+/* oracle.yp_zhr_tna.retrieveUpperDepartment */
+select
+	dept_cd,
+	dept_name
+from ORG_DEPARTMENT@GWDB
+where 1=1
+and dept_id = (
+	select
+		up_dept_id
+	from ORG_DEPARTMENT@GWDB
+	where dept_cd = #{value}
+)
+</select>
+
+<select id="retrieveOvertimeZnumc" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+/* oracle.yp_zhr_tna.retrieveOvertimeZnumc */
+	select
+		NVL(max(znumc),0) as znumc from tbl_overtime_plan
+	where emp_code = #{emp_code}
+	and work_startdate = #{work_startdate}
+	and status != 'R'
+	and status != 'X'
+</select>
+
+<select id="retrieveOvertimeDupliCheck" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+/* oracle.yp_zhr_tna.retrieveOvertimeDupliCheck */
+	select
+		count(*)
+	from (
+		select
+			to_date( work_startdate || true_work_starttime, 'yyyy-mm-dd hh24:mi' ) as frdt,
+			to_date( work_enddate || true_work_endtime, 'yyyy-mm-dd hh24:mi' ) as todt
+		from tbl_overtime_plan
+		where 1 = 1
+		and emp_code = #{emp_code}
+		and status != 'R'
+		and status != 'X'
+	) a
+	where 1=1
+	and a.frdt <![CDATA[<]]> to_date( #{todt}, 'yyyy-mm-dd hh24:mi' )
+	and a.todt <![CDATA[>]]> to_date( #{frdt}, 'yyyy-mm-dd hh24:mi' )
+</select>
+
+<select id="retrieveOvertimeByWeek" parameterType="java.util.HashMap" resultType="java.lang.Float">
+/* oracle.yp_zhr_tna.retrieveOvertimeByWeek */
+	select
+		NVL(sum(true_overtime),0)
+	from TBL_OVERTIME_PLAN
+	where emp_code = #{emp_code}
+	and STATUS != 'R'
+	and STATUS != 'X'
+	and WORK_TYPE1_CODE = 'B'
+	and WORK_STARTDATE BETWEEN #{sdate} and #{edate}
+</select>
+
+<insert id="createOvertime" parameterType="java.util.HashMap">
+/* oracle.yp_zhr_tna.createOvertime */
+insert into tbl_overtime_plan (
+	 SEQ
+	,REG_DATE 			<!-- DATE -->
+	,REG_WORKER 		<!--VARCHAR2(25 BYTE)-->
+	,EMP_CODE 			<!--VARCHAR2(25 BYTE) NOT NULL ENABLE-->
+	,EMP_NAME 			<!--VARCHAR2(50 BYTE)-->
+	,WORK_PLACE 		<!--VARCHAR2(20 BYTE)-->
+	,TEAM_CODE 			<!--VARCHAR2(10 BYTE)-->
+	,TEAM_NAME 			<!--VARCHAR2(50 BYTE)-->
+	,WORK_GROUP_CODE 	<!--VARCHAR2(20 BYTE)-->
+	,WORK_GROUP 		<!--VARCHAR2(50 BYTE)-->
+	,WORK_SHIFT_CODE 	<!--VARCHAR2(20 BYTE)-->
+	,WORK_SHIFT 		<!--VARCHAR2(50 BYTE)-->
+	,WORK_TYPE1_CODE 	<!--VARCHAR2(20 BYTE)-->
+	,WORK_TYPE1 		<!--VARCHAR2(20 BYTE)-->
+	,WORK_TYPE2_CODE 	<!--VARCHAR2(20 BYTE)-->
+	,WORK_TYPE2 		<!--VARCHAR2(20 BYTE)-->
+	,OVER_WORK_CODE 	<!--VARCHAR2(20 BYTE)-->
+	,OVER_WORK 			<!--VARCHAR2(50 BYTE)-->
+	,ORIGIN_WORK_CODE 	<!--VARCHAR2(20 BYTE)-->
+	,ORIGIN_WORK 		<!--VARCHAR2(50 BYTE)-->
+	,ORIGIN_WORKER 		<!--VARCHAR2(25 BYTE)-->
+	,STATUS 			<!--VARCHAR2(1 BYTE)-->
+	,WORK_STARTDATE 	<!--VARCHAR2(10 BYTE)-->
+	,TRUE_WORK_STARTTIME 	<!--VARCHAR2(9 BYTE)-->
+	,WORK_ENDDATE 		<!--VARCHAR2(10 BYTE)-->
+	,TRUE_WORK_ENDTIME 		<!--VARCHAR2(9 BYTE)-->
+	,TRUE_OVERTIME 		<!--VARCHAR2(5 BYTE)-->
+	,WORK_DSC 			<!--VARCHAR2(500 BYTE)-->
+	,REG_WORKER_NAME 	<!--VARCHAR2(50 BYTE)-->
+	,TIME_CARD1			<!--VARCHAR2(20 BYTE)-->
+	,TIME_CARD2			<!--VARCHAR2(20 BYTE)-->
+	,REGULAR_WORK1 		<!--VARCHAR2(20 BYTE)-->
+	,REGULAR_WORK2 		<!--VARCHAR2(6 BYTE)-->
+	,REST_STIME 		<!--VARCHAR2(6 BYTE)-->
+	,REST_ETIME 		<!--VARCHAR2(6 BYTE)-->
+	,ZNUMC				<!--NUMBER-->
+	,ORIGIN_WORKER_NAME <!--VARCHAR2(50 BYTE)-->
+) values (
+	 overtime_seq.nextval
+	,sysdate
+	,#{reg_worker}
+	,#{emp_code}
+	,#{emp_name}
+	,#{work_place}
+	,#{team_code}
+	,#{team_name}
+	,#{work_group_code}
+	,#{work_group}
+	,#{work_shift_code}
+	,#{work_shift}
+	,#{work_type1_code}
+	,#{work_type1}
+	,#{work_type2_code}
+	,#{work_type2}
+	,#{over_work_code}
+	,#{over_work}
+	,#{origin_work_code}
+	,#{origin_work}
+	,#{origin_worker_code,jdbcType=VARCHAR}
+	,'W'
+	,#{work_startdate}
+	,#{true_work_starttime}
+	,#{work_enddate}
+	,#{true_work_endtime}
+	,#{true_overtime}
+	,#{work_dsc}
+	,#{reg_worker_name}
+	,#{time_card1}
+	,#{time_card2}
+	,#{regular_work1}
+	,#{regular_work2}
+	,#{rest_stime,jdbcType=VARCHAR}
+	,#{rest_etime,jdbcType=VARCHAR}
+	,#{znumc,jdbcType=VARCHAR}
+	,#{origin_worker_name,jdbcType=VARCHAR}
+)
+</insert>
+
+<update id="updateOverPlanStauts">
+/* oracle.yp_zhr_tna.updateOverPlanStauts */
+update tbl_overtime_plan set 
+	status = #{upd_flag},
+	<choose>
+		<when test='upd_flag.equalsIgnoreCase("A")'>
+	approval_worker = #{emp_code}, approval_worker_name = #{emp_name}, approval_date = sysdate
+		</when>
+		<when test='upd_flag.equalsIgnoreCase("R")'>
+	reject_worker = #{emp_code}, reject_worker_name = #{emp_name}, reject_date = sysdate
+		</when>
+		<when test='upd_flag.equalsIgnoreCase("X")'>
+	modify_worker = #{emp_code}, modify_date = sysdate
+		</when>
+	</choose>
+where 1=1
+and seq = #{seq}
+</update>
+
+<select id="retrieveOvertimePlanListBySeq" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+/* oracle.yp_zhr_tna.retrieveOvertimePlanListBySeq */
+select *
+from tbl_overtime_plan
+where 1=1
+and seq in (
+<foreach collection="seq" item="item" index="idx" separator=",">#{item.SEQ}</foreach>
+)
+order by work_startdate desc, team_code asc
+</select>
+
+<update id="updateOverPlanConfirm" parameterType="java.util.HashMap">
+/* oracle.yp_zhr_tna.updateOverPlanConfirm */
+	update tbl_overtime_plan set 
+		   status = 'C'
+		  ,confirm_worker = #{emp_code}
+		  ,confirm_worker_name = #{emp_name}
+		  ,confirm_date = sysdate
+	where seq = #{seq}
+</update>
+
+<select id="select_emp_work_dept" resultType="java.util.HashMap">
+/* oracle.yp_zhr_tna.select_emp_work_dept */
+select
+	u.emp_cd as emp_cd,
+	u.user_name as emp_name,
+	u.emp_status as status,
+	w.orgeh as orgeh,
+	w.orgtx as orgtx,
+	nvl(w.zclss, '00000000') as zclss,
+	w.zclst as zclst,
+	w.schkz as schkz,
+	w.jo_name as jo_name
+from gw_user u
+left outer join TBL_COMMON_EMP_WORK w
+	 on u.emp_cd = w.pernr
+where 1=1
+and u.emp_status = 'W'
+and u.emp_cd = #{s_emp_code}
+</select>
+
+<select id="select_team_list" resultType="java.util.HashMap">
+/* oracle.yp_zhr_tna.select_team_list */
+SELECT
+	A.DEPT_1LV_CODE,
+	A.DEPT_UP_CODE,
+	A.DEPT_CODE AS OBJID,
+	A.DEPT_NAME AS STEXT,
+	A.BTRTL AS BTRTL
+FROM COM_DEPT_V_YP A
+WHERE 1=1
+AND A.DEPT_LV = 1
+
+<choose>
+	<when test='"SA".equalsIgnoreCase( s_authogrp_code )'>
+/* 부서 전체 - 【${s_authogrp_code}】 */
+<if test='ser_cp != null and ser_cp != "ALL"'>
+AND A.BTRTL = #{ser_cp}
+</if>
+	</when>
+	<when test='"MA".equalsIgnoreCase( s_authogrp_code )'>
+/* 부서 전체 - 【${s_authogrp_code}】 */
+<if test='ser_cp != null and ser_cp != "ALL"'>
+AND A.BTRTL = #{ser_cp}
+</if>
+	</when>
+	<when test='"IM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속부서 (+ 겸임부서) - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</when>
+	<when test='"TM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속부서 - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</when>
+	<when test='"WM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속부서 - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</when>
+	<when test='"CM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속부서 - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</when>
+	<when test='"SM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속부서 - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</when>
+	<otherwise>
+/* 소속부서 - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</otherwise>
+</choose>
+ORDER BY A.DEPT_NAME
+</select>
+
+<select id="select_group_list" resultType="java.util.HashMap">
+/* oracle.yp_zhr_tna.select_group_list */
+SELECT
+	A.DEPT_1LV_CODE,
+	A.DEPT_UP_CODE,
+	A.DEPT_CODE AS OBJID,
+	A.DEPT_NAME AS STEXT
+FROM COM_DEPT_V_YP A
+WHERE 1=1
+AND A.DEPT_LV = 2
+<choose>
+	<when test='"SA".equalsIgnoreCase( s_authogrp_code )'>
+/* 반 전체 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+	</when>
+	<when test='"MA".equalsIgnoreCase( s_authogrp_code )'>
+/* 반 전체 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+	</when>
+	<when test='"IM".equalsIgnoreCase( s_authogrp_code )'>
+/* 반 전체 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+	</when>
+	<when test='"TM".equalsIgnoreCase( s_authogrp_code )'>
+/* 반 전체 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+	</when>
+	<when test='"WM".equalsIgnoreCase( s_authogrp_code )'>
+/* 반 전체 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+	</when>
+	<when test='"CM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속 반 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+AND A.DEPT_CODE = #{zclss}
+	</when>
+	<when test='"SM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속 반 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+AND A.DEPT_CODE = #{zclss}
+	</when>
+	<otherwise>
+/* 소속 반 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+AND A.DEPT_CODE = #{zclss}
+	</otherwise>
+</choose>
+ORDER BY A.DEPT_CODE
+</select>
+
+<select id="select_shift_list" resultType="java.util.HashMap">
+/* oracle.yp_zhr_tna.select_shift_list */
+SELECT
+	A.DEPT_1LV_CODE,
+	A.DEPT_UP_CODE,
+	A.DEPT_CODE AS OBJID,
+	A.DEPT_NAME AS STEXT
+FROM COM_DEPT_V_YP A
+WHERE 1=1
+AND A.DEPT_LV = 3
+<choose>
+	<when test='"SA".equalsIgnoreCase( s_authogrp_code )'>
+/* 근무조 전체 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+	</when>
+	<when test='"MA".equalsIgnoreCase( s_authogrp_code )'>
+/* 근무조 전체 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+	</when>
+	<when test='"IM".equalsIgnoreCase( s_authogrp_code )'>
+/* 근무조 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+	</when>
+	<when test='"TM".equalsIgnoreCase( s_authogrp_code )'>
+/* 근무조 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+	</when>
+	<when test='"WM".equalsIgnoreCase( s_authogrp_code )'>
+/* 근무조 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+	</when>
+	<when test='"CM".equalsIgnoreCase( s_authogrp_code )'>
+/* 근무조 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+	</when>
+	<when test='"SM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속 근무조 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+AND A.DEPT_CODE = #{schkz}
+	</when>
+	<otherwise>
+/* 소속 근무조 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+AND A.DEPT_CODE = #{schkz}
+	</otherwise>
+</choose>
+ORDER BY A.DEPT_CODE
+</select>
+
+</mapper>

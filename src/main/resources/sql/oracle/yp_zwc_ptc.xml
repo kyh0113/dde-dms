@@ -1,0 +1,341 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_zwc_ptc">
+
+<select id="select_cb_working_master_v" resultType="HashMap">
+/* oracle.yp_zwc_ptc.select_cb_working_master_v */
+SELECT
+	A.CODE,
+	A.CODE_NAME
+FROM TBL_WORKING_MASTER A
+WHERE 1=1
+AND A.USE_YN = 'Y'
+AND SUBSTR(A.CODE, 1, 1) = 'V'
+AND A.ENTERPRISE_GUBUN IN ('1', '2') -- 조업 및 정비 거래처
+ORDER BY A.BASE_YYYY, TO_NUMBER(REGEXP_REPLACE(A.CODE, '[^0-9]'))
+</select>
+
+<select id="select_cb_working_master_p" resultType="HashMap">
+/* oracle.yp_zwc_ptc.select_cb_working_master_p */
+SELECT
+    CODE,
+    CODE_NAME AS CODE_NAME,
+    UNIT_PRICE
+FROM TBL_WORKING_MASTER A
+WHERE CODE LIKE 'P%'
+AND USE_YN = 'Y'
+<if test='BASE_YYYY != null'>
+AND BASE_YYYY =  #{BASE_YYYY}
+</if>
+ORDER BY A.BASE_YYYY, TO_NUMBER(REGEXP_REPLACE(A.CODE, '[^0-9]'))
+</select>
+
+<select id="select_zwc_ptc_working_subc_list" resultType="HashMap">
+/* oracle.yp_zwc_ptc.select_zwc_ptc_working_subc_list */
+SELECT 
+    A.BASE_YYYY,
+    A.CONTRACT_CODE,
+    A.CONTRACT_NAME,
+    A.VENDOR_CODE,
+    C.CODE_NAME AS VENDOR_NAME,
+    NVL(B.MONTH_AMOUNT, 0) AS MONTH_AMOUNT,
+    NVL(B.YEAR_AMOUNT, 0) AS YEAR_AMOUNT
+FROM TBL_WORKING_SUBC A
+LEFT OUTER JOIN TBL_WORKING_PTC B
+ON A.BASE_YYYY = B.BASE_YYYY
+AND A.CONTRACT_CODE = B.CONTRACT_CODE
+LEFT OUTER JOIN TBL_WORKING_MASTER C
+ON A.VENDOR_CODE = C.CODE
+WHERE 1=1
+AND A.BASE_YYYY =  #{BASE_YYYY}
+<if test='VENDOR_CODE != null'>
+AND A.VENDOR_CODE =  #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_NAME != null'>
+AND A.CONTRACT_NAME LIKE  '%' || #{CONTRACT_NAME} || '%'
+</if>
+ORDER BY CONTRACT_CODE
+</select>
+
+<select id="select_zwc_ptc_list_cnt" resultType="int">
+/* oracle.yp_zwc_ptc.select_zwc_ptc_list_cnt */
+SELECT 
+    count(*) AS cnt
+FROM TBL_WORKING_SUBC
+WHERE 1=1
+AND BASE_YYYY =  #{BASE_YYYY}
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE =  #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_NAME != null'>
+AND CONTRACT_NAME LIKE  '%' || #{CONTRACT_NAME} || '%'
+</if>
+</select>
+
+<select id="select_zwc_ptc_dt_cnt" resultType="int">
+/* oracle.yp_zwc_ptc.select_zwc_ptc_dt_cnt */
+SELECT
+    COUNT(*) AS cnt
+FROM(
+    SELECT 
+        A.BASE_YYYY,
+        A.CONTRACT_CODE,
+        B.CONTRACT_NAME,
+        A.VENDOR_CODE,
+        A.PROTECTOR_CODE,
+        A.UNIT_PRICE,
+        A.QTY
+    FROM TBL_WORKING_PTC_DT A
+    LEFT OUTER JOIN TBL_WORKING_SUBC B
+    ON A.BASE_YYYY = B.BASE_YYYY
+    AND A.CONTRACT_CODE = B.CONTRACT_CODE
+) C
+WHERE 1=1
+AND C.BASE_YYYY =  #{BASE_YYYY}
+<if test='VENDOR_CODE != null'>
+AND C.VENDOR_CODE =  #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_NAME != null'>
+AND C.CONTRACT_NAME LIKE  '%' || #{CONTRACT_NAME} || '%'
+</if>
+</select>
+
+<select id="select_zwc_ptc_dt_list" resultType="HashMap">
+/* oracle.yp_zwc_ptc.select_zwc_ptc_dt_list */
+SELECT
+	BASE_YYYY,
+	CONTRACT_CODE,
+	CONTRACT_NAME,
+	VENDOR_CODE,
+	PROTECTOR_CODE,
+	UNIT_PRICE,
+	QTY
+FROM(
+	SELECT 
+		A.BASE_YYYY,
+		A.CONTRACT_CODE,
+		B.CONTRACT_NAME,
+		A.VENDOR_CODE,
+		A.PROTECTOR_CODE,
+		C.UNIT_PRICE, /* 2020-10-13 jamerl 변경 */
+		A.QTY
+	FROM TBL_WORKING_PTC_DT A
+	LEFT OUTER JOIN TBL_WORKING_SUBC B
+		ON A.BASE_YYYY = B.BASE_YYYY
+		AND A.VENDOR_CODE = B.VENDOR_CODE /* 2020-10-13 jamerl 추가 */
+		AND A.CONTRACT_CODE = B.CONTRACT_CODE
+	INNER JOIN TBL_WORKING_MASTER C /* 2020-10-13 jamerl 추가 */
+		ON A.BASE_YYYY = C.BASE_YYYY
+		AND A.PROTECTOR_CODE = C.CODE
+		AND C.USE_YN = 'Y'
+)
+WHERE 1=1
+AND BASE_YYYY =  #{BASE_YYYY}
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE =  #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_NAME != null'>
+AND CONTRACT_NAME LIKE  '%' || #{CONTRACT_NAME} || '%'
+</if>
+</select>
+
+<select id="select_cb_working_recent_master_p" resultType="HashMap">
+/* oracle.yp_zwc_ptc.select_cb_working_recent_master_p */
+SELECT
+    CODE,
+    CODE_NAME AS CODE_NAME,
+    UNIT_PRICE
+FROM TBL_WORKING_MASTER
+WHERE CODE LIKE 'P%'
+AND USE_YN = 'Y'
+AND BASE_YYYY = (SELECT max(BASE_YYYY) FROM TBL_WORKING_MASTER)
+ORDER BY TO_NUMBER(REGEXP_REPLACE(CODE, '[^0-9]'))
+</select>
+
+<update id="zwc_ptc_create_save_working_ptc">
+/* oracle.yp_zwc_ptc.zwc_ptc_create_save_working_ptc */
+INSERT INTO TBL_WORKING_PTC(
+    BASE_YYYY,
+    CONTRACT_CODE,
+    VENDOR_CODE,
+    MONTH_AMOUNT,
+    YEAR_AMOUNT,
+    REG_EMP,
+    UPD_EMP,
+    REG_DATE,
+    UPD_DATE
+)VALUES(
+    #{BASE_YYYY},
+    #{CONTRACT_CODE},
+    #{VENDOR_CODE},
+    #{MONTH_AMOUNT},
+    #{YEAR_AMOUNT},
+    #{s_emp_code},
+    #{s_emp_code},
+    sysdate,
+    sysdate
+)
+</update>
+
+<update id="zwc_ptc_dt_insert">
+/* oracle.yp_zwc_ptc.zwc_ptc_dt_insert */
+INSERT INTO TBL_WORKING_PTC_DT(
+    BASE_YYYY,
+    CONTRACT_CODE,
+    VENDOR_CODE,
+    PROTECTOR_CODE,
+    UNIT_PRICE,
+    QTY,
+    REG_EMP,
+    UPD_EMP,
+    REG_DATE,
+    UPD_DATE
+)VALUES(
+    #{BASE_YYYY},
+    #{CONTRACT_CODE},
+    #{VENDOR_CODE},
+    #{PROTECTOR_CODE},
+    #{UNIT_PRICE},
+    #{QTY},
+    #{s_emp_code},
+    #{s_emp_code},
+    sysdate,
+    sysdate
+)
+</update>
+
+<select id="select_column_make_list" resultType="java.util.LinkedHashMap">
+/* oracle.yp_zwc_ptc.select_column_make_list */
+<!--  
+SELECT
+    BASE_YYYY,
+    CODE AS PROTECTOR_CODE,
+    CODE_NAME AS PROTECTOR_NAME,
+    USE_YN
+FROM TBL_WORKING_MASTER
+WHERE CODE LIKE 'P%'
+<if test='BASE_YYYY != null'>
+AND BASE_YYYY =  #{BASE_YYYY}
+</if>
+ORDER BY TO_NUMBER(REGEXP_REPLACE(PROTECTOR_CODE, '[^0-9]'))
+-->
+<!-- 
+SELECT DISTINCT
+    A.BASE_YYYY,
+    A.PROTECTOR_CODE,
+    B.CODE_NAME AS PROTECTOR_NAME
+FROM TBL_WORKING_PTC_DT A
+LEFT OUTER JOIN TBL_WORKING_MASTER B
+ON A.BASE_YYYY = B.BASE_YYYY
+AND A.PROTECTOR_CODE = B.CODE
+WHERE 1=1
+<if test='BASE_YYYY != null'>
+AND A.BASE_YYYY =  #{BASE_YYYY}
+</if> 
+ORDER BY TO_NUMBER(REGEXP_REPLACE(PROTECTOR_CODE, '[^0-9]'))
+ -->
+ 
+ SELECT DISTINCT
+    A.BASE_YYYY,
+    A.PROTECTOR_CODE,
+    B.CODE_NAME AS PROTECTOR_NAME,
+    B.USE_YN
+FROM TBL_WORKING_PTC_DT A
+INNER JOIN TBL_WORKING_MASTER B
+ON A.BASE_YYYY = B.BASE_YYYY
+AND A.PROTECTOR_CODE = B.CODE
+AND B.USE_YN = 'Y'
+WHERE 1=1
+<if test='BASE_YYYY != null'>
+AND A.BASE_YYYY =  #{BASE_YYYY}
+</if>
+ORDER BY TO_NUMBER(REGEXP_REPLACE(PROTECTOR_CODE, '[^0-9]'))
+
+</select>
+
+<select id="working_ptc_chk" resultType="int">
+/* oracle.yp_zwc_ptc.working_ptc_chk */
+SELECT count(*) as cnt
+FROM TBL_WORKING_PTC
+WHERE 1=1
+<if test='BASE_YYYY != null'>
+AND BASE_YYYY =  #{BASE_YYYY}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE =  #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE =  #{CONTRACT_CODE}
+</if>
+</select>
+
+<update id="working_ptc_update">
+/* oracle.yp_zwc_ptc.working_ptc_update */
+UPDATE TBL_WORKING_PTC SET
+    MONTH_AMOUNT = #{MONTH_AMOUNT},
+    YEAR_AMOUNT = #{YEAR_AMOUNT},
+    UPD_EMP = #{s_emp_code},
+    UPD_DATE = sysdate
+WHERE 1=1
+<if test='BASE_YYYY != null'>
+AND BASE_YYYY =  #{BASE_YYYY}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE =  #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE =  #{CONTRACT_CODE}
+</if>
+</update>
+
+<select id="working_ptc_dt_chk" resultType="int">
+/* oracle.yp_zwc_ptc.working_ptc_dt_chk */
+SELECT count(*) as cnt
+FROM TBL_WORKING_PTC_DT
+WHERE 1=1
+<if test='BASE_YYYY != null'>
+AND BASE_YYYY =  #{BASE_YYYY}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE =  #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE =  #{CONTRACT_CODE}
+</if>
+<if test='PROTECTOR_CODE != null'>
+AND PROTECTOR_CODE =  #{PROTECTOR_CODE}
+</if>
+</select>
+
+<delete id="delete_working_ptc_dt">
+/* oracle.yp_zwc_ptc.delete_working_ptc_dt */
+DELETE TBL_WORKING_PTC_DT
+WHERE 1=1
+AND BASE_YYYY =  #{BASE_YYYY}
+AND VENDOR_CODE =  #{VENDOR_CODE}
+AND CONTRACT_CODE =  #{CONTRACT_CODE}
+</delete>
+
+<update id="working_ptc_dt_update">
+/* oracle.yp_zwc_ptc.working_ptc_dt_update */
+UPDATE TBL_WORKING_PTC_DT SET
+    UNIT_PRICE = #{UNIT_PRICE},
+    QTY =  #{QTY},
+    UPD_EMP = #{s_emp_code},
+    UPD_DATE = sysdate
+WHERE 1=1
+<if test='BASE_YYYY != null'>
+AND BASE_YYYY =  #{BASE_YYYY}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE =  #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE =  #{CONTRACT_CODE}
+</if>
+<if test='PROTECTOR_CODE != null'>
+AND PROTECTOR_CODE =  #{PROTECTOR_CODE}
+</if>
+</update>
+
+</mapper>

@@ -1,0 +1,620 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_fixture">
+	
+	<select id="grid_fixtrue_list_cnt" resultType="double">
+		/* oracle.yp_fixture.grid_fixtrue_list_cnt */
+		SELECT COUNT(1)
+		FROM COM_FIXTURE_MASTER
+		WHERE 1=1
+		<if test='manufacturer != null and !manufacturer.equals("")'>
+	    AND manufacturer LIKE  '%' || #{manufacturer} || '%'
+	    </if>
+	    <if test='fixture_name != null and !fixture_name.equals("")'>
+	    AND fixture_name LIKE  '%' || #{fixture_name} || '%'
+	    </if>
+	    <if test='fixture_type != null and !fixture_type.equals("")'>
+	    AND fixture_type LIKE  '%' || #{fixture_type} || '%'
+	    </if>
+	    <if test='regulation_measurement != null and !regulation_measurement.equals("")'>
+	    AND regulation_measurement LIKE  '%' || #{regulation_measurement} || '%'
+	    </if>
+	</select>
+	
+	<select id="grid_fixture_list" resultType="java.util.HashMap">
+		/* oracle.yp_fixture.grid_fixture_list */
+		SELECT
+			A.MANUFACTURER,
+			A.FIXTURE_NAME,
+			A.REGULATION_MEASUREMENT,
+			A.FIXTURE_TYPE,
+			A.UNIT_PRICE,
+			NVL(B.STOCK_AMOUNT, 0) AS STOCK_AMOUNT,
+			NVL(
+		        B.STOCK_AMOUNT - 
+		        NVL(
+		        	( SELECT 
+			            sum(sub_req_dtl.dispense_req_amount)
+			          FROM  COM_FIXTURE_REQ_DTL sub_req_dtl
+			          INNER JOIN COM_FIXTURE_REQ_MST sub_req_mst
+			          ON sub_req_dtl.fixture_req_code = sub_req_mst.fixture_req_code
+			          WHERE (sub_req_mst.req_status is null or sub_req_mst.req_status != 'E')
+					  AND sub_req_dtl.fixture_name = A.fixture_name
+					)
+		        ,0)
+		    , 0) AS AVAILABLE_STOCK_AMOUNT,
+			A.CREATE_USER,
+			TO_CHAR(A.CREATE_DATE, 'YYYY/MM/DD') AS CREATE_DATE,
+			A.UPDATE_USER,
+			TO_CHAR(A.UPDATE_DATE, 'YYYY/MM/DD') AS UPDATE_DATE
+		FROM COM_FIXTURE_MASTER A
+		LEFT OUTER JOIN COM_FIXTURE_STOCK B
+		ON A.FIXTURE_NAME = B.FIXTURE_NAME
+		WHERE 1=1
+		<if test='manufacturer != null and !manufacturer.equals("")'>
+	    AND A.manufacturer LIKE  '%' || #{manufacturer} || '%'
+	    </if>
+	    <if test='fixture_name != null and !fixture_name.equals("")'>
+	    AND A.fixture_name LIKE  '%' || #{fixture_name} || '%'
+	    </if>
+	    <if test='fixture_type != null and !fixture_type.equals("")'>
+	    AND A.fixture_type LIKE  '%' || #{fixture_type} || '%'
+	    </if>
+	    <if test='regulation_measurement != null and !regulation_measurement.equals("")'>
+	    AND regulation_measurement LIKE  '%' || #{regulation_measurement} || '%'
+	    </if>
+	    ORDER BY UPDATE_DATE DESC
+	</select>
+	
+	<select id="pop_fixture_list" resultType="java.util.HashMap">
+		/* oracle.yp_fixture.pop_fixture_list */
+		SELECT
+			A.FIXTURE_NAME,
+			A.FIXTURE_TYPE,
+			NVL(B.STOCK_AMOUNT, 0) AS STOCK_AMOUNT
+		FROM COM_FIXTURE_MASTER A
+		LEFT OUTER JOIN COM_FIXTURE_STOCK B
+		ON A.FIXTURE_NAME = B.FIXTURE_NAME
+		WHERE 1=1
+	    ORDER BY A.UPDATE_DATE DESC
+	</select>
+	
+	<select id="fixture_req_list" resultType="java.util.HashMap">
+	/* oracle.yp_fixture.fixture_req_list */
+	SELECT
+	    A.FIXTURE_NAME,
+	    B.FIXTURE_TYPE,
+	    A.REQ_AMOUNT,
+	    A.DISPENSE_REQ_AMOUNT,
+	    A.PURCHASE_REQ_AMOUNT
+	FROM COM_FIXTURE_REQ_DTL A
+	LEFT OUTER JOIN COM_FIXTURE_MASTER B
+	ON A.fixture_name = B.fixture_name
+	WHERE A.fixture_req_code IN <foreach collection="CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+    ORDER BY A.UPDATE_DATE DESC
+	</select>
+	
+	<select id="get_next_fixture_req_code" resultType="String">
+	/* oracle.yp_fixture.get_next_fixture_req_code */
+	SELECT 
+		CASE WHEN cnt > 0 THEN (
+		    SELECT 
+		      TO_CHAR(MAX(FIXTURE_REQ_CODE) + 1)
+		    FROM COM_FIXTURE_REQ_MST
+		  )
+	  	ELSE TO_CHAR(SYSDATE,'YYYYMMDD') || '0001' END as next_fixture_req_code
+	FROM(
+	  	SELECT COUNT(FIXTURE_REQ_CODE) as cnt FROM COM_FIXTURE_REQ_MST
+		WHERE FIXTURE_REQ_CODE LIKE TO_CHAR(SYSDATE,'YYYYMMDD') || '%'
+	) 
+	</select>
+	
+	<update id="fixture_req_mst_insert">
+	/* oracle.yp_fixture.fixture_req_mst_insert */
+	INSERT INTO COM_FIXTURE_REQ_MST (	
+		FIXTURE_REQ_CODE,
+		REQ_DEPT,
+		REQ_USER_ID,
+		CREATE_USER,
+		CREATE_DATE,
+		UPDATE_USER,
+		UPDATE_DATE
+	)VALUES(
+		#{FIXTURE_REQ_CODE}
+		,#{s_dept_code}
+		,#{s_emp_code}
+		,#{s_emp_code}
+	  	,SYSTIMESTAMP
+	  	,#{s_emp_code}
+	  	,SYSTIMESTAMP
+	)
+	</update>
+	
+	<update id="fixture_req_dtl_insert">
+	/* oracle.yp_fixture.fixture_req_dtl_insert */
+	INSERT INTO COM_FIXTURE_REQ_DTL (	
+		UUID,
+		FIXTURE_REQ_CODE,
+		FIXTURE_NAME,
+		REQ_AMOUNT,
+		DISPENSE_REQ_AMOUNT,
+		PURCHASE_REQ_AMOUNT,
+		CREATE_USER,
+		CREATE_DATE,
+		UPDATE_USER,
+		UPDATE_DATE
+	)VALUES(
+		sys_guid()
+		,#{FIXTURE_REQ_CODE}
+		,#{FIXTURE_NAME}
+		,#{REQ_AMOUNT}
+		,#{DISPENSE_REQ_AMOUNT}
+		,#{PURCHASE_REQ_AMOUNT}
+		,#{s_emp_code}
+	  	,SYSTIMESTAMP
+	  	,#{s_emp_code}
+	  	,SYSTIMESTAMP
+	)
+	</update>
+	
+	<select id="get_fixture_stock_amount" resultType="java.util.HashMap">
+		/* oracle.yp_fixture.get_fixture_stock_amount */
+		SELECT
+			A.FIXTURE_NAME,
+			NVL(
+		        B.STOCK_AMOUNT - 
+		        NVL(
+		        	( SELECT 
+			            sum(sub_req_dtl.dispense_req_amount)
+			          FROM  COM_FIXTURE_REQ_DTL sub_req_dtl
+			          INNER JOIN COM_FIXTURE_REQ_MST sub_req_mst
+			          ON sub_req_dtl.fixture_req_code = sub_req_mst.fixture_req_code
+			          WHERE (sub_req_mst.req_status is null or sub_req_mst.req_status != 'E')
+					  AND sub_req_dtl.fixture_name = A.fixture_name
+					)
+		        ,0)
+		    , 0) AS AVAILABLE_STOCK_AMOUNT,
+			NVL(B.STOCK_AMOUNT, 0) AS STOCK_AMOUNT
+		FROM COM_FIXTURE_MASTER A
+		LEFT OUTER JOIN COM_FIXTURE_STOCK B
+		ON A.FIXTURE_NAME = B.FIXTURE_NAME
+		WHERE 1=1
+	    AND A.FIXTURE_NAME = #{FIXTURE_NAME}
+	</select>
+	
+	<select id="grid_fixtrue_req_list_cnt" resultType="double">
+		/* oracle.yp_fixture.grid_fixtrue_req_list_cnt */
+		SELECT
+		  COUNT(1) as CNT
+		FROM COM_FIXTURE_REQ_MST A
+		WHERE 1=1
+		AND A.fixture_req_code IN (
+		  SELECT 
+		    C.fixture_req_code
+		  FROM COM_FIXTURE_REQ_DTL C
+		  LEFT OUTER JOIN COM_FIXTURE_MASTER D
+		  ON C.fixture_name = D.fixture_name
+		  LEFT OUTER JOIN COM_FIXTURE_REQ_MST IN_REQ_MST
+      	  ON C.fixture_req_code = IN_REQ_MST.fixture_req_code
+		  LEFT OUTER JOIN ORG_EMPLOYEE@GWDB IN_EMP
+		  ON IN_REQ_MST.req_user_id = IN_EMP.emp_cd
+		  LEFT JOIN ORG_DEPARTMENT@GWDB IN_DP
+		  ON IN_REQ_MST.req_dept = IN_DP.dept_cd
+		  WHERE 1=1
+		  AND A.fixture_req_code = C.fixture_req_code
+		   <if test='edoc_status != null and !edoc_status.equals("") and edoc_status != "Z"'>
+		  AND IN_REQ_MST.edoc_status LIKE '%' || #{edoc_status} || '%'
+		  </if>
+		  <if test='edoc_status != null and !edoc_status.equals("") and edoc_status == "Z"'>
+		  AND IN_REQ_MST.edoc_status is null
+		  </if>
+		  <if test='req_dept_name != null and !req_dept_name.equals("")'>
+		  AND IN_DP.dept_name LIKE '%' || #{req_dept_name} || '%'
+		  </if>
+		  <if test='req_user_name != null and !req_user_name.equals("")'>
+		  AND IN_EMP.user_name LIKE '%' || #{req_user_name} || '%'
+		  </if>
+		  <if test='manufacturer != null and !manufacturer.equals("")'>
+		  AND D.manufacturer LIKE '%' || #{manufacturer} || '%'
+		  </if>
+		  <if test='fixture_name != null and !fixture_name.equals("")'>
+		  AND D.fixture_name LIKE '%' || #{fixture_name} || '%'
+		  </if>
+		  <if test='fixture_type != null and !fixture_type.equals("")'>
+		  AND D.fixture_type LIKE '%' || #{fixture_type} || '%'
+		  </if>
+		)
+	</select>
+	
+	<select id="grid_fixture_req_list" resultType="java.util.HashMap">
+		/* oracle.yp_fixture.grid_fixture_req_list */
+		SELECT
+			TO_CHAR(CREATE_DATE, 'YYYY-MM-DD HH:MM:SS') as CREATE_DATE, 
+		    A.FIXTURE_REQ_CODE,
+		    A.EDOC_NO,
+		    A.REQ_DEPT,
+		    DP.DEPT_NAME as REQ_DEPT_NAME,
+		    A.REQ_USER_ID,
+		    EMP.USER_NAME as REQ_USER_NAME,
+		    A.EDOC_STATUS,
+		    A.REQ_STATUS,
+		    B.FIXTURE_TYPE_LIST
+		FROM COM_FIXTURE_REQ_MST A
+		LEFT OUTER JOIN (
+		  SELECT 
+		    max(fixture_req_code) as fixture_req_code,
+		    REGEXP_REPLACE(LISTAGG(F.fixture_type, ', ') WITHIN GROUP (ORDER BY F.fixture_type DESC), '([^, ]+)(, \1)*(, |$)', '\1\3') as fixture_type_list
+		  FROM COM_FIXTURE_REQ_DTL E
+	      LEFT OUTER JOIN COM_FIXTURE_MASTER F
+	      ON E.fixture_name = F.fixture_name
+		  GROUP BY fixture_req_code
+		) B
+		ON A.fixture_req_code = B.fixture_req_code
+		LEFT OUTER JOIN ORG_EMPLOYEE@GWDB EMP
+		ON A.req_user_id = EMP.emp_cd
+		LEFT JOIN ORG_DEPARTMENT@GWDB DP
+		ON A.req_dept = DP.dept_cd
+		WHERE 1=1
+		AND A.fixture_req_code IN (
+		  SELECT 
+		    C.fixture_req_code
+		  FROM COM_FIXTURE_REQ_DTL C
+		  LEFT OUTER JOIN COM_FIXTURE_MASTER D
+		  ON C.fixture_name = D.fixture_name
+		  LEFT OUTER JOIN COM_FIXTURE_REQ_MST IN_REQ_MST
+      	  ON C.fixture_req_code = IN_REQ_MST.fixture_req_code
+		  LEFT OUTER JOIN ORG_EMPLOYEE@GWDB IN_EMP
+		  ON IN_REQ_MST.req_user_id = IN_EMP.emp_cd
+		  LEFT JOIN ORG_DEPARTMENT@GWDB IN_DP
+		  ON IN_REQ_MST.req_dept = IN_DP.dept_cd
+		  WHERE 1=1
+		  AND A.fixture_req_code = C.fixture_req_code
+		  <if test='edoc_status != null and !edoc_status.equals("") and edoc_status != "Z"'>
+		  AND IN_REQ_MST.edoc_status LIKE '%' || #{edoc_status} || '%'
+		  </if>
+		  <if test='edoc_status != null and !edoc_status.equals("") and edoc_status == "Z"'>
+		  AND IN_REQ_MST.edoc_status is null
+		  </if>
+		  <if test='req_dept_name != null and !req_dept_name.equals("")'>
+		  AND IN_DP.dept_name LIKE '%' || #{req_dept_name} || '%'
+		  </if>
+		  <if test='req_user_name != null and !req_user_name.equals("")'>
+		  AND IN_EMP.user_name LIKE '%' || #{req_user_name} || '%'
+		  </if>
+		  <if test='manufacturer != null and !manufacturer.equals("")'>
+		  AND D.manufacturer LIKE '%' || #{manufacturer} || '%'
+		  </if>
+		  <if test='fixture_name != null and !fixture_name.equals("")'>
+		  AND D.fixture_name LIKE '%' || #{fixture_name} || '%'
+		  </if>
+		  <if test='fixture_type != null and !fixture_type.equals("")'>
+		  AND D.fixture_type LIKE '%' || #{fixture_type} || '%'
+		  </if>
+		)
+		ORDER BY A.UPDATE_DATE DESC
+	</select>
+	
+	<update id="fixture_req_dtl_edoc_update">
+		/* oracle.yp_fixture.fixture_req_dtl_edoc_update */
+		UPDATE COM_FIXTURE_REQ_MST
+		SET EDOC_NO = #{EDOC_NO},
+			EDOC_STATUS = #{EDOC_STATUS},
+			UPDATE_USER = #{s_emp_code},
+			UPDATE_DATE = SYSTIMESTAMP
+		WHERE fixture_req_code IN <foreach collection="CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+	</update>
+	
+	<update id="fixture_req_dtl_req_status_update">
+		/* oracle.yp_fixture.fixture_req_dtl_req_status_update */
+		UPDATE COM_FIXTURE_REQ_MST
+		SET REQ_STATUS = #{REQ_STATUS},
+			UPDATE_USER = #{s_emp_code},
+			UPDATE_DATE = SYSTIMESTAMP
+		WHERE fixture_req_code IN <foreach collection="CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+	</update>
+	
+	<select id="is_available_edoc_approval" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+		/* oracle.yp_fixture.is_available_edoc_approval */
+		SELECT 
+			fixture_req_code,
+			edoc_status
+		FROM COM_FIXTURE_REQ_MST
+		WHERE 1=1
+		AND fixture_req_code = #{FIXTURE_REQ_CODE}
+	</select>
+		
+	<select id="pop_fixture_req_list" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.yp_fixture.pop_fixture_req_list */
+	SELECT
+		MST.manufacturer,
+		DP.dept_name as req_dept_name,
+	  	EMP.user_name as req_user_name,
+	    REQ_DTL.fixture_name,
+	    MST.fixture_type,
+	    REQ_DTL.req_amount,
+	    REQ_DTL.dispense_req_amount,
+	    REQ_DTL.purchase_req_amount
+	FROM COM_FIXTURE_REQ_DTL REQ_DTL
+	LEFT OUTER JOIN COM_FIXTURE_REQ_MST REQ_MST
+	ON REQ_DTL.fixture_req_code = REQ_MST.fixture_req_code
+	LEFT OUTER JOIN COM_FIXTURE_MASTER MST
+	ON REQ_DTL.fixture_name = MST.fixture_name
+	LEFT OUTER JOIN ORG_EMPLOYEE@GWDB EMP
+	ON REQ_MST.req_user_id = EMP.emp_cd
+	LEFT JOIN ORG_DEPARTMENT@GWDB DP
+	ON REQ_MST.req_dept = DP.dept_cd
+	WHERE REQ_MST.fixture_req_code IN <foreach collection="CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+	<if test='search_type != null and !search_type.equals("") and search_type == "fixture_type"'>
+	AND MST.fixture_type LIKE '%' || #{search_text} || '%'
+	</if>
+    ORDER BY MST.fixture_type, REQ_DTL.fixture_name
+	</select>
+	
+	<select id="fixture_is_availalbe_purchase_req" resultType="boolean">
+	/* oracle.yp_fixture.fixture_is_availalbe_purchase_req */
+	WITH SELECTED_FIXTURE_REQ_DATA AS (
+	  SELECT count(1) as cnt 
+	  FROM COM_FIXTURE_REQ_MST
+	  WHERE fixture_req_code IN <foreach collection="CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+	)
+	SELECT 
+	  CASE WHEN A.cnt = (SELECT cnt FROM SELECTED_FIXTURE_REQ_DATA) THEN 1 
+	  ELSE 0 END as is_available
+	FROM(
+	  SELECT count(1) as cnt
+	  FROM COM_FIXTURE_REQ_MST
+	  WHERE 1=1
+	  AND edoc_status = 'F'
+	  AND req_status = 'U'
+	  AND fixture_req_code IN <foreach collection="CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+	) A	
+	</select>
+	
+	<select id="fixture_is_availalbe_finish_purchase" resultType="boolean">
+	/* oracle.yp_fixture.fixture_is_availalbe_finish_purchase */
+	WITH SELECTED_FIXTURE_REQ_DATA AS (
+	  SELECT count(1) as cnt 
+	  FROM COM_FIXTURE_REQ_MST
+	  WHERE fixture_req_code IN  <foreach collection="CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+	)
+	SELECT 
+	  CASE WHEN A.cnt = (SELECT cnt FROM SELECTED_FIXTURE_REQ_DATA) THEN 1 
+	  ELSE 0 END as is_available
+	FROM(
+	  SELECT count(1) as cnt
+	  FROM COM_FIXTURE_REQ_MST
+	  WHERE 1=1
+	  AND req_status = 'I'
+	  AND create_user = #{s_emp_code}
+	  AND fixture_req_code IN  <foreach collection="CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+	) A
+	</select>
+	
+	<select id="fixture_get_update_date" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.yp_fixture.fixture_get_update_date */
+	WITH temp as(
+	    SELECT 
+	    fixture_name,
+	    sum_dispense_req_amount
+	  FROM(
+	    SELECT 
+	      fixture_name,
+	      sum(dispense_req_amount) as sum_dispense_req_amount
+		  FROM COM_FIXTURE_REQ_DTL
+		  WHERE fixture_req_code IN  <foreach collection="CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+	    GROUP BY fixture_name
+	  )
+	  WHERE sum_dispense_req_amount > 0
+	)
+	SELECT 
+	  fixture_name,
+	  stock_amount,
+	  (
+	    stock_amount - (SELECT sum_dispense_req_amount FROM temp WHERE stock.fixture_name = temp.fixture_name  )
+	  ) as change_stock_amount
+	FROM COM_FIXTURE_STOCK stock
+	WHERE (fixture_name) IN (
+	  SELECT 
+	    fixture_name
+	  FROM temp
+	)
+	</select>
+	
+	<update id="fixture_stock_update">
+	/* oracle.yp_fixture.fixture_stock_update */
+	UPDATE COM_FIXTURE_STOCK 
+	SET stock_amount = #{change_stock_amount},
+		update_user = #{s_emp_code},
+		update_date = SYSTIMESTAMP
+	WHERE fixture_name = #{fixture_name}
+	</update>
+	
+	<update id="fixture_master_insert">
+	/* oracle.yp_fixture.fixture_master_insert */
+	INSERT INTO COM_FIXTURE_MASTER (	
+		FIXTURE_NAME,
+		MANUFACTURER,
+		REGULATION_MEASUREMENT,
+		FIXTURE_TYPE,
+		UNIT_PRICE,
+		CREATE_USER,
+		CREATE_DATE,
+		UPDATE_USER,
+		UPDATE_DATE
+	)VALUES(
+		#{FIXTURE_NAME}
+		,#{MANUFACTURER}
+		,#{REGULATION_MEASUREMENT}
+		,#{FIXTURE_TYPE}
+		,#{UNIT_PRICE}
+		,#{s_emp_code}
+		,SYSTIMESTAMP
+		,#{s_emp_code}
+		,SYSTIMESTAMP
+	)
+	</update>
+	
+	<select id="is_exist_fixture_stock_data" resultType="Boolean">
+		SELECT 
+		  CASE WHEN A.cnt > 0 THEN 1 
+		  ELSE 0 END as is_exist
+		FROM(
+		  SELECT count(1) as cnt
+		  FROM COM_FIXTURE_STOCK
+		  WHERE 1=1
+		  AND fixture_name = #{FIXTURE_NAME}
+		) A
+	</select>
+	
+	<update id="fixture_stock_insert">
+	/* oracle.yp_fixture.fixture_stock_insert */
+	INSERT INTO COM_FIXTURE_STOCK (	
+		FIXTURE_NAME,
+		STOCK_AMOUNT,
+		CREATE_USER,
+		CREATE_DATE,
+		UPDATE_USER,
+		UPDATE_DATE
+	)VALUES(
+		#{FIXTURE_NAME}
+		,#{STOCK_AMOUNT}
+		,#{s_emp_code}
+		,SYSTIMESTAMP
+		,#{s_emp_code}
+		,SYSTIMESTAMP
+	)
+	</update>
+	
+	<update id="fixture_master_update">
+	/* oracle.yp_fixture.fixture_master_update */
+	UPDATE COM_FIXTURE_MASTER 
+	SET fixture_name = #{FIXTURE_NAME},
+		manufacturer = #{MANUFACTURER},
+		regulation_measurement = #{REGULATION_MEASUREMENT},
+		fixture_type = #{FIXTURE_TYPE},
+		unit_price = #{UNIT_PRICE},
+		update_user = #{s_emp_code},
+		update_date = SYSTIMESTAMP
+	WHERE fixture_name = #{FIXTURE_NAME}
+	</update>
+	
+	<update id="fixture_stock_update_plain">
+	/* oracle.yp_fixture.fixture_stock_update_plain */
+	UPDATE COM_FIXTURE_STOCK 
+	SET stock_amount = #{STOCK_AMOUNT},
+		update_user = #{s_emp_code},
+		update_date = SYSTIMESTAMP
+	WHERE fixture_name = #{FIXTURE_NAME}
+	</update>
+	
+	<delete id="fixture_master_delete">
+	/* oracle.yp_fixture.fixture_master_delete */
+	DELETE FROM COM_FIXTURE_MASTER
+	WHERE fixture_name = #{FIXTURE_NAME}
+	</delete>
+	
+	<delete id="fixture_stock_delete">
+	/* oracle.yp_fixture.fixture_stock_delete */
+	DELETE FROM COM_FIXTURE_STOCK
+	WHERE fixture_name = #{FIXTURE_NAME}
+	</delete>
+	
+	<select id="fixture_master_key_list" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.yp_fixture.fixture_master_key_list */
+	SELECT 
+		fixture_name
+	FROM COM_FIXTURE_MASTER
+	</select>
+	
+	<update id="fixture_hist_insert">
+	/* oracle.yp_fixture.fixture_hist_insert */
+	INSERT INTO COM_FIXTURE_HIST (	
+		UUID,
+		FIXTURE_NAME,
+		HISTORY,
+		STATE,
+		CREATE_USER,
+		CREATE_DATE
+	)VALUES(
+		sys_guid()
+		,#{FIXTURE_NAME}
+		,#{HISTORY}
+		,#{STATE}
+		,#{s_emp_code}
+	  	,SYSTIMESTAMP
+	)
+	</update>
+	
+	<select id="PROC_GET_F_M_MSG" parameterType="HashMap" resultType="HashMap" statementType="CALLABLE">
+    { 
+    	call PROC_GET_F_M_MSG(
+                 #{FIXTURE_NAME,mode=IN,jdbcType=VARCHAR}
+                 , #{MANUFACTURER,mode=IN,jdbcType=VARCHAR}
+                 , #{REGULATION_MEASUREMENT,mode=IN,jdbcType=VARCHAR }
+                 , #{FIXTURE_TYPE,mode=IN,jdbcType=VARCHAR }
+                 , #{UNIT_PRICE,mode=IN,jdbcType=INTEGER }
+                 , #{RESULT, mode=OUT, jdbcType=VARCHAR}
+                 
+             )
+    }
+	</select>
+	
+	<select id="fixture_stock_single" resultType="java.util.HashMap">
+	/* oracle.yp_fixture.fixture_stock_single */
+	SELECT
+		FIXTURE_NAME,
+		NVL(STOCK_AMOUNT, 0) AS STOCK_AMOUNT
+	FROM COM_FIXTURE_STOCK
+	WHERE 1=1
+    AND fixture_name = #{FIXTURE_NAME}
+	</select>
+	
+	<select id="grid_fixture_hist_list_cnt" resultType="double">
+		/* oracle.yp_fixture.grid_fixture_hist_list_cnt */
+		SELECT COUNT(1)
+		FROM COM_FIXTURE_HIST
+		WHERE 1=1
+	    <if test='fixture_name != null and !fixture_name.equals("")'>
+	    AND fixture_name LIKE  '%' || #{fixture_name} || '%'
+	    </if>
+	    <if test='history != null and !history.equals("")'>
+	    AND history LIKE  '%' || #{history} || '%'
+	    </if>
+	    <if test='state != null and !state.equals("")'>
+	    AND state = #{state}
+	    </if>
+	</select>
+	
+	<resultMap id="map_fixture_hist_select" type="HashMap">
+		<result property="FIXTURE_NAME" 		column="FIXTURE_NAME"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+		<result property="HISTORY" 				column="HISTORY"		jdbcType="CLOB" 	javaType="java.lang.String" />
+		<result property="CREATE_USER" 			column="CREATE_USER"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+		<result property="CREATE_DATE" 			column="CREATE_DATE"	jdbcType="NVARCHAR" javaType="java.lang.String" />
+		<result property="STATE" 				column="STATE"			jdbcType="NVARCHAR" javaType="java.lang.String" />
+		<result property="NOTE" 				column="NOTE"			jdbcType="NVARCHAR" javaType="java.lang.String" />
+	</resultMap>
+	<select id="grid_fixture_hist_list" resultMap="map_fixture_hist_select">
+		/* oracle.yp_fixture."grid_fixture_hist_list" */
+		SELECT
+			FIXTURE_NAME,
+			HISTORY,
+			CREATE_USER,
+			CREATE_DATE,
+			STATE,
+			NOTE
+		FROM COM_FIXTURE_HIST
+		WHERE 1=1
+		<if test='fixture_name != null and !fixture_name.equals("")'>
+	    AND fixture_name LIKE  '%' || #{fixture_name} || '%'
+	    </if>
+	    <if test='history != null and !history.equals("")'>
+	    AND history LIKE  '%' || #{history} || '%'
+	    </if>
+	    <if test='state != null and !state.equals("")'>
+	    AND state = #{state}
+	    </if>
+	    ORDER BY CREATE_DATE DESC
+	</select>
+		    
+</mapper>
+

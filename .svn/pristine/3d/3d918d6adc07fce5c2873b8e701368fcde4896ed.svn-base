@@ -1,0 +1,48 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">
+    <title>영풍</title>
+	<link rel="stylesheet" href="css/style.css">
+</head>
+<body>
+    <div id="popup">
+        <div class="pop_header">전자결재 상신</div>
+        <div class="pop_content">
+            <section>
+                <div class="lst">
+                    <table cellspacing="0" cellpadding="0">
+                        <colgroup>
+                            <col width="20%"/>
+                            <col />
+                        </colgroup>
+                        <tr>
+                            <th>선택</th>
+                            <th>전자결재 상신문서</th>
+                        </tr>
+                        <tr>
+                            <td><input type="radio" /></td>
+                            <td>지출품의서(수신)</td>
+                        </tr>
+                        <tr>
+                            <td><input type="radio" /></td>
+                            <td>지출품의서(내부)</td>
+                        </tr>
+                        <tr>
+                            <td><input type="radio" /></td>
+                            <td>지출품의서(수신)</td>
+                        </tr>
+                    </table>
+                </div>
+            </section>
+            <div class="btn_wrap">
+                <button class="btn btn_apply">문서 상신하기</button> <button class="btn" onclick="window.close();">닫기</button>
+            </div>
+        </div>
+    
+    </div>
+	
+</body>
+</html>

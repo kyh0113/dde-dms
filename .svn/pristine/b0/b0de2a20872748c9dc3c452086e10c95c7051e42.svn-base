@@ -1,0 +1,236 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_zwc_cmt">
+<!-- /* oracle.yp_zwc_cmt.select_cb_enterprice_gubun */ -->
+
+
+<select id="select_zwc_cmt_list_cnt" resultType="double">
+/* oracle.yp_zwc_cmt.select_zwc_cmt_list_cnt */
+SELECT COUNT(*) AS CNT
+FROM (SELECT COUNT(distinct A.SABUN) AS WORKER_CNT,
+    T.CODE_NAME,
+    S.VENDOR_CODE,
+    S.WORKING_GUBUN,
+    S.FACTORY_CODE,
+    S.COST_NAME,
+    S.CONTRACT_NAME,
+    TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD') AS A_START_DATE
+FROM TBL_ACCESS A 
+LEFT JOIN TBL_WORKING_SUBCWORKER_MAP M
+  ON A.SABUN = M.SUBC_CODE
+LEFT JOIN TBL_WORKING_SUBC S
+  ON M.CONTRACT_CODE = S.CONTRACT_CODE
+  AND M.BASE_YYYY = S.BASE_YYYY
+LEFT JOIN  TBL_WORKING_MASTER T
+  ON T.CODE = S.VENDOR_CODE
+WHERE 1=1
+  	 <if test='VENDOR_CODE != null'>
+ 		AND S.VENDOR_CODE = #{VENDOR_CODE}
+	 </if>
+	 <if test='CONTRACT_NAME != null'>
+	 	AND S.CONTRACT_NAME LIKE '%${CONTRACT_NAME}%'
+	 </if>
+	 <if test='FACTORY_CODE != null'>
+	 	AND S.FACTORY_CODE = #{FACTORY_CODE}
+	 </if>
+	 <if test='COST_CODE != null'>
+	 	AND S.COST_CODE = #{COST_CODE}
+	 </if>
+	 <if test='S_START_DATE != null' >
+	 	AND TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD') = #{S_START_DATE}
+	 </if>
+GROUP BY T.CODE_NAME,
+    S.VENDOR_CODE,
+    S.WORKING_GUBUN,
+    S.FACTORY_CODE,
+    S.COST_NAME,
+    S.CONTRACT_NAME,
+     TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD')
+ )
+</select>
+
+
+
+<select id="select_zwc_cmt_list" resultType="HashMap">
+/* oracle.yp_zwc_cmt.select_zwc_cmt_list */
+SELECT COUNT(distinct A.SABUN) AS WORKER_CNT,
+    T.CODE_NAME,
+    S.VENDOR_CODE,
+    S.WORKING_GUBUN,
+    S.FACTORY_CODE,
+    S.COST_NAME,
+    S.CONTRACT_NAME,
+    TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD') AS A_START_DATE
+FROM TBL_ACCESS A 
+LEFT JOIN TBL_WORKING_SUBCWORKER_MAP M
+  ON A.SABUN = M.SUBC_CODE
+LEFT JOIN TBL_WORKING_SUBC S
+  ON M.CONTRACT_CODE = S.CONTRACT_CODE
+  AND M.BASE_YYYY = S.BASE_YYYY
+LEFT JOIN  TBL_WORKING_MASTER T
+  ON T.CODE = S.VENDOR_CODE
+WHERE 1=1
+  	 <if test='VENDOR_CODE != null'>
+ 		AND S.VENDOR_CODE = #{VENDOR_CODE}
+	 </if>
+	 <if test='CONTRACT_NAME != null'>
+	 	AND S.CONTRACT_NAME LIKE '%${CONTRACT_NAME}%'
+	 </if>
+	 <if test='FACTORY_CODE != null'>
+	 	AND S.FACTORY_CODE = #{FACTORY_CODE}
+	 </if>
+	 <if test='COST_CODE != null'>
+	 	AND S.COST_CODE = #{COST_CODE}
+	 </if>
+	 <if test='S_START_DATE != null' >
+	 	AND TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD') = #{S_START_DATE}
+	 </if>
+GROUP BY T.CODE_NAME,
+    S.VENDOR_CODE,
+    S.WORKING_GUBUN,
+    S.FACTORY_CODE,
+    S.COST_NAME,
+    S.CONTRACT_NAME,
+     TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD')
+</select>
+
+<select id="select_zwc_cmt_list_dt_cnt" resultType="double">
+/* oracle.yp_zwc_cmt.select_zwc_cmt_list_dt_cnt */
+ SELECT COUNT(*) AS CNT
+ FROM (SELECT 
+    T.CODE_NAME,
+    S.VENDOR_CODE,
+    A.USER_NAME,
+    D.COMPANY_NAME,
+    S.WORKING_GUBUN,
+    S.FACTORY_CODE,
+    S.COST_NAME,
+    S.CONTRACT_NAME,
+    TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD HH24:MI') AS A_START_DATE,
+    TO_CHAR(A.A_END_DATE, 'YYYY/MM/DD HH24:MI') AS A_END_DATE
+FROM TBL_ACCESS A 
+LEFT JOIN TBL_WORKING_SUBCWORKER_MAP M
+  ON A.SABUN = M.SUBC_CODE
+LEFT JOIN TBL_WORKING_SUBC S
+  ON M.CONTRACT_CODE = S.CONTRACT_CODE
+  AND M.BASE_YYYY = S.BASE_YYYY
+LEFT JOIN  TBL_WORKING_MASTER T
+  ON T.CODE = S.VENDOR_CODE
+LEFT JOIN  TBL_PARTNER_DEVICE D
+  ON A.DEVICE_ID = D.DEVICE_ID
+WHERE 1=1
+ <if test='VENDOR_CODE != null'>
+ 	AND S.VENDOR_CODE = #{VENDOR_CODE}
+ </if>
+ <if test='CONTRACT_NAME != null'>
+ 	AND S.CONTRACT_NAME LIKE '%${CONTRACT_NAME}%'
+ </if>
+ <if test='SUBC_NAME != null'>
+ 	AND A.USER_NAME LIKE '%${SUBC_NAME}%'
+ </if>
+ <if test='FACTORY_CODE != null'>
+ 	AND S.FACTORY_CODE = #{FACTORY_CODE}
+ </if>
+ <if test='COST_CODE != null'>
+ 	AND S.COST_CODE = #{COST_CODE}
+ </if>
+ <if test='S_START_DATE_FROM != null' >
+ 	AND TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD') <![CDATA[>=]]> #{S_START_DATE_FROM}
+  	AND TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD') <![CDATA[<=]]> #{S_START_DATE_TO}
+ </if>
+ )
+</select>
+
+<select id="select_zwc_cmt_list_dt" resultType="HashMap">
+/* oracle.yp_zwc_cmt.select_zwc_cmt_list_dt */
+ SELECT 
+    T.CODE_NAME,
+    S.VENDOR_CODE,
+    A.USER_NAME,
+    D.COMPANY_NAME,
+    S.WORKING_GUBUN,
+    S.FACTORY_CODE,
+    S.COST_NAME,
+    S.CONTRACT_NAME,
+    A.ACCESS_STATUS,
+    CASE A.ACCESS_STATUS WHEN 1 THEN TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD HH24:MI')
+                        ELSE TO_CHAR(A.A_END_DATE, 'YYYY/MM/DD HH24:MI') END as A_DATE
+FROM TBL_ACCESS A 
+LEFT JOIN TBL_WORKING_SUBCWORKER_MAP M
+  ON A.SABUN = M.SUBC_CODE
+LEFT JOIN TBL_WORKING_SUBC S
+  ON M.CONTRACT_CODE = S.CONTRACT_CODE
+  AND M.BASE_YYYY = S.BASE_YYYY
+LEFT JOIN  TBL_WORKING_MASTER T
+  ON T.CODE = S.VENDOR_CODE
+LEFT JOIN  TBL_PARTNER_DEVICE D
+  ON A.DEVICE_ID = D.DEVICE_ID
+WHERE 1=1
+	AND CODE_NAME IS NOT NULL
+ <if test='VENDOR_CODE != null'>
+ 	AND S.VENDOR_CODE = #{VENDOR_CODE}
+ </if>
+ <if test='CONTRACT_NAME != null'>
+ 	AND S.CONTRACT_NAME LIKE '%${CONTRACT_NAME}%'
+ </if>
+ <if test='SUBC_NAME != null'>
+ 	AND A.USER_NAME LIKE '%${SUBC_NAME}%'
+ </if>
+ <if test='FACTORY_CODE != null'>
+ 	AND S.FACTORY_CODE = #{FACTORY_CODE}
+ </if>
+ <if test='COST_CODE != null'>
+ 	AND S.COST_CODE = #{COST_CODE}
+ </if>
+ <if test='S_START_DATE_FROM != null' >
+    AND ((TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD') <![CDATA[>=]]> #{S_START_DATE_FROM} AND TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD') <![CDATA[<=]]> #{S_START_DATE_TO})
+         OR (TO_CHAR(A.A_END_DATE, 'YYYY/MM/DD') <![CDATA[>=]]> #{S_START_DATE_FROM} AND TO_CHAR(A.A_END_DATE, 'YYYY/MM/DD') <![CDATA[<=]]> #{S_START_DATE_TO}))
+ </if>
+ 
+ UNION ALL
+ 
+ SELECT 
+    T.CODE_NAME,
+    M.VENDOR_CODE,
+    A.USER_NAME,
+    D.COMPANY_NAME,
+    'Y',
+    '',
+    '',
+    '',
+    A.ACCESS_STATUS,
+    CASE A.ACCESS_STATUS WHEN 1 THEN TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD HH24:MI')
+                        ELSE TO_CHAR(A.A_END_DATE, 'YYYY/MM/DD HH24:MI') END as A_DATE
+FROM TBL_ACCESS A 
+LEFT JOIN TBL_WORKING_SUBCWORKER_MAP M
+  ON A.SABUN = M.SUBC_CODE
+  AND M.CONTRACT_CODE = CONCAT(M.BASE_YYYY,M.VENDOR_CODE)
+LEFT JOIN  TBL_WORKING_MASTER T
+  ON T.CODE = M.VENDOR_CODE
+LEFT JOIN  TBL_PARTNER_DEVICE D
+  ON A.DEVICE_ID = D.DEVICE_ID
+WHERE 1=1
+	AND CODE_NAME IS NOT NULL
+ <if test='VENDOR_CODE != null'>
+ 	AND M.VENDOR_CODE = #{VENDOR_CODE}
+ </if>
+ <if test='CONTRACT_NAME != null'>
+ 	AND M.VENDOR_CODE LIKE '%${CONTRACT_NAME}%'
+ </if>
+ <if test='SUBC_NAME != null'>
+ 	AND A.USER_NAME LIKE '%${SUBC_NAME}%'
+ </if>
+ <if test='FACTORY_CODE != null'>
+ 	AND M.VENDOR_CODE = #{FACTORY_CODE}
+ </if>
+ <if test='COST_CODE != null'>
+ 	AND M.VENDOR_CODE = #{COST_CODE}
+ </if>
+ <if test='S_START_DATE_FROM != null' >
+    AND ((TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD') <![CDATA[>=]]> #{S_START_DATE_FROM} AND TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD') <![CDATA[<=]]> #{S_START_DATE_TO})
+         OR (TO_CHAR(A.A_END_DATE, 'YYYY/MM/DD') <![CDATA[>=]]> #{S_START_DATE_FROM} AND TO_CHAR(A.A_END_DATE, 'YYYY/MM/DD') <![CDATA[<=]]> #{S_START_DATE_TO}))
+ </if>
+ORDER BY A_DATE,USER_NAME ASC	
+</select>
+
+</mapper>

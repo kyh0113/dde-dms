@@ -1,0 +1,437 @@
+<%@ page language="java" contentType="text/html; charset=UTF-8"
+    pageEncoding="UTF-8"%>
+<%@ taglib prefix="spring" uri="http://www.springframework.org/tags"%>
+<%@ taglib prefix="c" uri="http://java.sun.com/jsp/jstl/core"%>
+<head>
+<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">
+<title>샘플 페이지1</title>
+</head>
+<body>
+	<section class="section">
+		<h2 class="subTitle">샘플 페이지1</h2>
+		<div class="searchTable">
+			<form id="eucManagementForm">
+				<!-- 20191023_khj for csrf -->
+				<input type="hidden" name="${_csrf.parameterName}" id="${_csrf.parameterName}" value="${_csrf.token}" />
+				<table>
+					<colgroup>
+						<col style="width:86px">
+					</colgroup>
+					<tbody>
+						<tr>
+				        	<th style="width:120px;" class="textRight">검색조건1</th>
+				        	<td class="sel-350">
+				        		<select class="form-control" id="target_yn" name="target_yn">
+							        <option value="">전체</option>
+									<option value="Y">지정</option>
+									<option value="N">미지정</option>
+							    </select>
+				        	</td>
+				        	<th class="textRight">검색조건2</th>
+				        	<td><input class="inputTxt"  type="text" name="ca_no" id="ca_no"></td>
+				        </tr>
+					</tbody>
+				</table>
+			</form>
+		</div>
+		<div class="btnWrap">
+			<button id="search_euc" type="button" class="btnTypeM">검색</button>
+		</div>
+	</section>
+	
+	<section class="section">
+		<!-- 복붙영역(html) 시작, 복붙시 바꿔야할 값들 : id, data-ng-controller  -->
+		<div id="eucMangementCtrl-uiGrid"  data-ng-controller="eucMangementCtrl" class="grid-area" style="height: auto;">
+			<div data-ui-i18n="ko" style="height: auto;">
+				<div data-ui-grid="gridOptions" class="grid" data-ui-grid-edit data-ui-grid-cellNav data-ui-grid-pagination data-ui-grid-resize-columns data-ui-grid-auto-resize data-ui-grid-selection data-ui-grid-exporter>
+					<div data-ng-if="loader" class="loader"></div>
+					<div class="watermark" data-ng-show="!gridOptions.data.length">데이터가 없습니다.</div>
+				</div>
+			</div>
+		</div>
+		<!-- 복붙영역(html) 끝 -->
+		<div class="btnWrap">
+			<span class="right">
+				<button id="euc_add_btn" class="btnTypeM">추가</button>
+				<button id="euc_remove_btn" class="btnTypeM">삭제</button>
+				<button id="euc_save_btn" class="btnTypeM">저장</button>
+			</span>
+			<form id="excelDownForm" method="post" action="/core/excel/excelDown">
+				<input type="hidden" id="listQuery" name="listQuery" value="icm_excel.eucMasterExcel">
+				<input type="hidden" id="filename" name="filename" value="euc_master_template">
+				<input type="hidden" id="version" name="version" value="xlsx">
+			</form>
+		</div>
+	</section>
+
+<%@include file="../sample/sample_modal1.jsp"%>
+
+<script>
+	//복붙영역(앵귤러단) 시작, 복붙하고 바꿔야할 것들 : ctrCtrl -> "새로운이름"(html의 data-ng-controller프로퍼티 값과 일치), $scope.gridOptions의 true/false(원하는대로) & columnDefs를~ 가져오는 데이터에 맞게 수정  
+	app.controller('eucMangementCtrl', ['$scope','$controller','$log','StudentService', '$http', 'uiGridConstants',
+	function ($scope,$controller,$log,StudentService,$http,uiGridConstants) {		//$scope(this)는 해당컨트롤러로 진입하기위한 접근지시자라고 보면됨
+		var vm = this; 										//this를 vm에 대입, 아래에서 부모의 $scope를 vm에 추가하기 위해 			
+		angular.extend(vm, $controller('CodeCtrl',{ 		//CodeCtrl(ui-grid 커스텀 api)를 상속받는다
+			$scope : $scope									// 자식컨트롤러의 vm에 부모 컨트롤러의 $scope를 합, 이로써 자식 컨트롤러에서 부모의 모든 $scope(this)를 사용 할 수 있음			
+		}));	
+		
+		var paginationOptions = vm.paginationOptions;		//부모의 paginationOptions를 자식의 paginationOptions에 대입,즉시실행 함수
+		
+		paginationOptions.pageNumber = 1;					//초기 page number
+		paginationOptions.pageSize = 500;					//초기 한번에 보여질 로우수
+		$scope.paginationOptions = paginationOptions;
+		
+		$scope.gridApi = vm.gridApi;						//외부에서 grid의 클릭이벤트와 같은것들을 쓰기 위해서
+		$scope.loader = vm.loader;
+		
+		$scope.uiGridConstants = uiGridConstants;
+		
+		$scope.addRow = vm.addRow;
+		$scope.deleteRowOne = vm.deleteRowOne;
+		$scope.addedTF = false;
+		
+		$scope.pagination = vm.pagination;
+		
+		$scope.euc_typeList = null;
+		
+		//매크로 코드리스트 하드코딩
+		$scope.macro_codeList  = [{"code_name":"선택","code_id":""}
+								,{"code_name":"YES","code_id":"Y"}
+								,{"code_name":"NO","code_id":"N"}];
+		
+		//위험평가 코드리스트 하드코딩
+		$scope.tool_codeList   = [{"code_name":"선택","code_id":""}
+								,{"code_name":"High","code_id":"H"}
+								,{"code_name":"Medium","code_id":"M"}
+								,{"code_name":"Low","code_id":"L"}];
+		
+		//평가주기 코드리스트 하드코딩
+		$scope.period_codeList = [{"code_name":"선택","code_id":""}
+								,{"code_name":"Daily","code_id":"D"}
+								,{"code_name":"Weekely","code_id":"W"}
+								,{"code_name":"Monthly","code_id":"M"}
+								,{"code_name":"Quaterly","code_id":"Q"}
+								,{"code_name":"Annually","code_id":"A"}];
+		
+	 	angular.element(document).ready(function () {
+			/*
+	 		$http({
+		          method: 'POST',
+		            url: '/ipeSelectList',
+		            data: $.param({term_code:$("#termcode option:selected").data("term-code"), _csrf : "${_csrf.token}"}), 
+		            headers: {
+		                'Content-Type': 'application/x-www-form-urlencoded; charset=UTF-8'
+		            	//'Content-Type': 'application/json; charset=UTF-8'
+		            }
+		        }).success(function(data){
+		        	
+		        	
+		        	
+		    		for(var i=0; i<$(".ui-grid-custom-select").length; i++){
+		    			$(".ui-grid-custom-select")[i][0].remove();
+		    		}
+		    		
+		     });	 
+			*/
+			
+	 	});
+	 	
+	 	
+	 	
+		//사원목록 팝업 오픈
+		$scope.openEmpList = function(row, gubun){
+			var $eucUserAllocModal = $("#eucUserAllocModal");
+			var $eucUserAllocModal_paramForm = $("#eucUserAllocModal_paramForm");
+			
+			$eucUserAllocModal_paramForm.empty();	//form 초기화
+			
+			/* 오너와 사용자 구별 */
+			$eucUserAllocModal_paramForm.prepend('<input type="hidden" name="alloc_type" id="alloc_type" value="'+gubun+'">');
+	
+			$eucUserAllocModal.modal({
+				backdrop : false,
+				keyboard: false
+			});
+			$eucUserAllocModal.draggable({
+			      handle: ".modal-header",
+			      cursor : "move"
+			});
+		}
+	 	
+		//row 선택 이벤트
+		$scope.rowClick = function (row) {
+		    var index = row.grid.renderContainers.body.visibleRowCache.indexOf(row);
+		    $scope.gridApi.selection.selectRow($scope.gridOptions.data[index]);
+		};
+		
+		//셀 클래스 지정
+		$scope.cellClassSet = function(grid, row, col, rowRenderIndex, colRenderIndex){
+			var className = "";
+			switch(col.field){
+				case "euc_no" :	className = "center"; 
+					break;
+			}
+			return className;
+		}
+		
+		
+		$scope.gridOptions = vm.gridOptions(  				// 그리드 옵션, 부모의 그리드 옵션에 파라미터를 던지면서 변경해서 대입
+			{
+				enableFiltering : false, 					//칵 컬럼에 검색바
+				paginationPageSizes : [500, 1500, 5000, 10000], 		//한번에 보여질 로우수 셀렉트리스트
+				enableCellEditOnFocus : true, 				//셀 클릭시 edit모드 
+				enableSelectAll : true, 					//전체선택 체크박스
+				enableRowSelection : false, 				//로우 선택
+				enableRowHeaderSelection : true, 			//맨앞 컬럼 체크박스 컬럼으로
+				selectionRowHeaderWidth : 35, 				//체크박스 컬럼 길이
+				rowHeight : 27, 							//그리드 row 높이
+				useExternalPagination : false, 				//pagination을 직접 세팅
+				enableAutoFitColumns: true,					//컬럼 width를 자동조정
+				multiSelect : true, 						//여러로우선택
+				enablePagination : false,					//pagenation 숨기기
+				enablePaginationControls: false,			//pagenation 숨기기
+				columnDefs : [  							//컬럼 세팅
+					{ visible:false, displayName: 'euc_state', field: 'euc_state',enableCellEdit : false, allowCellFocus : false, cellClass : $scope.cellClassSet},
+					{ visible:false, displayName: '통제기간', field: 'term_code',enableCellEdit : false, allowCellFocus : false, cellClass : $scope.cellClassSet},
+					{ width:"8%", displayName: '입력1', field: 'euc_no',enableCellEdit : true, allowCellFocus : true, cellClass : $scope.cellClassSet},
+					{ width:"15%", displayName: '입력2', field: 'euc_name', enableCellEdit : true, allowCellFocus : true, cellClass : $scope.cellClassSet},
+					{ displayName: '입력3', field: 'euc_desc', enableCellEdit : true, allowCellFocus : true, cellClass : $scope.cellClassSet},
+					{ width:"10%", displayName: '입력4', field: 'euc_repository', enableCellEdit : true, allowCellFocus : true, cellClass : $scope.cellClassSet},
+					{ visible:false, displayName: '사용자코드', field: 'euc_user', enableCellEdit : false, allowCellFocus : true, cellClass : $scope.cellClassSet},
+					{ width:"8%", displayName: '사용자명', field: 'euc_user_name', enableCellEdit : false, allowCellFocus : true, cellClass : "left"
+						, cellTemplate : '<div style="font-size:15px; margin-top:-2px;" class="ui-grid-cell-contents ui-grid-click-column" ng-click="grid.appScope.rowClick(row)"><input type="text" ng-model="row.entity.euc_user_name" readonly style="margin:0 0 0 0; padding-bottom:10px; width:85%; height:auto;"></input><i style="cursor:pointer;" class="fas fa-user ui-grid-click-column" ng-click="grid.appScope.openEmpList(row.entity, \'user\')"></i></div>'},
+					{ visible:false, displayName: '오너코드', field: 'euc_owner', enableCellEdit : false, allowCellFocus : true, cellClass : $scope.cellClassSet},
+					{ width:"8%", displayName: '오너명', field: 'euc_owner_name', enableCellEdit : false, allowCellFocus : true, cellClass : "right"
+						, cellTemplate : '<div style="font-size:15px; margin-top:-2px;" class="ui-grid-cell-contents ui-grid-click-column"><input type="text" ng-model="row.entity.euc_owner_name" readonly style="margin:0 0 0 0; padding-bottom:10px; width:85%; height:auto;"></input><i style="cursor:pointer;" class="fas fa-user ui-grid-click-column" ng-click="grid.appScope.openEmpList(row.entity, \'owner\')"></i></div>'},
+					{ width:"8%", displayName: '선택1', field: 'macro_yn',enableCellEdit : false, allowCellFocus : false
+						,cellTemplate : '<select id="macroTypeSelect" class="ui-grid-template ui-grid-custom-select" style="width:100%;" ng-model="row.entity.macro_yn">'
+										 +'<option ng-repeat="macroType in grid.appScope.macro_codeList" ng-selected="row.entity.macro_yn == macroType.code_id" value="{{macroType.code_id}}" >{{macroType.code_name}}</option>'
+						               +'</select>'
+					},
+					{ width:"8%", displayName: '선택2', field: 'euc_risklvl',enableCellEdit : false, allowCellFocus : false
+						,cellTemplate : '<select id="eucRisklvlSelect" class="ui-grid-template ui-grid-custom-select" style="width:100%;" ng-model="row.entity.euc_risklvl">'
+										 +'<option ng-repeat="risklvlType in grid.appScope.tool_codeList" ng-selected="row.entity.euc_risklvl == risklvlType.code_id" value="{{risklvlType.code_id}}" >{{risklvlType.code_name}}</option>'
+						               +'</select>'
+					},
+					{ width:"8%", displayName: '선택3', field: 'euc_period',enableCellEdit : false, allowCellFocus : false
+						,cellTemplate : '<select id="periodTypeSelect" class="ui-grid-template ui-grid-custom-select" style="width:100%;" ng-model="row.entity.euc_period">'
+										 +'<option ng-repeat="periodType in grid.appScope.period_codeList" ng-selected="row.entity.euc_period == periodType.code_id" value="{{periodType.code_id}}" >{{periodType.code_name}}</option>'
+						               +'</select>'
+					}
+					
+				]
+			}
+		);  
+		
+		$scope.gridLoad = vm.gridLoad; 						//부모 컨트롤러의 gridLoad function을 대입, 즉시실행 아님 
+		$scope.reloadGrid = vm.reloadGrid;
+															//$scope.변수이름 = 값 또는 function; 를 하면 외부에서 부르는 것이 가능  
+	
+	}]);
+	//복붙영역(앵귤러단) 끝
+</script>
+<script>
+$(document).ready(function(){
+	
+	//복붙영역(앵귤러 이벤트들 가져오기) 시작, 복붙하면서 바꿔야 할 값들 : getElementById, param의 listQuery, cntQuery, scope이름 (ex : scope2)
+	//ui-grid 초기 조회조건 세팅
+	
+	var scope = angular.element(document.getElementById("eucMangementCtrl-uiGrid")).scope(); //html id를 통해서 controller scope(this) 가져옴
+	scope.gridApi.selection.on.rowSelectionChanged(scope,function(row){			//로우 선택할때마다 이벤트
+		
+    });
+	
+	/* scope.gridApi.selection.on.rowSelectionChangedBatch(scope,function(rows){	//전체선택시 가져옴
+		console.log(rows);           //전체선택된 로우 array (rows[i].entity가 로우의 오브젝트)
+    });	 */
+	
+	//pagenation option setting  그리드를 부르기 전에 반드시 선언
+	var param = {
+		listQuery : "biz_sample.grid_sampleList1", 					//list가져오는 마이바티스 쿼리 아이디
+		cntQuery : "biz_sample.grid_cnt_sampleList1"				//list cnt 가져오는 마이바티스 쿼리 아이디
+		//termcode : termcode                              	 		// 그밖에 필요한 파라미터 네임과 벨류를 넣어준다
+    }; 
+	scope.paginationOptions = customExtend(scope.paginationOptions,param); //위에 선언한 파라미터 오브젝트를 기존 paginationOject에 합
+//	scope.gridLoad(scope.paginationOptions);               //처음페이지 로드될때 테이블 로드
+	//복붙영역(앵귤러 이벤트들 가져오기) 끝
+	
+});
+</script>
+<script>
+$(document).ready(function(){
+	var scope = angular.element(document.getElementById("eucMangementCtrl-uiGrid")).scope(); //html id를 통해서 controller scope(this) 가져옴
+	btnBlock();
+	
+	scope.reloadGrid({
+		term_code : $("#termcode option:selected").data("term-code")
+	});
+	
+	$("#termcode").on("change",function(){
+		scope.reloadGrid({
+			term_code : $("#termcode option:selected").data("term-code")
+		});
+		btnBlock();
+	});
+	
+	$("#search_euc").on("click",function(){
+		scope.reloadGrid({
+			term_code : $("#termcode option:selected").data("term-code")
+		});
+		btnBlock();
+	});
+	
+	
+	$("#euc_add_btn").on("click",function(){
+		scope.addRow({
+			   euc_state : '0'
+			  ,term_code : $("#termcode option:selected").data("term-code")
+		      ,euc_no : null
+		      ,euc_name : null
+		      ,euc_desc : null
+		      ,euc_repository : null
+		      ,euc_user : null
+		      ,euc_user_name : null
+		      ,euc_owner : null
+		      ,euc_owner_name : null
+		      ,macro_yn : null
+		      ,euc_risklvl : null
+		      ,euc_period : null
+		      }, true, "ASC"
+		);
+	});
+	
+	$("#euc_remove_btn").on("click",function(){
+		var selectedRows = scope.gridApi.selection.getSelectedRows();
+		if(selectedRows.length == 0){
+			swalWarning("삭제할 EUC항목을 선택해주십시오.");
+			return false;
+		}
+		swal({
+			  icon : "info",
+			  text: "삭제 하시겠습니까?",
+			  closeOnClickOutside : false,
+			  closeOnEsc : false,
+			  buttons: {
+					confirm: {
+					  text: "확인",
+					  value: true,
+					  visible: true,
+					  className: "",
+					  closeModal: true
+					},
+					cancel: {
+					  text: "취소",
+					  value: false,
+					  visible: true,
+					  className: "",
+					  closeModal: true
+					}
+			  }
+			})
+			.then(function(result){
+			  if(result){
+					for(var i=0; i<selectedRows.length; i++){
+						if(selectedRows[i].euc_state == "0"){
+							scope.deleteRowOne(selectedRows[i]);
+						}
+					}
+					
+					selectedRows = scope.gridApi.selection.getSelectedRows();
+					if(selectedRows.length > 0){
+						var term_code = $("#termcode option:selected").data("term-code");
+						$.ajax({
+							type: 'POST',
+							url: '/icm/eucMasterDelete',
+							data: {stringList : JSON.stringify(selectedRows), term_code : term_code},
+							dataType: 'json',
+							success: function(data){
+								swalSuccess("삭제되었습니다.");
+								$("#search_euc").trigger("click");
+							}
+						});	 	
+					}   
+			  }
+		});	
+		
+	});
+	
+	function engToKr(eng){
+		var kr = null;
+		switch(eng){
+		
+		case "euc_no" : kr = "euc번호";
+		break;
+		case "euc_name" : kr = "euc명";
+		break;
+		case "euc_desc" : kr = "euc설명";
+		break;
+		case "euc_repository" : kr = "euc저장소";
+		break;
+		
+		}
+		
+		return kr;
+	}
+	
+	$("#euc_save_btn").on("click",function(){
+		var selectedRows = scope.gridApi.selection.getSelectedRows();
+		if(selectedRows.length == 0){
+			swalWarning("저장할 EUC항목을 선택해주십시오.");
+			return false;
+		}
+		
+		for(var i=0; i < selectedRows.length; i++){
+			for(var key in selectedRows[i]){
+				//console.log(engToKr(key));
+				if(engToKr(key) != null && selectedRows[i][key] == null){
+					swalWarning("저장 하려는 항목의 필드값을 모두 입력해주십시오.");
+					return false;
+				}
+			}
+		}
+		
+		swal({
+			  icon : "info",
+			  text: "선택한 데이터를 저장 하시겠습니까?",
+			  closeOnClickOutside : false,
+			  closeOnEsc : false,
+			  buttons: {
+					confirm: {
+					  text: "확인",
+					  value: true,
+					  visible: true,
+					  className: "",
+					  closeModal: true
+					},
+					cancel: {
+					  text: "취소",
+					  value: null,
+					  visible: true,
+					  className: "",
+					  closeModal: true
+					}
+			  }
+			})
+			.then(function(result){
+				  if(result){
+					  $.ajax({
+							type: 'POST',
+							url: '/biz/sample/sample1Merge',
+							data: {stringList : JSON.stringify(selectedRows)},
+							dataType: 'json',
+							success: function(data){
+								swalSuccess("저장 되었습니다.");
+								$("#search_euc").trigger("click");
+							}
+						});	
+				  }
+			});
+		
+		
+		
+		
+	});
+	
+});
+</script>
+</body>

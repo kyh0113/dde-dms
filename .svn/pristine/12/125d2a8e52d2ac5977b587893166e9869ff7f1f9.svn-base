@@ -1,0 +1,158 @@
+################################################
+# GLOBAL VARIABLE							   #
+################################################
+
+
+
+
+#################### FILE ######################
+#업로드 가능한 이미지파일 확장자
+file.permitExt_Image=.jpg.jpeg.bmp.png.gif
+#업로드 가능한 파잏 확장자
+file.permitExt_Common=.pdf.xls.xlsx.ppt.pptx.doc.docx.txt.hwp.jpg.jpeg.bmp.png.gif.mht.zip.tiff.htm.avi.wav.ozd.xlsm.ppsx.egg.7z.csv.xlsb.xps
+#업로드 파일 용량 제한(10 = 10MB)
+file.fileSizeLimits=200
+#총 업로드 파일 용량 제한(10 = 10MB)
+file.totalfileSizeLimits=500
+
+
+## @DEV
+#일반 업로드 파일 저장경로
+#file.commonDir=D:/vit_framework/commonfile/
+#템플릿 파일 저장경로
+#file.templateDir=D:/vit_framework/template/
+#압축파일 저장경로
+#file.zipfileDir=D:/vit_framework/commonfile/temp_zip/
+#이미지파일 저장경로
+#file.imgDir=D:/vit_framework/imgFile/
+#file.imgFile=file:///D:/vit_framework/imgFile/
+#Windows File Home
+file.uploadDirResource=C:/uploadFiles/
+#Linux File Home
+#file.uploadDirResource=/usr/vit_framework/
+
+#엑셀파일 저장경로
+#file.excelDir=D:/vit_framework/excelfile/
+#썸네일파일 저장경로
+#file.thumbnailDir=D:/vit_framework/imgFile/Thumbnail/
+#file.thumbnail280Dir=D:/vit_framework/imgFile/Thumbnail_280/
+
+## @PRD
+#일반 업로드 파일 저장경로
+file.commonDir=/usr/vit_framework/commonfile/
+#템플릿 파일 저장경로
+file.templateDir=/usr/vit_framework/template/
+#압축파일 저장경로
+file.zipfileDir=/usr/vit_framework/commonfile/temp_zip/
+#이미지파일 저장경로
+file.imgDir=/usr/vit_framework/imgFile/
+file.imgFile=/usr/vit_framework/imgFile/
+#파일 홈 경로
+#file.uploadDirResource=/usr/vit_framework/
+#엑셀파일 저장경로
+file.excelDir=/usr/vit_framework/excelfile/
+#썸네일파일 저장경로
+file.thumbnailDir=/usr/vit_framework/imgFile/Thumbnail/
+file.thumbnail280Dir=/usr/vit_framework/imgFile/Thumbnail_280/
+
+#################### FILE ######################
+
+
+
+
+################### SESSION ####################
+# 로그아웃 메시지
+session.outMSG=\uc7a5\uc2dc\uac04 \ubbf8\uc0ac\uc6a9\uc73c\ub85c \uc778\ud574 \ub85c\uadf8\uc544\uc6c3 \ub429\ub2c8\ub2e4.
+#세션타임아웃(1 = 1분)
+session.outTime=120
+################### SESSION ####################
+
+
+
+
+
+################### COMPANY ####################
+#회사명
+company.name=영풍
+################### COMPANY ####################
+
+
+
+
+################### SYSTEM #####################
+#액션로그 사용여부
+sys.action_log=N
+#관리자PC IP address(다수일경우 콤마로구분)
+sys.adminIP=0:0:0:0:0:0:0:1,127.0.0.1,10.10.9.180,175.214.111.77
+#로그인ID 최소길이
+sys.minIDLen=1
+#로그인ID 최대길이
+sys.maxIDLen=20
+################### SYSTEM #####################
+
+
+
+
+################### DATABASE ###################
+
+# @DEV : YP.WEBPORTAL
+db.vendor=oracle
+db.driverClassName=oracle.jdbc.driver.OracleDriver
+db.url=jdbc:oracle:thin:@211.35.173.46:1521:xe
+db.username=webpt_cp
+db.password=webpt_cp3370
+db.maxActive=100
+db.maxIdle=20
+
+# @PRD : YP.WEBPORTAL
+#db.vendor=oracle
+#db.driverClassName=oracle.jdbc.driver.OracleDriver
+#db.url=jdbc:oracle:thin:@211.35.173.7:1521:orcl
+#db.username=webpt
+#db.password=Webpt3370
+#db.maxActive=100
+#db.maxIdle=20
+
+# NO TOUCH YP.BLEND
+db.vendor2=mssql
+db.driverClassName2=com.microsoft.sqlserver.jdbc.SQLServerDriver
+db.url2=jdbc:sqlserver://211.35.198.8:1433;DatabaseName=SCMETA
+db.username2=SA
+db.password2=Ypadmin3517
+db.maxActive2=100
+db.maxIdle2=20
+
+# NO TOUCH YP.CAS DB
+db.vendor3=mssql
+db.driverClassName3=com.microsoft.sqlserver.jdbc.SQLServerDriver
+db.url3=jdbc:sqlserver://211.35.205.129:1433;DatabaseName=sukpo
+db.username3=han_c
+db.password3=123
+db.maxActive3=100
+db.maxIdle3=20
+
+
+################### DATABASE ###################
+
+
+################### GROUPWARE ##################
+
+## @DEV
+#gw.url=http://gwdev.ypzinc.co.kr
+
+## @PRD
+gw.url=http://ypgw.ypzinc.co.kr
+
+################### GROUPWARE ###################
+
+
+################### MAIL ########################
+
+## @DEV
+#mail.use=N
+
+## @PRD
+mail.use=Y
+
+################### MAIL ########################
+ 

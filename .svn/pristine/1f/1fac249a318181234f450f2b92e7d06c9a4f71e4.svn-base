@@ -1,0 +1,694 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_ZHR">
+
+ 	<select id="retrieveDosilakWCnt" parameterType="java.util.HashMap" resultType="Double">
+    	/* oracle.yp_ZHR.retrieveDosilakWCnt */
+    	select count(*) as count from tbl_dosirak_application
+    	where eat_date = #{date} 
+    	and dept_cd = #{dept_cd}
+    	<if test="zclss != null">and ban_code = #{zclss}</if>
+		<if test="schkz != null">and jo_code = #{schkz}</if>
+		and meal_type = #{meal_type}
+    </select>
+    
+    <select id="retrieveDosilakList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    	/* oracle.yp_ZHR.retrieveDosilakList */
+    	select a.pernr as emp_cd, a.user_name as emp_name, a.orgtx as dept_name, b.status as status, b.reg_emp_name as reg_emp_name
+		from
+			(select w.pernr, u.user_name, w.orgeh, w.orgtx 
+			from gw_user u , TBL_COMMON_EMP_WORK w
+			where u.emp_cd = w.pernr
+			  and w.orgeh = #{dept_cd}
+			  and u.emp_status = 'W'
+			  <if test="zclss != null">and w.zclss = #{zclss}</if>
+			  <if test="schkz != null">and w.schkz = #{schkz}</if>
+			) a
+		left outer join tbl_dosirak_application b
+		on a.pernr = b.emp_cd 
+		and b.eat_date = #{date}
+		and b.meal_type = #{meal_type}
+    </select>
+    
+    <select id="retrieveDosilakRegCheck" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    	/* oracle.yp_ZHR.retrieveDosilakRegCheck */
+    	select emp_cd from tbl_dosirak_application
+    	where 1=1
+    		and eat_date = #{date}
+    		and meal_type = #{meal_type}
+    		and emp_cd in
+   			<foreach collection="no" index="index" item="emp_cd" separator="," open="(" close=")">
+				#{emp_cd}
+			</foreach>
+    </select>
+    
+     <update id="createDosilakReg" parameterType="java.util.HashMap">
+     	/* oracle.yp_ZHR.createDosilakReg */
+    	insert into tbl_dosirak_application 
+  		(seq, emp_cd, emp_name, dept_cd, dept_name
+  		,eat_date, reg_date, meal_type, reg_emp, reg_emp_name,status
+  		,ban_code, ban_name, jo_code, jo_name, reg_dept, insert_type) 
+			select seq_dosilak.nextval as seq, 
+		    	w.pernr as emp_cd, u.user_name as emp_name, w.orgeh as dept_cd, w.orgtx as dept_name,
+		    	#{date} as eat_date, sysdate as reg_date, #{meal_type} as meal_type, #{reg_emp} as reg_emp, #{reg_emp_name} as reg_emp_name, 'W' as status,
+		    	w.ZCLSS as ban_code, w.ZCLST as ban_name, w.SCHKZ as jo_code, w.JO_NAME as jo_name, #{reg_dept} as reg_dept
+		    	<if test="insert_type != null || insert_type != ''">, #{insert_type,} as insert_type</if>
+			from gw_user u , TBL_COMMON_EMP_WORK w
+			where u.emp_cd = w.pernr
+		 		and w.pernr in 
+		 		<foreach collection="no" item="emp_cd" separator="," open="(" close=")">
+		 			#{emp_cd}
+		 		</foreach>
+	</update>
+	
+	<delete id="deleteDosilakAppli" parameterType="java.util.HashMap">
+		/* oracle.yp_ZHR.deleteDosilakAppli */
+		delete from tbl_dosirak_application
+		where eat_date = #{date}
+			and meal_type = #{meal_type}
+			and status = 'W'
+		 	and emp_cd in 
+		 	<foreach collection="no" item="item" index="idx" separator="," open="(" close=")">
+		 		#{item}
+		 	</foreach>
+	</delete>	
+	
+	 <select id="retrieveEmpWorkList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+	        /* oracle.yp_ZHR.retrieveEmpWorkList */
+	        select u.emp_cd as emp_cd ,u.user_name as emp_name
+	    			,w.orgtx as orgtx ,w.zclst as zclst ,w.jo_name as jo_name
+	    	from gw_user u, TBL_COMMON_EMP_WORK w
+	    	where u.emp_cd = w.pernr
+	    		and w.orgeh = #{orgeh}
+	    		and u.emp_status = 'W'
+	    	and w.pernr not in (
+	        select pernr 
+	        from TBL_COMMON_EMP_WORK
+	       where orgeh = #{orgeh}
+	          <if test="zclss != null">and zclss = #{zclss}</if>
+	          <if test="zclss == null">and zclss is null</if>
+	          and schkz = #{schkz})
+    </select>
+    
+    <select id="retrieveDosilakCheckListCnt" parameterType="java.util.HashMap" resultType="Double">
+    	/* oracle.yp_ZHR.retrieveDosilakCheckList */
+    	 
+    	select count(*)
+    	from tbl_dosirak_application
+    	where 1=1
+    		and eat_date  = #{date}
+    		and meal_type = #{meal_type}
+    		and dept_cd   = #{user_dept}
+    	order by emp_name
+    </select>
+    
+    <select id="retrieveDosilakCheckList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    	/* oracle.yp_ZHR.retrieveDosilakCheckList */
+    	select  to_char(eat_date, 'yyyy/mm/dd') as eat_date,
+    			meal_type, 
+    			emp_cd, 
+    			emp_name, 
+    			dept_cd, 
+    			dept_name, 
+    			ban_code, 
+    			ban_name, 
+    			jo_code, 
+    			jo_name, 
+    			reg_emp_name
+    	from tbl_dosirak_application
+    	where 1=1
+    		and eat_date  = #{date}
+    		and meal_type = #{meal_type}
+    		and dept_cd   = #{user_dept}
+    	order by emp_name
+    	
+    </select>
+    
+    <select id="retrieveDosilakOkListCnt" parameterType="java.util.HashMap" resultType="Double">
+    	/* oracle.yp_ZHR.retrieveDosilakOkListCnt */
+    	select count(*) as cnt
+    	from tbl_dosirak_application
+    	where 1=1
+    		and eat_date = #{date}
+    		and meal_type = #{meal_type}
+    		and status = #{status}
+    	order by dept_cd
+    </select>
+    
+    <select id="retrieveDosilakOkList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    	/* oracle.yp_ZHR.retrieveDosilakOkList */
+    	select 
+    		seq, 
+    		to_char(eat_date, 'YYYY/MM/DD') as eat_date,
+    		meal_type,
+    		CASE
+                WHEN meal_type = 1 THEN '조식'
+                WHEN meal_type = 2 THEN '중식'
+                WHEN meal_type = 3 THEN '석식'
+                WHEN meal_type = 4 THEN '야식'
+            END AS meal_type_name,
+    		reg_dept, 
+    		emp_cd, 
+    		emp_name,
+    		dept_cd, 
+    		dept_name, 
+    		ban_code, 
+    		ban_name, 
+    		jo_code, 
+    		jo_name, 
+    		to_char(reg_date, 'YYYY/MM/DD') as reg_date,
+    		reg_emp_name
+    	from tbl_dosirak_application
+    	where 1=1
+    		and eat_date = #{date}
+    		and meal_type = #{meal_type}
+    		and status = #{status}
+    	order by dept_cd
+    </select>
+    
+    <update id="updateDosilakOk" parameterType="java.util.HashMap">
+    	/* oracle.yp_ZHR.updateDosilakOk */
+		update tbl_dosirak_application
+		set status = 'Y'
+			,upd_emp = #{upd_emp}
+			,upd_date = sysdate
+		where seq in <foreach collection="seq" item="item" index="idx" separator="," open="(" close=")">#{item}</foreach>
+	</update>
+	
+	<update id="updateDosilakOkCancel" parameterType="java.util.HashMap">
+		/* oracle.yp_ZHR.updateDosilakOkCancel */
+		update tbl_dosirak_application
+		set status = 'W'
+			,upd_emp = #{upd_emp}
+			,upd_date = sysdate
+		where seq in <foreach collection="seq" item="item" index="idx" separator="," open="(" close=")">#{item}</foreach>
+	</update>
+    
+    
+    <select id="retrieveDosilakOkList_excel" parameterType="java.util.HashMap" resultType="java.util.LinkedHashMap">
+    	/* oracle.yp_ZHR.retrieveDosilakOkList_excel */
+    	select  
+    			to_char(eat_date, 'YYYY-MM-DD') as "일자",
+    			CASE
+                	WHEN meal_type = 1 THEN '조식'
+                	WHEN meal_type = 2 THEN '중식'
+                	WHEN meal_type = 3 THEN '석식'
+                	WHEN meal_type = 4 THEN '야식'
+            	END AS "식사구분",
+    			reg_dept  as "신청부서명", 
+    			emp_cd    as "사번", 
+    			emp_name  as "성명", 
+    			dept_name as "부서명",
+    			ban_name  as  "반", 
+    			jo_name   as "조"
+    	from tbl_dosirak_application
+    	where 1=1
+    		and eat_date = #{date}
+    		and meal_type = #{meal_type}
+    		and status = #{status}
+    	order by dept_cd
+    </select>
+    
+    <select id="retrieveDosilakOkDeptListCnt" parameterType="java.util.HashMap" resultType="Double">
+    	/* oracle.yp_ZHR.retrieveDosilakOkDeptListCnt */
+    	select count(*) as cnt from(
+    		select 
+    			count(*) as cnt, 
+    			dept_name,  
+    			ban_name, 
+    			jo_name
+	    	from tbl_dosirak_application
+	    	where meal_type = #{meal_type}
+	    		and eat_date = #{date}
+	    		<if test="dept_name != ''">and dept_name like '%' || #{dept_name} || '%'</if>
+	    		and status = 'Y'
+	        group by dept_name,  ban_name, jo_name
+	        order by dept_name,  ban_name, jo_name
+    	)
+    </select>
+    
+    <select id="retrieveDosilakOkDeptList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    	/* oracle.yp_ZHR.retrieveDosilakOkDeptList */
+    	select 
+    		count(*) as cnt, 
+    		dept_name,  
+    		ban_name, 
+    		jo_name,
+    		CASE
+		        WHEN meal_type = 1 THEN '조식'
+		        WHEN meal_type = 2 THEN '중식'
+		        WHEN meal_type = 3 THEN '석식'
+		        WHEN meal_type = 4 THEN '야식'
+		    END AS meal_type_name
+    	from tbl_dosirak_application
+    	where meal_type = #{meal_type}
+    		and eat_date = #{date}
+    		<if test="dept_name != ''">and dept_name like '%' || #{dept_name} || '%'</if>
+    		and status = 'Y'
+        group by dept_name,  ban_name, jo_name, meal_type
+        order by dept_name,  ban_name, jo_name, meal_type
+    </select>
+    
+    <select id="retrieveDosilakOkDeptList_excel" parameterType="java.util.HashMap" resultType="java.util.LinkedHashMap">
+    	/* oracle.yp_ZHR.retrieveDosilakOkDeptList_excel */
+    	select 
+    		CASE
+		        WHEN meal_type = 1 THEN '조식'
+		        WHEN meal_type = 2 THEN '중식'
+		        WHEN meal_type = 3 THEN '석식'
+		        WHEN meal_type = 4 THEN '야식'
+		    END AS "식사구분",
+		    dept_name "신청부서명",  
+		    ban_name "신청반", 
+    		jo_name "신청조",
+		    count(*) as "신청수량"
+    	from tbl_dosirak_application
+    	where meal_type = #{meal_type}
+    		and eat_date = #{date}
+    		<if test="dept_name != ''">and dept_name like '%' || #{dept_name} || '%'</if>
+    		and status = 'Y'
+        group by dept_name,  ban_name, jo_name, meal_type
+        order by dept_name,  ban_name, jo_name, meal_type
+    </select>
+    
+    <select id="retrievePeoridDosilakListCnt" parameterType="java.util.HashMap" resultType="Double">
+    	/* oracle.yp_ZHR.retrievePeoridDosilakListCnt */
+    	select count(*) as cnt from(
+    		select dept_name, emp_cd, emp_name, 
+			  count(decode(meal_type,'1',1)) as a_cnt,
+			  count(decode(meal_type,'2',1)) as b_cnt,
+			  count(decode(meal_type,'3',1)) as c_cnt,
+			  count(decode(meal_type,'4',1)) as d_cnt,
+			  count(*) as total_cnt
+			from tbl_dosirak_application
+			where 1=1
+				and eat_date BETWEEN #{sdate} and #{edate}
+				and status = 'Y'
+				<if test="dept_cd != '' and dept_cd != null">and dept_cd = #{dept_cd}</if>
+				<if test="dept_name != '' and dept_name != null">and dept_name like '%' || #{dept_name} || '%'</if>
+			group by dept_name, emp_cd, emp_name
+			order by dept_name, emp_name
+    	)
+    </select>
+    
+    <select id="retrievePeoridDosilakList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    	/* oracle.yp_ZHR.retrievePeoridDosilakList */
+    	select dept_name, emp_cd, emp_name, 
+		  count(decode(meal_type,'1',1)) as a_cnt,
+		  count(decode(meal_type,'2',1)) as b_cnt,
+		  count(decode(meal_type,'3',1)) as c_cnt,
+		  count(decode(meal_type,'4',1)) as d_cnt,
+		  count(*) as total_cnt
+		from tbl_dosirak_application
+		where 1=1
+			and eat_date BETWEEN #{sdate} and #{edate}
+			and status = 'Y'
+			<if test="dept_cd != '' and dept_cd != null">and dept_cd = #{dept_cd}</if>
+			<if test="dept_name != '' and dept_name != null">and dept_name like '%' || #{dept_name} || '%'</if>
+		group by dept_name, emp_cd, emp_name
+		order by dept_name, emp_name
+    </select>
+    
+    <select id="retrievePeoridDosilakList_excel" parameterType="java.util.HashMap" resultType="java.util.LinkedHashMap">
+    	/* oracle.yp_ZHR.retrievePeoridDosilakList_excel */
+    	select 
+    		dept_name as "부서명", 
+    		emp_cd as "사번", 
+    		emp_name as "성명", 
+		  	count(decode(meal_type,'1',1)) as "조식",
+		  	count(decode(meal_type,'2',1)) as "중식",
+		  	count(decode(meal_type,'3',1)) as "석식",
+		  	count(decode(meal_type,'4',1)) as "야식",
+		  	count(*) as "합계" 
+		from tbl_dosirak_application
+		where 1=1
+			and eat_date BETWEEN #{sdate} and #{edate}
+			and status = 'Y'
+			<if test="dept_cd != '' and dept_cd != null">and dept_cd = #{dept_cd}</if>
+			<if test="dept_name != '' and dept_name != null">and dept_name like '%' || #{dept_name} || '%'</if>
+		group by dept_name, emp_cd, emp_name
+		
+		UNION
+		
+		select
+		    '' as "부서명",
+		    '' as "사번",
+		    '총합계' as "성명",
+		    sum(a_cnt) as "조식",
+		    sum(b_cnt) as "중식",
+		    sum(c_cnt) as "석식",
+		    sum(d_cnt) as "야식",
+		    sum(total_cnt) as "합계"
+		from(
+		    select 
+		        count(decode(meal_type,'1',1)) as a_cnt, 
+		        count(decode(meal_type,'2',1)) as b_cnt, 
+		        count(decode(meal_type,'3',1)) as c_cnt, 
+		        count(decode(meal_type,'4',1)) as d_cnt, 
+		        count(*) as total_cnt 
+		    from tbl_dosirak_application 
+		    where 1=1 
+		        and eat_date BETWEEN #{sdate} and #{edate}
+		        and status = 'Y' 
+		        <if test="dept_cd != '' and dept_cd != null">and dept_cd = #{dept_cd}</if>
+				<if test="dept_name != '' and dept_name != null">and dept_name like '%' || #{dept_name} || '%'</if>
+		    group by dept_name, emp_cd, emp_name order by dept_name, emp_name)
+		order by "부서명", "사번"
+    </select>
+    
+    <select id="retrieveMonthlyMealListCnt" parameterType="java.util.HashMap" resultType="Double">
+    	/* oracle.yp_ZHR.retrieveMonthlyMealListCnt */
+    	select count(*)+2 as cnt
+		from(
+	    	select eat_date, emp_cd, emp_name 
+			  ,max(decode(breakfast,'D','도시락','R','식당')) as breakfast
+			  ,max(decode(lunch,'D','도시락','R','식당')) as lunch
+			  ,max(decode(dinner,'D','도시락','R','식당')) as dinner
+			  ,max(decode(eatnight,'D','도시락','R','식당')) as eatnight
+			from
+					(select eat_date, emp_cd, emp_name
+					  ,max(decode(meal_type,'1','D')) as breakfast
+					  ,max(decode(meal_type,'2','D')) as lunch
+					  ,max(decode(meal_type,'3','D')) as dinner
+					  ,max(decode(meal_type,'4','D')) as eatnight
+					from tbl_dosirak_application
+					where status = 'Y'
+						<if test="emp_name == null || emp_name == ''">and emp_cd = #{emp_cd}</if>
+	    				<if test="emp_name != null and emp_name != ''">and emp_name like '%'||#{emp_name}||'%'</if>
+					GROUP BY  eat_date,emp_cd, emp_name
+					union all
+					select TO_DATE(eat_date,'YYYY-MM-DD') as eat_date
+					  , emp_cd, emp_name
+					  ,max(decode(meal_type,'조식','R')) as breakfast
+					  ,max(decode(meal_type,'중식','R')) as lunch
+					  ,max(decode(meal_type,'석식','R')) as dinner
+					  ,max(decode(meal_type,'야식','R')) as eatnight
+					from TBL_DOSIRAK_RESTAURANT
+					where 1=1
+						<if test="emp_name == null || emp_name == ''">and emp_cd = #{emp_cd}</if>
+	    				<if test="emp_name != null and emp_name != ''">and emp_name like '%'||#{emp_name}||'%'</if>
+					GROUP BY  eat_date,emp_cd, emp_name)
+			where eat_date between #{sdate} and #{edate}
+			GROUP BY  eat_date,emp_cd, emp_name
+			order by eat_date
+		)
+    </select>
+    
+    <select id="retrieveMonthlyMealList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    	/* oracle.yp_ZHR.retrieveMonthlyMealList */
+    	select to_char(eat_date, 'YYYY/MM/DD') as eat_date
+    		,emp_cd
+    		,emp_name 
+		  	,max(decode(breakfast,'D','도시락','R','식당')) as breakfast
+		  	,max(decode(lunch,'D','도시락','R','식당')) as lunch
+		  	,max(decode(dinner,'D','도시락','R','식당')) as dinner
+		  	,max(decode(eatnight,'D','도시락','R','식당')) as eatnight
+		  	,to_char(sum(day_total)) as day_total
+		from(
+			select eat_date, emp_cd, emp_name
+			  ,max(decode(meal_type,'1','D')) as breakfast
+			  ,max(decode(meal_type,'2','D')) as lunch
+			  ,max(decode(meal_type,'3','D')) as dinner
+			  ,max(decode(meal_type,'4','D')) as eatnight
+			  ,count(meal_type) as day_total
+			from tbl_dosirak_application
+			where status = 'Y'
+			<if test="emp_name == null || emp_name == ''">and emp_cd = #{emp_cd}</if>
+  			<if test="emp_name != null and emp_name != ''">and emp_name like '%'||#{emp_name}||'%'</if>
+			GROUP BY  eat_date,emp_cd, emp_name
+			
+			UNION ALL
+				
+			select TO_DATE(eat_date,'YYYY-MM-DD') as eat_date
+			  , emp_cd, emp_name
+			  ,max(decode(meal_type,'조식','R')) as breakfast
+			  ,max(decode(meal_type,'중식','R')) as lunch
+			  ,max(decode(meal_type,'석식','R')) as dinner
+			  ,max(decode(meal_type,'야식','R')) as eatnight
+			  ,count(meal_type) as day_total
+			from TBL_DOSIRAK_RESTAURANT
+			where 1=1
+			<if test="emp_name == null || emp_name == ''">and emp_cd = #{emp_cd}</if>
+ 			<if test="emp_name != null and emp_name != ''">and emp_name like '%'||#{emp_name}||'%'</if>
+			GROUP BY  eat_date,emp_cd, emp_name
+		)
+		where eat_date between #{sdate} and #{edate}
+		GROUP BY  eat_date,emp_cd, emp_name
+		
+		UNION ALL
+		
+		select '' as eat_date
+    		,'' as emp_cd
+    		,'월간 합계' as emp_name 
+		  	,to_char(count(breakfast)) as breakfast
+		  	,to_char(count(lunch)) as lunch
+		  	,to_char(count(dinner)) as dinner
+		  	,to_char(count(eatnight)) as eatnight
+		  	,to_char(sum(day_total)) as day_total
+		from (
+			select eat_date, emp_cd, emp_name
+			  ,max(decode(meal_type,'1','D')) as breakfast
+			  ,max(decode(meal_type,'2','D')) as lunch
+			  ,max(decode(meal_type,'3','D')) as dinner
+			  ,max(decode(meal_type,'4','D')) as eatnight
+			  ,count(meal_type) as day_total
+			from tbl_dosirak_application
+			where status = 'Y'
+			<if test="emp_name == null || emp_name == ''">and emp_cd = #{emp_cd}</if>
+  			<if test="emp_name != null and emp_name != ''">and emp_name like '%'||#{emp_name}||'%'</if>
+			GROUP BY  eat_date,emp_cd, emp_name
+			
+			UNION ALL
+			
+			select TO_DATE(eat_date,'YYYY-MM-DD') as eat_date
+			  , emp_cd, emp_name
+			  ,max(decode(meal_type,'조식','R')) as breakfast
+			  ,max(decode(meal_type,'중식','R')) as lunch
+			  ,max(decode(meal_type,'석식','R')) as dinner
+			  ,max(decode(meal_type,'야식','R')) as eatnight
+			  ,count(meal_type) as day_total
+			from TBL_DOSIRAK_RESTAURANT
+			where 1=1
+		 	<if test="emp_name == null || emp_name == ''">and emp_cd = #{emp_cd}</if>
+  			<if test="emp_name != null and emp_name != ''">and emp_name like '%'||#{emp_name}||'%'</if>
+		    GROUP BY  eat_date,emp_cd, emp_name
+    	)
+		where eat_date between #{sdate} and #{edate}
+		
+		UNION ALL
+		
+		select '' as eat_date
+    		,'' as emp_cd
+    		,'월간 식대' as emp_name 
+		  	,case when total is null then '0' else '4,400 * ' 
+                || total 
+                || ' = ' 
+                || REGEXP_REPLACE(REVERSE(REGEXP_REPLACE( REVERSE(TO_CHAR((4400 * total))), '([0-9]{3})','\1,')), '^,','') end  as breakfast
+		  	,'' as lunch
+		  	,'' as dinner
+		  	,'' as eatnight
+		  	,'' as day_total 
+	  	from(
+			select sum(day_total) as total
+				from (
+					select eat_date, emp_cd, emp_name
+					  ,max(decode(meal_type,'1','D')) as breakfast
+					  ,max(decode(meal_type,'2','D')) as lunch
+					  ,max(decode(meal_type,'3','D')) as dinner
+					  ,max(decode(meal_type,'4','D')) as eatnight
+					  ,count(meal_type) as day_total
+					from tbl_dosirak_application
+					where status = 'Y'
+					<if test="emp_name == null || emp_name == ''">and emp_cd = #{emp_cd}</if>
+  					<if test="emp_name != null and emp_name != ''">and emp_name like '%'||#{emp_name}||'%'</if>
+		    		GROUP BY  eat_date,emp_cd, emp_name
+		    		
+					UNION ALL
+					
+					select TO_DATE(eat_date,'YYYY-MM-DD') as eat_date
+					  , emp_cd, emp_name
+					  ,max(decode(meal_type,'조식','R')) as breakfast
+					  ,max(decode(meal_type,'중식','R')) as lunch
+					  ,max(decode(meal_type,'석식','R')) as dinner
+					  ,max(decode(meal_type,'야식','R')) as eatnight
+					  ,count(meal_type) as day_total
+					from TBL_DOSIRAK_RESTAURANT
+					where 1=1
+					<if test="emp_name == null || emp_name == ''">and emp_cd = #{emp_cd}</if>
+  					<if test="emp_name != null and emp_name != ''">and emp_name like '%'||#{emp_name}||'%'</if>
+		    		GROUP BY  eat_date,emp_cd, emp_name
+		    	)
+				where eat_date between #{sdate} and #{edate}
+		 )
+		 order by eat_date, emp_name desc
+    </select>
+    
+    <select id="retrieveMonthlyMealList_excel" parameterType="java.util.HashMap" resultType="java.util.LinkedHashMap">
+    	/* oracle.yp_ZHR.retrieveMonthlyMealList_excel */
+    	select to_char(eat_date, 'YYYY/MM/DD') as "일자"
+    		,emp_cd as "사번"
+    		,emp_name "성명"
+		  	,max(decode(breakfast,'D','도시락','R','식당')) as "조식"
+		  	,max(decode(lunch,'D','도시락','R','식당')) as "중식"
+		  	,max(decode(dinner,'D','도시락','R','식당')) as "석식"
+		  	,max(decode(eatnight,'D','도시락','R','식당')) as "야식"
+		  	,to_char(sum(day_total)) as "합계"
+		from(
+			select eat_date, emp_cd, emp_name
+			  ,max(decode(meal_type,'1','D')) as breakfast
+			  ,max(decode(meal_type,'2','D')) as lunch
+			  ,max(decode(meal_type,'3','D')) as dinner
+			  ,max(decode(meal_type,'4','D')) as eatnight
+			  ,count(meal_type) as day_total
+			from tbl_dosirak_application
+			where status = 'Y'
+			<if test="emp_name == null || emp_name == ''">and emp_cd = #{emp_cd}</if>
+  			<if test="emp_name != null and emp_name != ''">and emp_name like '%'||#{emp_name}||'%'</if>
+			GROUP BY  eat_date,emp_cd, emp_name
+			
+			UNION ALL
+				
+			select TO_DATE(eat_date,'YYYY-MM-DD') as eat_date
+			  , emp_cd, emp_name
+			  ,max(decode(meal_type,'조식','R')) as breakfast
+			  ,max(decode(meal_type,'중식','R')) as lunch
+			  ,max(decode(meal_type,'석식','R')) as dinner
+			  ,max(decode(meal_type,'야식','R')) as eatnight
+			  ,count(meal_type) as day_total
+			from TBL_DOSIRAK_RESTAURANT
+			where 1=1
+			<if test="emp_name == null || emp_name == ''">and emp_cd = #{emp_cd}</if>
+ 			<if test="emp_name != null and emp_name != ''">and emp_name like '%'||#{emp_name}||'%'</if>
+			GROUP BY  eat_date,emp_cd, emp_name
+		)
+		where eat_date between #{sdate} and #{edate}
+		GROUP BY  eat_date,emp_cd, emp_name
+		
+		UNION ALL
+		
+		select '' as "일자"
+    		,'' as "사번"
+    		,'월간 합계' as "성명"
+		  	,to_char(count(breakfast)) as "조식"
+		  	,to_char(count(lunch)) as "중식"
+		  	,to_char(count(dinner)) as "석식"
+		  	,to_char(count(eatnight)) as "야식"
+		  	,to_char(sum(day_total)) as "합계"
+		from (
+			select eat_date, emp_cd, emp_name
+			  ,max(decode(meal_type,'1','D')) as breakfast
+			  ,max(decode(meal_type,'2','D')) as lunch
+			  ,max(decode(meal_type,'3','D')) as dinner
+			  ,max(decode(meal_type,'4','D')) as eatnight
+			  ,count(meal_type) as day_total
+			from tbl_dosirak_application
+			where status = 'Y'
+			<if test="emp_name == null || emp_name == ''">and emp_cd = #{emp_cd}</if>
+  			<if test="emp_name != null and emp_name != ''">and emp_name like '%'||#{emp_name}||'%'</if>
+			GROUP BY  eat_date,emp_cd, emp_name
+			
+			UNION ALL
+			
+			select TO_DATE(eat_date,'YYYY-MM-DD') as eat_date
+			  , emp_cd, emp_name
+			  ,max(decode(meal_type,'조식','R')) as breakfast
+			  ,max(decode(meal_type,'중식','R')) as lunch
+			  ,max(decode(meal_type,'석식','R')) as dinner
+			  ,max(decode(meal_type,'야식','R')) as eatnight
+			  ,count(meal_type) as day_total
+			from TBL_DOSIRAK_RESTAURANT
+			where 1=1
+		 	<if test="emp_name == null || emp_name == ''">and emp_cd = #{emp_cd}</if>
+  			<if test="emp_name != null and emp_name != ''">and emp_name like '%'||#{emp_name}||'%'</if>
+		    GROUP BY  eat_date,emp_cd, emp_name
+    	)
+		where eat_date between #{sdate} and #{edate}
+		
+		UNION ALL
+		
+		select '' as "일자"
+    		,'' as "사번"
+    		,'월간 식대' as "성명" 
+		  	,case when total is null then '0' else '4,400 * ' 
+                || total 
+                || ' = ' 
+                || REGEXP_REPLACE(REVERSE(REGEXP_REPLACE( REVERSE(TO_CHAR((4400 * total))), '([0-9]{3})','\1,')), '^,','') end  as "조식"
+		  	,'' as "중식"
+		  	,'' as "석식"
+		  	,'' as "야식"
+		  	,'' as "합계" 
+	  	from(
+			select sum(day_total) as total
+				from (
+					select eat_date, emp_cd, emp_name
+					  ,max(decode(meal_type,'1','D')) as breakfast
+					  ,max(decode(meal_type,'2','D')) as lunch
+					  ,max(decode(meal_type,'3','D')) as dinner
+					  ,max(decode(meal_type,'4','D')) as eatnight
+					  ,count(meal_type) as day_total
+					from tbl_dosirak_application
+					where status = 'Y'
+					<if test="emp_name == null || emp_name == ''">and emp_cd = #{emp_cd}</if>
+  					<if test="emp_name != null and emp_name != ''">and emp_name like '%'||#{emp_name}||'%'</if>
+		    		GROUP BY  eat_date,emp_cd, emp_name
+		    		
+					UNION ALL
+					
+					select TO_DATE(eat_date,'YYYY-MM-DD') as eat_date
+					  , emp_cd, emp_name
+					  ,max(decode(meal_type,'조식','R')) as breakfast
+					  ,max(decode(meal_type,'중식','R')) as lunch
+					  ,max(decode(meal_type,'석식','R')) as dinner
+					  ,max(decode(meal_type,'야식','R')) as eatnight
+					  ,count(meal_type) as day_total
+					from TBL_DOSIRAK_RESTAURANT
+					where 1=1
+					<if test="emp_name == null || emp_name == ''">and emp_cd = #{emp_cd}</if>
+  					<if test="emp_name != null and emp_name != ''">and emp_name like '%'||#{emp_name}||'%'</if>
+		    		GROUP BY  eat_date,emp_cd, emp_name
+		    	)
+				where eat_date between #{sdate} and #{edate}
+		 )
+		 order by "일자", "성명" desc
+    </select>
+    
+    <select id="retrieveRestaurantCheck" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    	/* oracle.yp_ZHR.retrieveRestaurantCheck */
+    	select emp_cd from tbl_dosirak_restaurant
+    	where eat_date = #{date}
+    		and meal_type = #{meal_type}
+    		and emp_cd in
+    		<foreach collection="no" index="index" item="emp_cd" separator="," open="(" close=")">
+				#{emp_cd}
+			</foreach>
+    </select>
+    
+    <update id="createRestaurant" parameterType="java.util.HashMap">
+     	/* oracle.yp_ZHR.createRestaurant */
+    	insert into tbl_dosirak_restaurant 
+  		(seq, eat_date, emp_name, emp_cd, department
+  		, meal_type, reg_date, reg_emp, insert_type) 
+			select seq_restaurant.nextval as seq, 
+		    	#{date} as eat_date, u.user_name as emp_name, w.pernr as emp_cd, w.orgtx as dept_name,
+		    	#{meal_type} as meal_type, sysdate as reg_date, #{reg_emp_name} as reg_emp, #{insert_type} as insert_type
+			from gw_user u , tbl_common_emp_work w
+			where u.emp_cd = w.pernr
+		 		and w.pernr in 
+		 		<foreach collection="no" item="emp_cd" separator="," open="(" close=")">
+		 			#{emp_cd}
+		 		</foreach>
+	</update>
+	
+	<update id="createRestaurantData" parameterType="java.util.HashMap">
+		/* oracle.yp_ZHR.createRestaurantData */
+  		insert into tbl_dosirak_restaurant
+			(seq, eat_date, eat_time, emp_name, emp_card,  
+  		 		emp_cd, department, meal_type, money, site, 
+  		 		leader, reg_date, reg_emp, reg_desc, photo_yn, emp_rate)
+  		 	values
+  		 	(seq_restaurant.nextval, #{EAT_DATE}, #{EAT_TIME}, #{EMP_NAME}, #{EMP_CARD},
+  		 		#{EMP_CD}, #{DEPARTMENT}, #{MEAL_TYPE}, #{MONEY}, #{SITE},
+  		 		#{LEADER}, #{REG_DATE}, #{REG_EMP}, #{REG_DESC}, #{PHOTO_YN}, #{EMP_RATE})
+  	</update>
+
+</mapper>

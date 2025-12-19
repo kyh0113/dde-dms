@@ -1,0 +1,874 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_zmm">
+
+	<select id="select_tbl_inv_list" resultType="java.util.LinkedHashMap">
+		/* oracle.yp_zmm.select_tbl_inv_list */
+		select CHK_DT AS CHK_DT
+		      ,SUBSTR(CHK_DT,5,2) CHK_DD1
+              ,SUBSTR(CHK_DT,7,2) CHK_DD2
+              ,TO_CHAR( TO_DATE(CHK_DT,'YYYYMMDD'),'DY') CHK_YOIL
+			  ,NVL(ROUND(CONCENT_D),0) CONCENT_D
+			  ,NVL(ROUND(CONCENT_S),0) CONCENT_S
+			  ,NVL(ROUND(CONCENT_T),0) CONCENT_T
+			  ,NVL(ROUND(CONCENT_SUM),0) CONCENT_SUM
+			  ,NVL(ROUND(PROD_C),0) PROD_C
+			  ,NVL(ROUND(PROD_I),0) PROD_I
+			  ,NVL(ROUND(EXTIN_INV),0) EXTIN_INV
+			  ,NVL(ROUND(CAKE_C),0) CAKE_C
+			  ,NVL(ROUND(CATHODE_H),0) CATHODE_H
+			  ,NVL(ROUND(CATHODE_L),0) CATHODE_L
+			  ,NVL(ROUND(CATHODE_SUM),0) CATHODE_SUM
+			  ,NVL(ROUND(ZINC_A),0) ZINC_A
+			  ,NVL(ROUND(ZINC_C),0) ZINC_C
+			  ,NVL(ROUND(ZINC_S),0) ZINC_S
+			  ,NVL(ROUND(ZINC_T),0) ZINC_T
+			  ,NVL(ROUND(ZINC_SUM),0) ZINC_SUM
+			  ,NVL(ROUND(ZINC_EX),0) ZINC_EX
+			  ,NVL(ROUND(ZINC_TOT),0) ZINC_TOT
+			  ,(select NVL(CONCENT_T_B,'-') from TBL_ZMM_INV_DATA where CHK_DT = TO_DATE(#{CHK_DT}, 'yyyymmdd')-1) CONCENT_T_B
+			  ,(select NVL(CONCENT_D_B,'-') from TBL_ZMM_INV_DATA where CHK_DT = TO_DATE(#{CHK_DT}, 'yyyymmdd')-1) CONCENT_D_B
+			  ,(select NVL(CONCENT_S_B,'-') from TBL_ZMM_INV_DATA where CHK_DT = TO_DATE(#{CHK_DT}, 'yyyymmdd')-1) CONCENT_S_B
+			  ,(select NVL(PROD_C_B,'-') from TBL_ZMM_INV_DATA where CHK_DT = TO_DATE(#{CHK_DT}, 'yyyymmdd')-1) PROD_C_B
+			  ,(select NVL(PROD_I_B,'-') from TBL_ZMM_INV_DATA where CHK_DT = TO_DATE(#{CHK_DT}, 'yyyymmdd')-1) PROD_I_B
+			  ,(select NVL(EXTIN_INV_B,'-') from TBL_ZMM_INV_DATA where CHK_DT = TO_DATE(#{CHK_DT}, 'yyyymmdd')-1) EXTIN_INV_B
+			  ,(select NVL(CAKE_C_B,'-') from TBL_ZMM_INV_DATA where CHK_DT = TO_DATE(#{CHK_DT}, 'yyyymmdd')-1) CAKE_C_B
+			  ,(select NVL(CATHODE_H_B,'-') from TBL_ZMM_INV_DATA where CHK_DT = TO_DATE(#{CHK_DT}, 'yyyymmdd')-1) CATHODE_H_B
+			  ,(select NVL(CATHODE_L_B,'-') from TBL_ZMM_INV_DATA where CHK_DT = TO_DATE(#{CHK_DT}, 'yyyymmdd')-1) CATHODE_L_B
+			  ,(select NVL(ZINC_A_B,'-') from TBL_ZMM_INV_DATA where CHK_DT = TO_DATE(#{CHK_DT}, 'yyyymmdd')-1) ZINC_A_B
+			  ,(select NVL(ZINC_C_B,'-') from TBL_ZMM_INV_DATA where CHK_DT = TO_DATE(#{CHK_DT}, 'yyyymmdd')-1) ZINC_C_B
+			  ,(select NVL(ZINC_S_B,'-') from TBL_ZMM_INV_DATA where CHK_DT = TO_DATE(#{CHK_DT}, 'yyyymmdd')-1) ZINC_S_B
+			  ,(select NVL(ZINC_T_B,'-') from TBL_ZMM_INV_DATA where CHK_DT = TO_DATE(#{CHK_DT}, 'yyyymmdd')-1) ZINC_T_B
+			  ,(select NVL(ZINC_EX_B,'-') from TBL_ZMM_INV_DATA where CHK_DT = TO_DATE(#{CHK_DT}, 'yyyymmdd')-1) ZINC_EX_B
+		from TBL_ZMM_INV_DATA
+		where 1=1
+		and TO_DATE(CHK_DT, 'yyyymmdd') in (TO_DATE(#{CHK_DT}, 'yyyymmdd')-1,TO_DATE(#{CHK_DT}, 'yyyymmdd')-2,TO_DATE(#{CHK_DT}, 'yyyymmdd')-3,TO_DATE(#{CHK_DT}, 'yyyymmdd')-4,TO_DATE(#{CHK_DT}, 'yyyymmdd')-5,TO_DATE(#{CHK_DT}, 'yyyymmdd')-6,TO_DATE(#{CHK_DT}, 'yyyymmdd')-7)
+		order by CHK_DT asc
+
+		</select>
+
+		<select id="select_tbl_inv_bigo" resultType="java.util.LinkedHashMap">
+			/* oracle.yp_zmm.select_tbl_inv_bigo */
+			select CHK_DT AS CHK_DT
+			      ,SUBSTR(CHK_DT,5,2) CHK_DD1
+	              ,SUBSTR(CHK_DT,7,2) CHK_DD2
+	              ,TO_CHAR( TO_DATE(CHK_DT,'YYYYMMDD'),'DY') CHK_YOIL
+				  ,NVL(CONCENT_T_B,'-') CONCENT_T_B
+				  ,NVL(CONCENT_D_B,'-') CONCENT_D_B
+				  ,NVL(CONCENT_S_B,'-') CONCENT_S_B
+				  ,NVL(PROD_C_B,'-') PROD_C_B
+				  ,NVL(PROD_I_B,'-') PROD_I_B
+				  ,NVL(EXTIN_INV_B,'-') EXTIN_INV_B
+				  ,NVL(CAKE_C_B,'-') CAKE_C_B
+				  ,NVL(CATHODE_H_B,'-') CATHODE_H_B
+				  ,NVL(CATHODE_L_B,'-') CATHODE_L_B
+				  ,NVL(ZINC_A_B,'-') ZINC_A_B
+				  ,NVL(ZINC_C_B,'-') ZINC_C_B
+				  ,NVL(ZINC_S_B,'-') ZINC_S_B
+				  ,NVL(ZINC_T_B,'-') ZINC_T_B
+				  ,NVL(ZINC_EX_B,'-') ZINC_EX_B
+			from TBL_ZMM_INV_DATA
+			where 1=1
+			and TO_DATE(CHK_DT, 'yyyymmdd') = TO_DATE(#{CHK_DT}, 'yyyymmdd')-1
+		</select>
+
+		<select id="select_zmm_inv_list_cnt" resultType="int">
+		/* oracle.yp_zmm.select_zmm_inv_list_cnt */
+		SELECT 
+			count(*) as cnt 
+		FROM TBL_ZMM_INV_DATA
+		WHERE 1=1
+		and CHK_DT = replace(#{CREATE_DT},'/','')
+		</select>
+
+		<update id="update_zmm_inv_list" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm.update_zmm_inv_list */
+		MERGE INTO TBL_ZMM_INV_DATA A
+		USING (
+			SELECT
+		        replace(#{CREATE_DT},'/','') AS CREATE_DT,
+		        replace(#{CONCENT_T},',','') AS CONCENT_T,
+		        replace(#{CONCENT_D},',','') AS CONCENT_D,
+		        replace(#{CONCENT_S},',','') AS CONCENT_S,
+		        replace(#{CONCENT_SUM},',','') AS CONCENT_SUM,
+		        replace(#{PROD_C},',','') AS PROD_C,
+		        replace(#{PROD_I},',','') AS PROD_I,
+		        replace(#{EXTIN_INV},',','') AS EXTIN_INV,
+		        replace(#{CAKE_C},',','') AS CAKE_C,
+		        replace(#{CATHODE_H},',','') AS CATHODE_H,
+		        replace(#{CATHODE_L},',','') AS CATHODE_L,
+		        replace(#{CATHODE_SUM},',','') AS CATHODE_SUM,
+		        replace(#{ZINC_A},',','') AS ZINC_A,
+		        replace(#{ZINC_C},',','') AS ZINC_C,
+		        replace(#{ZINC_S},',','') AS ZINC_S,
+		        replace(#{ZINC_T},',','') AS ZINC_T,
+		        replace(#{ZINC_SUM},',','') AS ZINC_SUM,
+		        replace(#{ZINC_EX},',','') AS ZINC_EX,
+		        replace(#{ZINC_TOT},',','') AS ZINC_TOT
+			FROM DUAL
+		) B
+		ON (
+				A.CHK_DT = B.CREATE_DT
+		)
+		WHEN NOT MATCHED THEN
+		INSERT (
+					CHK_DT,
+					CONCENT_T,
+					CONCENT_D,
+					CONCENT_S,
+					CONCENT_SUM,
+					PROD_C,
+					PROD_I,
+					EXTIN_INV,
+					CAKE_C,
+					CATHODE_H,
+					CATHODE_L,
+					CATHODE_SUM,
+					ZINC_A,
+					ZINC_C,
+					ZINC_S,
+					ZINC_T,
+					ZINC_SUM,
+					ZINC_EX,
+					ZINC_TOT
+		) VALUES (
+					B.CREATE_DT,
+					B.CONCENT_T,
+					B.CONCENT_D,
+					B.CONCENT_S,
+					B.CONCENT_SUM,
+					B.PROD_C,
+					B.PROD_I,
+					B.EXTIN_INV,
+					B.CAKE_C,
+					B.CATHODE_H,
+					B.CATHODE_L,
+					B.CATHODE_SUM,
+					B.ZINC_A,
+					B.ZINC_C,
+					B.ZINC_S,
+					B.ZINC_T,
+					B.ZINC_SUM,
+					B.ZINC_EX,
+					B.ZINC_TOT
+		)
+		WHEN MATCHED THEN
+		UPDATE SET
+		        CONCENT_T = replace(#{CONCENT_T},',',''),
+		        CONCENT_D = replace(#{CONCENT_D},',',''),
+		        CONCENT_S = replace(#{CONCENT_S},',',''),
+		        CONCENT_SUM = replace(#{CONCENT_SUM},',',''),
+		        PROD_C = replace(#{PROD_C},',',''),
+		        PROD_I = replace(#{PROD_I},',',''),
+		        EXTIN_INV = replace(#{EXTIN_INV},',',''),
+		        CAKE_C = replace(#{CAKE_C},',',''),
+		        CATHODE_H = replace(#{CATHODE_H},',',''),
+		        CATHODE_L = replace(#{CATHODE_L},',',''),
+		        CATHODE_SUM = replace(#{CATHODE_SUM},',',''),
+		        ZINC_A = replace(#{ZINC_A},',',''),
+		        ZINC_C = replace(#{ZINC_C},',',''),
+		        ZINC_S = replace(#{ZINC_S},',',''),
+		        ZINC_T = replace(#{ZINC_T},',',''),
+		        ZINC_SUM = replace(#{ZINC_SUM},',',''),
+		        ZINC_EX = replace(#{ZINC_EX},',',''),
+		        ZINC_TOT = replace(#{ZINC_TOT},',','')
+	</update>
+
+	<update id="update_zmm_inv_bigo" parameterType="java.util.HashMap">
+	/* oracle.yp_zmm.update_zmm_inv_bigo */
+	MERGE INTO TBL_ZMM_INV_DATA A
+	USING (
+		SELECT
+	        TO_DATE(replace(#{CHK_DT},'/',''), 'yyyymmdd')-1 AS CREATE_DT, 
+	        replace(#{CONCENT_T_B},',','') AS CONCENT_T_B,
+	        replace(#{CONCENT_D_B},',','') AS CONCENT_D_B,
+	        replace(#{CONCENT_S_B},',','') AS CONCENT_S_B,
+	        replace(#{PROD_C_B},',','') AS PROD_C_B,
+	        replace(#{PROD_I_B},',','') AS PROD_I_B,
+	        replace(#{EXTIN_INV_B},',','') AS EXTIN_INV_B,
+	        replace(#{CAKE_C_B},',','') AS CAKE_C_B,
+	        replace(#{CATHODE_H_B},',','') AS CATHODE_H_B,
+	        replace(#{CATHODE_L_B},',','') AS CATHODE_L_B,
+	        replace(#{ZINC_A_B},',','') AS ZINC_A_B,
+	        replace(#{ZINC_C_B},',','') AS ZINC_C_B,
+	        replace(#{ZINC_S_B},',','') AS ZINC_S_B,
+	        replace(#{ZINC_T_B},',','') AS ZINC_T_B,
+	        replace(#{ZINC_EX_B},',','') AS ZINC_EX_B
+		FROM DUAL
+	) B
+	ON (
+			A.CHK_DT = B.CREATE_DT
+	)
+	WHEN NOT MATCHED THEN
+	INSERT (
+				CHK_DT,
+				CONCENT_T_B,
+				CONCENT_D_B,
+				CONCENT_S_B,
+				PROD_C_B,
+				PROD_I_B,
+				EXTIN_INV_B,
+				CAKE_C_B,
+				CATHODE_H_B,
+				CATHODE_L_B,
+				ZINC_A_B,
+				ZINC_C_B,
+				ZINC_S_B,
+				ZINC_T_B,
+				ZINC_EX_B
+	) VALUES (
+				B.CREATE_DT,
+				B.CONCENT_T_B,
+				B.CONCENT_D_B,
+				B.CONCENT_S_B,
+				B.PROD_C_B,
+				B.PROD_I_B,
+				B.EXTIN_INV_B,
+				B.CAKE_C_B,
+				B.CATHODE_H_B,
+				B.CATHODE_L_B,
+				B.ZINC_A_B,
+				B.ZINC_C_B,
+				B.ZINC_S_B,
+				B.ZINC_T_B,
+				B.ZINC_EX_B
+	)
+	WHEN MATCHED THEN
+	UPDATE SET
+	        CONCENT_T_B = #{CONCENT_T_B},
+	        CONCENT_D_B = #{CONCENT_D_B},
+	        CONCENT_S_B = #{CONCENT_S_B},
+	        PROD_C_B = #{PROD_C_B},
+	        PROD_I_B = #{PROD_I_B},
+	        EXTIN_INV_B = #{EXTIN_INV_B},
+	        CAKE_C_B = #{CAKE_C_B},
+	        CATHODE_H_B = #{CATHODE_H_B},
+	        CATHODE_L_B = #{CATHODE_L_B},
+	        ZINC_A_B = #{ZINC_A_B},
+	        ZINC_C_B = #{ZINC_C_B},
+	        ZINC_S_B = #{ZINC_S_B},
+	        ZINC_T_B = #{ZINC_T_B},
+	        ZINC_EX_B = #{ZINC_EX_B}
+	</update>
+
+		<update id="update_zmm_inv_Upload" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm.update_zmm_inv_Upload */
+		MERGE INTO TBL_ZMM_INV_DATA A
+		USING (
+			SELECT
+		        replace(#{CREATE_DT},'/','') AS CREATE_DT,
+		        replace(#{CONCENT_T},',','') AS CONCENT_T,
+		        replace(#{CONCENT_D},',','') AS CONCENT_D,
+		        replace(#{CONCENT_S},',','') AS CONCENT_S,
+		        replace(#{CONCENT_SUM},',','') AS CONCENT_SUM,
+		        replace(#{PROD_C},',','') AS PROD_C,
+		        replace(#{PROD_I},',','') AS PROD_I,
+		        replace(#{EXTIN_INV},',','') AS EXTIN_INV,
+		        replace(#{CAKE_C},',','') AS CAKE_C,
+		        replace(#{CATHODE_H},',','') AS CATHODE_H,
+		        replace(#{CATHODE_L},',','') AS CATHODE_L,
+		        replace(#{CATHODE_SUM},',','') AS CATHODE_SUM,
+		        replace(#{ZINC_A},',','') AS ZINC_A,
+		        replace(#{ZINC_C},',','') AS ZINC_C,
+		        replace(#{ZINC_S},',','') AS ZINC_S,
+		        replace(#{ZINC_T},',','') AS ZINC_T,
+		        replace(#{ZINC_SUM},',','') AS ZINC_SUM,
+		        replace(#{ZINC_EX},',','') AS ZINC_EX,
+		        replace(#{ZINC_TOT},',','') AS ZINC_TOT,
+		        replace(#{CONCENT_T_B},',','') AS CONCENT_T_B,
+		        replace(#{CONCENT_D_B},',','') AS CONCENT_D_B,
+		        replace(#{CONCENT_S_B},',','') AS CONCENT_S_B,
+		        replace(#{PROD_C_B},',','') AS PROD_C_B,
+		        replace(#{PROD_I_B},',','') AS PROD_I_B,
+		        replace(#{EXTIN_INV_B},',','') AS EXTIN_INV_B,
+		        replace(#{CAKE_C_B},',','') AS CAKE_C_B,
+		        replace(#{CATHODE_H_B},',','') AS CATHODE_H_B,
+		        replace(#{CATHODE_L_B},',','') AS CATHODE_L_B,
+		        replace(#{ZINC_A_B},',','') AS ZINC_A_B,
+		        replace(#{ZINC_C_B},',','') AS ZINC_C_B,
+		        replace(#{ZINC_S_B},',','') AS ZINC_S_B,
+		        replace(#{ZINC_T_B},',','') AS ZINC_T_B,
+		        replace(#{ZINC_EX_B},',','') AS ZINC_EX_B
+			FROM DUAL
+		) B
+		ON (
+				A.CHK_DT = B.CREATE_DT
+		)
+		WHEN NOT MATCHED THEN
+		INSERT (
+					CHK_DT,
+					CONCENT_T,
+					CONCENT_D,
+					CONCENT_S,
+					CONCENT_SUM,
+					PROD_C,
+					PROD_I,
+					EXTIN_INV,
+					CAKE_C,
+					CATHODE_H,
+					CATHODE_L,
+					CATHODE_SUM,
+					ZINC_A,
+					ZINC_C,
+					ZINC_S,
+					ZINC_T,
+					ZINC_SUM,
+					ZINC_EX,
+					ZINC_TOT,
+			        CONCENT_T_B,
+			        CONCENT_D_B,
+			        CONCENT_S_B,
+			        PROD_C_B,
+			        PROD_I_B,
+			        EXTIN_INV_B,
+			        CAKE_C_B,
+			        CATHODE_H_B,
+			        CATHODE_L_B,
+			        ZINC_A_B,
+			        ZINC_C_B,
+			        ZINC_S_B,
+			        ZINC_T_B,
+			        ZINC_EX_B
+		) VALUES (
+					B.CREATE_DT,
+					B.CONCENT_T,
+					B.CONCENT_D,
+					B.CONCENT_S,
+					B.CONCENT_SUM,
+					B.PROD_C,
+					B.PROD_I,
+					B.EXTIN_INV,
+					B.CAKE_C,
+					B.CATHODE_H,
+					B.CATHODE_L,
+					B.CATHODE_SUM,
+					B.ZINC_A,
+					B.ZINC_C,
+					B.ZINC_S,
+					B.ZINC_T,
+					B.ZINC_SUM,
+					B.ZINC_EX,
+					B.ZINC_TOT,
+			        B.CONCENT_T_B,
+			        B.CONCENT_D_B,
+			        B.CONCENT_S_B,
+			        B.PROD_C_B,
+			        B.PROD_I_B,
+			        B.EXTIN_INV_B,
+			        B.CAKE_C_B,
+			        B.CATHODE_H_B,
+			        B.CATHODE_L_B,
+			        B.ZINC_A_B,
+			        B.ZINC_C_B,
+			        B.ZINC_S_B,
+			        B.ZINC_T_B,
+			        B.ZINC_EX_B
+		)
+		WHEN MATCHED THEN
+		UPDATE SET
+		        CONCENT_T = replace(#{CONCENT_T},',',''),
+		        CONCENT_D = replace(#{CONCENT_D},',',''),
+		        CONCENT_S = replace(#{CONCENT_S},',',''),
+		        CONCENT_SUM = replace(#{CONCENT_SUM},',',''),
+		        PROD_C = replace(#{PROD_C},',',''),
+		        PROD_I = replace(#{PROD_I},',',''),
+		        EXTIN_INV = replace(#{EXTIN_INV},',',''),
+		        CAKE_C = replace(#{CAKE_C},',',''),
+		        CATHODE_H = replace(#{CATHODE_H},',',''),
+		        CATHODE_L = replace(#{CATHODE_L},',',''),
+		        CATHODE_SUM = replace(#{CATHODE_SUM},',',''),
+		        ZINC_A = replace(#{ZINC_A},',',''),
+		        ZINC_C = replace(#{ZINC_C},',',''),
+		        ZINC_S = replace(#{ZINC_S},',',''),
+		        ZINC_T = replace(#{ZINC_T},',',''),
+		        ZINC_SUM = replace(#{ZINC_SUM},',',''),
+		        ZINC_EX = replace(#{ZINC_EX},',',''),
+		        ZINC_TOT = replace(#{ZINC_TOT},',',''),
+		        CONCENT_T_B = replace(#{CONCENT_T_B},',',''),
+		        CONCENT_D_B = replace(#{CONCENT_D_B},',',''),
+		        CONCENT_S_B = replace(#{CONCENT_S_B},',',''),
+		        PROD_C_B = replace(#{PROD_C_B},',',''),
+		        PROD_I_B = replace(#{PROD_I_B},',',''),
+		        EXTIN_INV_B = replace(#{EXTIN_INV_B},',',''),
+		        CAKE_C_B = replace(#{CAKE_C_B},',',''),
+		        CATHODE_H_B = replace(#{CATHODE_H_B},',',''),
+		        CATHODE_L_B = replace(#{CATHODE_L_B},',',''),
+		        ZINC_A_B = replace(#{ZINC_A_B},',',''),
+		        ZINC_C_B = replace(#{ZINC_C_B},',',''),
+		        ZINC_S_B = replace(#{ZINC_S_B},',',''),
+		        ZINC_T_B = replace(#{ZINC_T_B},',',''),
+		        ZINC_EX_B = replace(#{ZINC_EX_B},',','')
+	</update>
+
+	<select id="retrieveLME" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm.retrieveLME */
+		select
+		       TO_CHAR(LME_DATE, 'yyyy/mm/dd') AS LME_DATE1,
+		       NVL(ZN,'') AS ZN,
+		       NVL(AG,'') AS AG,
+		       NVL(CU,'') AS CU,
+		       NVL(PB,'') AS PB,
+		       NVL(AU,'') AS AU,
+		       NVL(SHG,'') AS SHG,
+		       NVL(HG,'') AS HG,
+		       NVL(SEQ,'') AS SEQ
+		from TBL_RAWSCHEDULE_LME_RES
+		where 1=1
+		<if test='empty != "" and empty == "Y"'>
+			and lme_date = #{lme_date}
+		</if>
+		<if test='empty != "" and empty == "N"'>
+		 	and rownum <![CDATA[ < ]]>3
+			<if test="lme_date != '' and lme_date != null">
+			and lme_date <![CDATA[ <= ]]> #{lme_date}
+			</if>
+		</if>
+		order by LME_DATE desc
+	</select>
+
+	<select id="retrieveLME_AVG" resultType="java.util.LinkedHashMap" parameterType="java.util.HashMap">
+		select  to_char(to_date(#{lme_date}),'YYYYMM') as THIS_MONTH,
+                nvl(round(avg(ZN),3),0)  as ZN,
+                nvl(round(avg(AG),3),0)  as AG,
+                nvl(round(avg(CU),3),0)  as CU,
+                nvl(round(avg(PB),3),0)  as PB,
+                nvl(round(avg(AU),3),0)  as AU,
+                nvl(round(avg(SHG),3),0) as SHG,
+                nvl(round(avg(HG),3),0)  as HG
+        from TBL_RAWSCHEDULE_LME_RES
+        where to_char(lme_date, 'YYYYMM') = substr(replace(#{lme_date} ,'/' , ''), 1, 6)
+        UNION ALL
+        select  to_char(add_months(to_date(#{lme_date}),-1),'YYYYMM') as LAST_MONTH,
+                nvl(round(avg(ZN),3),0)  as ZN,
+                nvl(round(avg(AG),3),0)  as AG,
+                nvl(round(avg(CU),3),0)  as CU,
+                nvl(round(avg(PB),3),0)  as PB,
+                nvl(round(avg(AU),3),0)  as AU,
+                nvl(round(avg(SHG),3),0) as SHG,
+                nvl(round(avg(HG),3),0)  as HG
+        from TBL_RAWSCHEDULE_LME_RES
+        where to_char(lme_date, 'YYYYMM') = to_char(add_months(to_date(#{lme_date}),-1),'YYYYMM')
+	</select>
+
+	<select id="retrieveLME_check" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm.retrieveLME_check */
+		select
+		       TO_CHAR(LME_DATE, 'yyyy/mm/dd') AS LME_DATE1,
+		       ZN,
+		       AG,
+		       CU,
+		       PB,
+		       AU,
+		       SHG,
+		       HG,
+		       SEQ
+		from TBL_RAWSCHEDULE_LME_RES
+		where TO_CHAR(LME_DATE, 'yyyy/MM/dd') = #{lme_date}
+	</select>
+
+ 	<insert id="createLME" parameterType="java.util.HashMap">
+ 		/* oracle.yp_zmm.createLME */
+		INSERT INTO
+		TBL_RAWSCHEDULE_LME_RES
+		(LME_DATE
+		,ZN ,AG ,CU ,PB
+		,AU ,SHG ,HG ,REG_DATE
+		) values
+		(
+		#{lme_date}
+		,#{lme_zn},#{lme_ag},#{lme_cu},#{lme_pb}
+		,#{lme_au},#{lme_shg},#{lme_hg},SYSDATE
+		)
+	</insert>
+
+    <update id="updateLME" parameterType="java.util.HashMap">
+    	/* oracle.yp_zmm.updateLME */
+		UPDATE TBL_RAWSCHEDULE_LME_RES SET
+			 ZN = #{lme_zn}
+			,AG = #{lme_ag}
+			,CU = #{lme_cu}
+			,PB = #{lme_pb}
+			,AU = #{lme_au}
+			,SHG = #{lme_shg}
+			,HG = #{lme_hg}
+			,UPD_DATE = SYSDATE
+		WHERE TO_CHAR(LME_DATE, 'yyyy/MM/dd') = #{lme_date}
+	</update>
+    
+    <select id="retrieveArrivalScheduleListCnt" resultType="Double">
+    	/* oracle.yp_zmm.retrieveArrivalScheduleListCnt */
+		SELECT  COUNT(*) AS CNT
+		FROM TBL_RAWSCHEDULE_ARRIVAL
+		WHERE 1=1
+		<if test="arrival_date != '' and arrival_date != null">
+		and arrival_date between #{arrival_date} and #{arrival_edate}
+		</if>
+		<if test="ship_date != '' and ship_date != null">
+		and ship_date between #{ship_date} and #{ship_edate}
+		</if>
+		<if test="vendor_nm != '' and vendor_nm != null">
+		and UPPER(vendor_nm) like '%'||UPPER(#{vendor_nm})||'%'
+		</if>
+		<if test="item_nm != '' and item_nm != null">
+		and UPPER(item_nm) like '%'||UPPER(#{item_nm})||'%'
+		</if>
+		<if test="ship_vendor != '' and ship_vendor != null">
+		and UPPER(ship_vendor) like '%'||UPPER(#{ship_vendor})||'%'
+		</if>
+		<if test="surveyor != '' and surveyor != null">
+		and UPPER(surveyor) like '%'||UPPER(#{surveyor})||'%'
+		</if>
+	</select>
+
+	<select id="retrieveArrivalScheduleList" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm.retrieveArrivalScheduleList */
+		SELECT  ROWNUM AS RNUM,
+		        TB.*
+		FROM(        
+			SELECT  '0' AS state
+			        ,A.SEQ														--일련번호												
+					,DECODE(CAST(REPLACE(B.PO_NO, CHR(0), '') AS VARCHAR2(30)), NULL, A.PO_NO, CAST(REPLACE(B.PO_NO, CHR(0), '') AS VARCHAR2(30))) AS PO_NO	--주문번호										
+                    ,DECODE(CAST(REPLACE(B.VENDOR_CD, CHR(0), '') AS VARCHAR2(20)), NULL, A.VENDOR_CD, CAST(REPLACE(B.VENDOR_CD, CHR(0), '') AS VARCHAR2(20))) AS VENDOR_CD	--BLEND.VENDOR_CD(업체코드)
+			        ,A.VENDOR_NM												--업체명														
+                    ,DECODE(CAST(REPLACE(B.ITEM_CD, CHR(0), '') AS VARCHAR2(20)), NULL, A.ITEM_CD, CAST(REPLACE(B.ITEM_CD, CHR(0), '') AS VARCHAR2(20))) AS ITEM_CD	--BLEND.ITEM_CD(광종코드)	KEY
+			        ,A.ITEM_NM													--광종명
+			        ,A.ORDER1													--차수								
+                    ,DECODE(CAST(REPLACE(B.RECEIPT_TYPE, CHR(0), '') AS VARCHAR2(2)), NULL, A.ORDER2, CAST(REPLACE(B.RECEIPT_TYPE, CHR(0), '') AS VARCHAR2(2))) AS ORDER2	--BLEND.RECEIPT_TYPE(입고차수)  KEY													
+                    ,DECODE(rtrim(to_char(B.RECEIPT_QTY, 'FM99999999999990.999'), '.'), NULL, A.DMT, rtrim(to_char(B.RECEIPT_QTY, 'FM99999999999990.999'), '.')) AS DMT	--BLEND.RECEIPT_QTY(입고수량)
+			        ,A.LAYCAN													--Laycan	
+                    ,DECODE(TO_CHAR( TO_DATE(REPLACE(CAST(B.UNLOAD_DATE AS VARCHAR2(8)), CHR(0), '')), 'yyyy/MM/dd'), NULL, TO_CHAR(A.UNLOAD_DATE, 'yyyy/MM/dd'), TO_CHAR( TO_DATE(REPLACE(CAST(B.UNLOAD_DATE AS VARCHAR2(8)), CHR(0), '')), 'yyyy/MM/dd')) AS UNLOAD_DATE	--BLEND.UNLOAD_DATE(하역일)
+			        ,A.RECEIPT													--B/L(수령)
+			        ,A.DELAY													--B/L(전달)
+			        ,A.ITINERARY												--itinerary		
+                    ,DECODE(TO_CHAR( TO_DATE(REPLACE(CAST(B.RECEIPT_DATE AS VARCHAR2(8)), CHR(0), '')), 'yyyy/MM/dd'), NULL, TO_CHAR(A.ARRIVAL_DATE, 'yyyy/MM/dd'), TO_CHAR( TO_DATE(REPLACE(CAST(B.RECEIPT_DATE AS VARCHAR2(8)), CHR(0), '')), 'yyyy/MM/dd')) AS ORIGINAL_ARRIVAL_DATE	--BLEND.RECEIPT_DATE(BL입항일) KEY
+                    ,DECODE(TO_CHAR( TO_DATE(REPLACE(CAST(B.RECEIPT_DATE AS VARCHAR2(8)), CHR(0), '')), 'yyyy/MM/dd'), NULL, TO_CHAR(A.ARRIVAL_DATE, 'yyyy/MM/dd'), TO_CHAR( TO_DATE(REPLACE(CAST(B.RECEIPT_DATE AS VARCHAR2(8)), CHR(0), '')), 'yyyy/MM/dd')) AS ARRIVAL_DATE	--BLEND.RECEIPT_DATE(BL입항일)							
+			        ,DECODE(CAST(REPLACE(B.ATTRBT_VAL_1, CHR(0), '') AS VARCHAR2(1)), NULL, 'N', CAST(REPLACE(B.ATTRBT_VAL_1, CHR(0), '') AS VARCHAR2(1))) AS ARRIVAL_DATE_FIX	--BLEND.ATTRBT_VAL_1(BL입항일 픽스여부)
+			        ,A.SHIP_VENDOR												--선사									
+                    ,DECODE(CAST(REPLACE(B.SHIP_NAME, CHR(0), '') AS VARCHAR2(200)), NULL, A.SHIP_NM, CAST(REPLACE(B.SHIP_NAME, CHR(0), '') AS VARCHAR2(200))) AS SHIP_NM	--BLEND.SHIP_NAME(선박명)												
+                    ,DECODE(TO_CHAR( TO_DATE(REPLACE(CAST(B.SHIP_DATE AS VARCHAR2(8)), CHR(0), '')), 'yyyy/MM/dd'), NULL, TO_CHAR(A.SHIP_DATE, 'yyyy/MM/dd'), TO_CHAR( TO_DATE(REPLACE(CAST(B.SHIP_DATE AS VARCHAR2(8)), CHR(0), '')), 'yyyy/MM/dd')) AS SHIP_DATE --실제입항일
+			        ,A.SURVEYOR													--Surveyor
+			        ,A.TT														--지불방법(T/T)
+			        ,A.LC														--지불방법(L/C)
+			        ,A.CONDITION												--지불방법(조건)
+			        ,A.UNLOAD_YN												--하역여부
+			        ,A.RECEIPT_NO												--입고번호
+			FROM TBL_RAWSCHEDULE_ARRIVAL A
+	     	FULL OUTER JOIN TB_STOCK_RECEIPT@BLEND B
+	     	ON   A.ITEM_CD                           = CAST(REPLACE(B.ITEM_CD, CHR(0), '') AS VARCHAR2(20))
+	     	AND  A.ORDER2                            = CAST(REPLACE(B.RECEIPT_TYPE, CHR(0), '') AS VARCHAR2(2))
+	     	AND  TO_CHAR(A.ARRIVAL_DATE, 'yyyyMMdd') = CAST(REPLACE(B.RECEIPT_DATE, CHR(0), '') AS VARCHAR2(8))
+			WHERE 1=1
+		  	<if test="arrival_date != '' and arrival_date != null">
+			and ( A.arrival_date between #{arrival_date} and #{arrival_edate} or B.receipt_date between REPLACE(#{arrival_date},'/','') and REPLACE(#{arrival_edate},'/','') )
+			</if>
+			<if test="ship_date != '' and ship_date != null">
+			and (A.ship_date between #{ship_date} and #{ship_edate} or B.ship_date between #{ship_date} and #{ship_edate})
+			</if>
+			<if test="vendor_nm != '' and vendor_nm != null">
+			and UPPER(vendor_nm) like '%'||UPPER(#{vendor_nm})||'%'
+			</if>
+			<if test="item_nm != '' and item_nm != null">
+			and UPPER(item_nm) like '%'||UPPER(#{item_nm})||'%'
+			</if>
+			<if test="ship_vendor != '' and ship_vendor != null">
+			and UPPER(ship_vendor) like '%'||UPPER(#{ship_vendor})||'%'
+			</if>
+			<if test="surveyor != '' and surveyor != null">
+			and UPPER(surveyor) like '%'||UPPER(#{surveyor})||'%'
+			</if>
+		  order by arrival_date asc nulls last
+	  ) TB 
+	</select>
+	
+	<insert id="createArrivalSchedule" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm.createArrivalSchedule */
+		INSERT INTO TBL_RAWSCHEDULE_ARRIVAL
+		(SEQ 			<!-- 1.일련번호 -->
+		,PO_NO			<!-- 2.주문번호 -->
+		,VENDOR_CD		<!-- 3.업체코드 -->
+		,VENDOR_NM		<!-- 4.업체명 -->
+		,ITEM_CD		<!-- 5.광종코드 -->
+		,ITEM_NM		<!-- 6.광종명 -->
+		,ORDER1 		<!-- 7.차수 -->
+		,ORDER2 		<!-- 8.입고차수 -->
+		,SHIP_NM 		<!-- 9.선박명 -->
+		,DMT 			<!-- 10.수량 -->
+		,LAYCAN			<!-- 11.LAYCAN -->
+		,UPLOAD_DATE 	<!-- 12.선적일 -->
+		,RECEIPT 		<!-- 13.수령 -->
+		,DELAY 			<!-- 14.전달 -->
+		,ITINERARY 		<!-- 15.ITINERARY-->
+		,ARRIVAL_DATE 	<!-- 16.BL입항일 -->
+	    ,UNLOAD_DATE	<!-- 17.실제하역일 -->
+		,SHIP_VENDOR 	<!-- 18.선사 -->
+		,SURVEYOR 		<!-- 19.SURVEYOR-->
+		,TT 			<!-- 20.지불방법(TT)-->
+		,LC 			<!-- 21.지불방법(LC) -->
+		,CONDITION		<!-- 22.지불방법(조건) -->
+		,REG_ID			<!-- 23.등록ID -->
+		,REG_DATE		<!-- 24.등록일 -->
+		,RECEIPT_NO		<!-- 25.입고번호(사용안하기로함) -->
+		,UNLOAD_YN		<!-- 26.하역완료 -->
+		,SHIP_DATE		<!-- 27.실제입항일 -->
+		) values ( 
+		(select nvl(max(seq+1),1) from TBL_RAWSCHEDULE_ARRIVAL)	<!-- 1.일련번호 -->
+		,#{PO_NO,jdbcType=VARCHAR} 								<!-- 2.주문번호 -->
+		,TO_CHAR(TO_NUMBER(#{VENDOR_CD}))						<!-- 3.업체코드 -->
+		,#{VENDOR_NM,jdbcType=VARCHAR} 							<!-- 4.업체명 -->
+		,#{ITEM_CD}												<!-- 5.광종코드 -->
+		,#{ITEM_NM,jdbcType=VARCHAR}							<!-- 6.광종명 -->
+		,#{ORDER1,jdbcType=VARCHAR} 							<!-- 7.차수 -->
+		,#{ORDER2} 												<!-- 8.입고차수 -->
+		,#{SHIP_NM,jdbcType=VARCHAR}							<!-- 9.선박명 -->
+		,#{DMT,jdbcType=VARCHAR} 								<!-- 10. -->
+		,#{LAYCAN,jdbcType=VARCHAR}								<!-- 11. -->
+		,#{UPLOAD_DATE} 										<!-- 12.선적일 -->
+		,#{RECEIPT,jdbcType=VARCHAR}							<!-- 13.수령 -->
+		,#{DELAY,jdbcType=VARCHAR} 								<!-- 14.전달 -->
+		,#{ITINERARY,jdbcType=VARCHAR}							<!-- 15. -->
+		,#{ARRIVAL_DATE,jdbcType=VARCHAR} 						<!-- 16.BL입항일 -->
+ 	    ,#{UNLOAD_DATE,jdbcType=VARCHAR}						<!-- 17.실제하역일 -->
+		,#{SHIP_VENDOR,jdbcType=VARCHAR} 						<!-- 18.선사 -->
+		,#{SURVEYOR,jdbcType=VARCHAR}							<!-- 19. -->
+		,#{TT,jdbcType=VARCHAR} 								<!-- 20. -->
+		,#{LC,jdbcType=VARCHAR}									<!-- 21. -->
+		,#{CONDITION,jdbcType=VARCHAR}							<!-- 22. -->
+		,#{USER_ID}												<!-- 23.등록ID -->
+		,SYSDATE												<!-- 24.등록일 -->
+		,#{RECEIPT_NO,jdbcType=VARCHAR}							<!-- 25.입고번호(사용안하기로함) -->
+		,#{UNLOAD_YN,jdbcType=VARCHAR}							<!-- 26.하역완료 -->
+		,#{SHIP_DATE} 											<!-- 27.실제입항일 -->
+		)
+	</insert>
+	
+	<select id="getSYSTIMESTAMP" resultType="string">
+		/*SELECT SYSTIMESTAMP FROM DUAL*/
+		SELECT TO_CHAR(SYSTIMESTAMP, 'YYYY-MM-DD HH24:MI:SS.FF3') FROM DUAL
+	</select>
+	
+	<insert id="createArrivalSchedule_ms" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm.createArrivalSchedule_ms */
+		INSERT INTO SCMETA.dbo.TB_STOCK_RECEIPT
+		(    ITEM_CD			--광종코드
+			,VENDOR_CD			--업체코드
+			,RECEIPT_DATE		--BL입항일
+	        ,RECEIPT_QTY		--입고수량
+	     	,CREATE_DTTM		--등록일시
+	        ,CREATE_USER_ID		--등록자
+	        ,RECEIPT_TYPE		--입고차수
+	        ,UNLOAD_DATE		--하역일
+	        ,SHIP_NAME			--선박명
+	        ,SHIP_DATE			--실제입항일
+	        ,PO_NO				--입고번호
+	        ,PLAN_YN			--계획대상여부
+	    ) values (
+			#{ITEM_CD}
+			,CAST(CAST(#{VENDOR_CD} AS INT) AS NVARCHAR(20))
+			,#{ARRIVAL_DATE}
+			,#{DMT}
+			,SYSDATETIME()
+			,#{USER_ID}
+			,#{ORDER2,jdbcType=VARCHAR}
+			,#{UNLOAD_DATE,jdbcType=VARCHAR}
+			,#{SHIP_NM,jdbcType=VARCHAR}
+			,#{SHIP_DATE,jdbcType=VARCHAR}
+			,#{PO_NO,jdbcType=VARCHAR}
+			,'N'
+		)
+	</insert>
+
+	<select id="ArrivalScheduleChk" resultType="Integer">
+		/* oracle.yp_zmm.ArrivalScheduleChk */
+		SELECT COUNT(1) AS CNT
+		FROM TBL_RAWSCHEDULE_ARRIVAL
+		WHERE ITEM_CD      = #{ITEM_CD}
+		AND   ORDER2       = #{ORDER2}
+		AND   ARRIVAL_DATE = #{ORIGINAL_ARRIVAL_DATE} 
+	</select>
+	
+	<select id="ArrivalScheduleChk_ms" resultType="Integer">
+		/* oracle.yp_zmm.ArrivalScheduleChk_ms */
+		SELECT COUNT(1) AS CNT
+		FROM SCMETA.dbo.TB_STOCK_RECEIPT
+		WHERE ITEM_CD      = #{ITEM_CD}
+		AND   RECEIPT_TYPE = #{ORDER2}
+		AND   RECEIPT_DATE = #{ORIGINAL_ARRIVAL_DATE} 
+	</select>
+
+	<update id="updateArrivalSchedule" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm.updateArrivalSchedule */
+		UPDATE	TBL_RAWSCHEDULE_ARRIVAL SET
+		 PO_NO         = #{PO_NO}							--주문번호
+		,ORDER1        = #{ORDER1}							--차수
+		,SHIP_NM       = #{SHIP_NM}							--선박명
+		,DMT           = #{DMT}								--입고수량
+		,LAYCAN        = #{LAYCAN,jdbcType=VARCHAR}			--Laycan
+		,UPLOAD_DATE   = #{UPLOAD_DATE}						--선적일
+		,RECEIPT       = #{RECEIPT,jdbcType=VARCHAR}		--B/L(수령)
+		,DELAY         = #{DELAY,jdbcType=VARCHAR}			--B/L(전달)
+		,ITINERARY     = #{ITINERARY,jdbcType=VARCHAR}		--Itinerary
+		,ARRIVAL_DATE  = #{ARRIVAL_DATE}					--B/L입항일
+ 		,UNLOAD_DATE   = #{UNLOAD_DATE}						--하역일
+		,SHIP_VENDOR   = #{SHIP_VENDOR}						--선사
+		,SURVEYOR      = #{SURVEYOR}						--Surveyor
+		,TT            = #{TT,jdbcType=VARCHAR}				--지불방법(T/T)
+		,LC            = #{LC,jdbcType=VARCHAR}				--지불방법(L/C)
+		,CONDITION     = #{CONDITION}						--지불방법(조건)
+		,MOD_ID        = #{USER_ID}							--수정ID
+		,MOD_DATE      = SYSDATE							--수정일시
+		,RECEIPT_NO    = #{RECEIPT_NO,jdbcType=VARCHAR}		--입고번호(사용안하기로함)
+		,UNLOAD_YN     = #{UNLOAD_YN,jdbcType=VARCHAR}		--하역여부
+		,SHIP_DATE     = #{SHIP_DATE}						--실제입항일
+		WHERE SEQ      = #{SEQ}
+	</update>
+	
+	<update id="updateArrivalSchedule_ms" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm.updateArrivalSchedule_ms */
+		UPDATE SCMETA.dbo.TB_STOCK_RECEIPT SET
+			 RECEIPT_DATE     = #{ARRIVAL_DATE}				--B/L입항일
+	        ,RECEIPT_QTY      = #{DMT}						--입고수량
+	        ,SHIP_NAME        = #{SHIP_NM}					--선박명
+	        ,MODIFY_DTTM      = SYSDATETIME()				--수정일시
+	        ,MODIFY_USER_ID   = #{USER_ID}					--수정ID
+	        ,RECEIPT_TYPE     = #{ORDER2}					--입고차수
+     	    ,UNLOAD_DATE      = #{UNLOAD_DATE}				--하역일
+	        ,SHIP_DATE        = #{SHIP_DATE}				--실제입항일
+	        ,PO_NO            = #{PO_NO,jdbcType=VARCHAR}	--주문번호
+	        ,ATTRBT_VAL_1     = #{ARRIVAL_DATE_FIX}			--B/L입항일 FIX여부
+	    WHERE   ITEM_CD       = #{ITEM_CD}					--광종코드
+		AND 	RECEIPT_TYPE  = #{ORDER2}					--입고차수
+		AND 	RECEIPT_DATE  = #{ORIGINAL_ARRIVAL_DATE}	--B/L입항일
+	</update>
+	
+	<delete id="deleteArrivalSchedule" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm.deleteArrivalSchedule */
+		DELETE FROM
+		TBL_RAWSCHEDULE_ARRIVAL
+		WHERE SEQ = #{SEQ}
+	</delete>
+	
+	<delete id="deleteArrivalSchedule_ms" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm.deleteArrivalSchedule_ms */
+		DELETE FROM SCMETA.dbo.TB_STOCK_RECEIPT
+		WHERE ITEM_CD      = #{ITEM_CD}					--광종코드 KEY
+		AND   RECEIPT_TYPE = #{ORDER2}					--입고차수 KEY
+		AND   RECEIPT_DATE = #{ORIGINAL_ARRIVAL_DATE}	--B/L입항일 KEY
+	</delete>
+
+	<select id="AssayList_ms" resultType="java.util.HashMap">
+		/* oracle.yp_zmm.AssayList_ms */
+		SELECT  A.TEST_CD       AS TEST_CD,
+		        A.COMPONENT     AS COMPONENT,
+		        A.ATTRBT_VAL_5  AS SORT,
+		        (SELECT TYPICAL_VALUE 
+		         FROM   TB_ITEM_TEST 
+		         WHERE  TEST_CD      = A.TEST_CD 
+		         AND    ITEM_CD      = #{ITEM_CD} 
+		         AND    RECEIPT_DATE = REPLACE(#{RECEIPT_DATE}, '/', '') 
+		         AND    RECEIPT_TYPE = #{RECEIPT_TYPE}) AS TYPICAL_VALUE,
+        		(SELECT INVOICE_VALUE 
+        		 FROM   TB_ITEM_TEST 
+        		 WHERE  TEST_CD      = A.TEST_CD 
+        		 AND    ITEM_CD      = #{ITEM_CD} 
+        		 AND    RECEIPT_DATE = REPLACE(#{RECEIPT_DATE}, '/', '') 
+        		 AND    RECEIPT_TYPE = #{RECEIPT_TYPE}) AS INVOICE_VALUE
+		FROM    SCMETA.dbo.TB_TEST_MST A
+		WHERE A.ATTRBT_VAL_4 = 'T'
+		ORDER BY SORT ASC
+	</select>
+	
+	<update id="createTypicalAssay_ms">
+		/* oracle.yp_zmm.createTypicalAssay_ms */
+		MERGE INTO SCMETA.dbo.TB_ITEM_TEST A
+		USING (SELECT #{ITEM_CD}      AS ITEM_CD,
+		              #{RECEIPT_DATE} AS RECEIPT_DATE,
+		              #{RECEIPT_TYPE} AS RECEIPT_TYPE,
+		              #{TEST_CD}      AS TEST_CD
+		) B
+		ON(     A.ITEM_CD      = B.ITEM_CD
+		    AND A.RECEIPT_DATE = B.RECEIPT_DATE
+		    AND A.RECEIPT_TYPE = B.RECEIPT_TYPE
+		    AND A.TEST_CD      = B.TEST_CD
+		)
+		WHEN NOT MATCHED THEN
+			insert (
+		        RECEIPT_DATE,		--BL입항일
+		        ITEM_CD,			--광종코드
+		        TEST_CD,			--분석성분
+		        COMPONENT,			--분석성분명
+		        TEST_UNIT,			--분석성분단위
+		        CREATE_DTTM,		--생성일
+		        CREATE_USER_ID,		--생성ID
+		        RECEIPT_TYPE,		--입고차수
+		        TYPICAL_VALUE		--분석값
+			) values (
+		    	 #{RECEIPT_DATE}
+		        ,#{ITEM_CD}
+		        ,#{TEST_CD}
+		        ,(SELECT COMPONENT FROM SCMETA.dbo.TB_TEST_MST WHERE TEST_CD = #{TEST_CD})
+		        ,(SELECT TEST_UNIT FROM SCMETA.dbo.TB_TEST_MST WHERE TEST_CD = #{TEST_CD})
+		        ,SYSDATETIME()
+		        ,#{USER_ID}
+		        ,#{RECEIPT_TYPE}
+		        ,#{VALUE}
+			)
+		WHEN MATCHED THEN
+			update
+			set  TYPICAL_VALUE  = #{VALUE}		--분석값
+		        ,MODIFY_DTTM    = SYSDATETIME()	--수정일
+		        ,MODIFY_USER_ID = #{USER_ID} 	--수정ID
+		;
+	</update>
+	
+	<update id="createInvoiceAssay_ms">
+		/* oracle.yp_zmm.createInvoiceAssay_ms */
+		MERGE INTO SCMETA.dbo.TB_ITEM_TEST A
+		USING (SELECT #{ITEM_CD}      AS ITEM_CD,
+		              #{RECEIPT_DATE} AS RECEIPT_DATE,
+		              #{RECEIPT_TYPE} AS RECEIPT_TYPE,
+		              #{TEST_CD}      AS TEST_CD
+		) B
+		ON(     A.ITEM_CD      = B.ITEM_CD
+		    AND A.RECEIPT_DATE = B.RECEIPT_DATE
+		    AND A.RECEIPT_TYPE = B.RECEIPT_TYPE
+		    AND A.TEST_CD      = B.TEST_CD
+		)
+		WHEN NOT MATCHED THEN
+			insert (
+		        RECEIPT_DATE,		--BL입항일
+		        ITEM_CD,			--광종코드
+		        TEST_CD,			--분석성분
+		        COMPONENT,			--분석성분명
+		        TEST_UNIT,			--분석성분단위
+		        CREATE_DTTM,		--생성일
+		        CREATE_USER_ID,		--생성ID
+		        RECEIPT_TYPE,		--입고차수
+		        INVOICE_VALUE		--분석값
+			) values (
+		    	 #{RECEIPT_DATE}
+		        ,#{ITEM_CD}
+		        ,#{TEST_CD}
+		        ,(SELECT COMPONENT FROM SCMETA.dbo.TB_ITEM_TEST WHERE TEST_CD = #{TEST_CD})
+		        ,(SELECT TEST_UNIT FROM SCMETA.dbo.TB_ITEM_TEST WHERE TEST_CD = #{TEST_CD})
+		        ,SYSDATETIME()
+		        ,#{USER_ID}
+		        ,#{RECEIPT_TYPE}
+		        ,#{VALUE}
+			)
+		WHEN MATCHED THEN
+			update
+			set  INVOICE_VALUE  = #{VALUE}		--분석값
+		        ,MODIFY_DTTM    = SYSDATETIME()	--수정일
+		        ,MODIFY_USER_ID = #{USER_ID} 	--수정ID
+		;
+	</update>
+	
+	<delete id="deleteAssay_ms">
+		/* oracle.yp_zmm.deleteAssay_ms */
+		DELETE SCMETA.dbo.TB_ITEM_TEST
+		WHERE ITEM_CD      = #{ITEM_CD}					--광종코드 KEY
+		AND   RECEIPT_TYPE = #{ORDER2}					--입고차수 KEY
+		AND   RECEIPT_DATE = #{ORIGINAL_ARRIVAL_DATE}	--B/L입항일 KEY
+	</delete>
+	
+</mapper>

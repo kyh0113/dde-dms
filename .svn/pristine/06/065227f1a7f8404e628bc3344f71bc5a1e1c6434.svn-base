@@ -1,0 +1,10 @@
+eclipse.preferences.version=1
+encoding//src/main/java=UTF-8
+encoding//src/main/java/com/vicurus/it/core/viewResolver/GridToJSON.java=UTF-8
+encoding//src/main/java/com/vicurus/it/core/viewResolver/ReturnJson.java=UTF-8
+encoding//src/main/java/com/yp/util/ConvertPDF.java=UTF-8
+encoding//src/main/java/com/yp/util/ConvertPDF2.java=UTF-8
+encoding//src/main/resources/config.properties=UTF-8
+encoding//src/main/webapp/WEB-INF/views/core/decorators/sessionNO.jsp=UTF-8
+encoding//src/main/webapp/resources/css/bootstrap.css=UTF-8
+encoding//src/test/java=UTF-8

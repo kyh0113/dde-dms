@@ -1,0 +1,89 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mssql.Login">	
+	<select id="ChkId" resultType="Integer">
+		/* mssql.Login.ChkId ICM */
+		SELECT	
+			COUNT(1)
+		FROM COM_USER
+		WHERE EMP_CODE = #{uid}
+	</select>
+	
+	<select id="ChkIdPwd" resultType="Map">
+		/* mssql.Login.ChkIdPwd ICM */
+		SELECT	
+			    usr.emp_code,
+			    usr.emp_name,
+			    usr.authogrp_code,
+			    usr.dept_code,
+			    usr.position_code,
+			    case when  PASSWORD_ENC='vLFfghR5tNV3K9DKhmwArV+SbjWAcgZZzIDTnJ0JgCo=' then 'N' else 'Y' end as pwddateyn,
+				usr.nowuse_yn,
+			    usr.status,
+			    case when datepart(mm, getdate()) = '1' or datepart(mm, getdate()) = '2' or datepart(mm, getdate()) = '3' then '1'
+					 when datepart(mm, getdate()) = '4' or datepart(mm, getdate()) = '5' or datepart(mm, getdate()) = '6' then '2'
+					 when datepart(mm, getdate()) = '7' or datepart(mm, getdate()) = '8' or datepart(mm, getdate()) = '9' then '3'
+					 else '4' end as current_month,
+				case when substring(isnull(usr.pwchg_date,''),6, 2) = '01' or substring(isnull(usr.pwchg_date,''),6, 2) = '02' or substring(isnull(usr.pwchg_date,''),6, 2) = '03' then '1'
+					 when substring(isnull(usr.pwchg_date,''),6, 2) = '04' or substring(isnull(usr.pwchg_date,''),6, 2) = '05' or substring(isnull(usr.pwchg_date,''),6, 2) = '06' then '2'
+					 when substring(isnull(usr.pwchg_date,''),6, 2) = '07' or substring(isnull(usr.pwchg_date,''),6, 2) = '08' or substring(isnull(usr.pwchg_date,''),6, 2) = '09' then '3'
+					 when substring(isnull(usr.pwchg_date,''),6, 2) = '10' or substring(isnull(usr.pwchg_date,''),6, 2) = '11' or substring(isnull(usr.pwchg_date,''),6, 2) = '12' then '4'
+					 else '0' end as quarter_period,
+				isnull(usr.pwchg_date,'') as pwchg_date,
+				isnull(lgl.login_date,'') as login_date,
+				isnull(lgl.today_date,'') as today_date,
+				isnull(lgl.login_ip, '') as login_ip,
+				isnull(lgl.diff_day, '0') as diff_day,
+				isnull(auth.init_page, '/') as init_page
+		FROM COM_USER usr
+		left outer join (
+							select  top(1)*,  
+									substring(replace(LOGIN_DATETIME,'-',''),1,8) as login_date,
+									convert(varchar(8), getdate(), 112) as today_date,
+									DATEDIFF(day, convert(datetime, LOGIN_DATETIME, 120), getdate()) as diff_day
+							from COM_LOGINLOG
+							where 1 = 1	
+							and LOGIN_ID    = #{uid}
+							order by login_datetime desc
+						) lgl
+		on  usr.EMP_CODE       = lgl.LOGIN_ID
+		left outer join COM_AUTH auth
+		on usr.AUTHOGRP_CODE   = auth.AUTH_ID
+		WHERE usr.PASSWORD_ENC = #{upwd} 
+		AND   usr.EMP_CODE     = #{uid}		
+	</select>
+	
+	<update id="resetPassword">
+	/* mssql.Login.resetPassword */
+	update COM_USER
+	set password   = #{new_password},
+		password_enc = #{upwd},
+	    pwchg_date = convert(varchar(10), getdate(), 120)
+	where emp_code = #{emp_code}
+	</update>
+	
+	<update id="InitLoginFailCnt">
+	/* mssql.Login.InitLoginFailCnt */
+	update COM_USER
+	set pwerr_cnt      = 0,
+	    login_datetime = convert(varchar(19), getdate(), 120),
+	    login_ip       = #{ip}
+	where emp_code     = #{emp_code}
+	</update>
+	
+	<update id="LoginFail">
+	/* mssql.Login.LoginFail */
+	update COM_USER
+	set pwerr_cnt           = pwerr_cnt + 1,
+	    login_fail_datetime = convert(varchar(20), getdate(), 120)	--로그인실패일시를 담는컬럼
+	where emp_code          = #{uid}
+	</update>
+	
+	<select id="GetLoginFailCnt" resultType="Integer">
+	/* mssql.Login.GetLoginFailCnt */
+	select pwerr_cnt
+	from COM_USER
+	where 1 = 1
+	and emp_code = #{uid}
+	</select>
+</mapper>

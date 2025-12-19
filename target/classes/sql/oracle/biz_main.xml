@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.biz_main">
+
+<select id="grid_cnt_todoList" resultType="double">
+/* oracle.biz_main.grid_cnt_todoList */
+select count(*) from COM_USER
+</select>
+
+<select id="grid_todoList" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.biz_main.grid_todoList */
+
+select emp_code, emp_name, email, pwchg_date, TO_CHAR(SYSTIMESTAMP,'YYYYMMDDHH24MIDDSSFF1') as login_datetime
+from COM_USER
+</select>
+
+
+
+<select id="getUserDeptCode" resultType="String">
+/* oracle.biz_main.getUserDeptCode */
+select dept_code from COM_USER where 1 = 1 and emp_code = #{s_emp_code}
+</select>
+
+
+</mapper>

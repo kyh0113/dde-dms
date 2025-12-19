@@ -1,0 +1,520 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_edoc">
+
+<!-- ============= [ 생산관리 > 정광심판판정 ] ============= -->
+	<select id="select_ore_edoc_info_single" resultType="java.util.HashMap">
+	/* oracle.yp_edoc.select_ore_edoc_info_single */
+	SELECT 
+		MASTER_ID,
+		MENU_ID,
+		EDOC_NO,
+		EDOC_STATUS
+	FROM TBL_ORE_EDOC
+	WHERE master_id = #{MASTER_ID}
+	AND menu_id = #{MENU_ID}
+	</select>
+	
+
+
+	<select id="select_ore_analysis_master" resultType="java.util.HashMap">
+	/* oracle.yp_edoc.select_ore_analysis_master */
+	SELECT 
+	  A.MASTER_ID,
+	  A.SELLER_ID,
+	  B.SELLER_NAME,
+	  A.MATERIAL_ID,
+	  C.MATERIAL_NAME,
+	  A.IMPORT_DATE,
+	  A.LOT_COUNT
+	FROM TBL_ORE_ANALYSIS_MASTER A
+	LEFT OUTER JOIN TBL_ORE_SELLER_INFO B
+	ON A.seller_id = B.seller_id
+	LEFT OUTER JOIN TBL_ORE_MATERIAL_INFO C
+	ON A.material_id = C.material_id
+	WHERE master_id = #{MASTER_ID}
+	</select>
+	
+	<select id="select_ore_component_analysis" resultType="java.util.HashMap">
+	/* oracle.yp_edoc.select_ore_component_analysis */
+	SELECT
+	  analysis.master_id,
+	  ig1.ingredient_name as ig_name_1,
+	  analysis.ig_value_1,
+	  ig2.ingredient_name as ig_name_2,
+	  analysis.ig_value_2,
+	  ig3.ingredient_name as ig_name_3,
+	  analysis.ig_value_3,
+	  ig4.ingredient_name as ig_name_4,
+	  analysis.ig_value_4,
+	  ig5.ingredient_name as ig_name_5,
+	  analysis.ig_value_5,
+	  ig6.ingredient_name as ig_name_6,
+	  analysis.ig_value_6,
+	  ig7.ingredient_name as ig_name_7,
+	  analysis.ig_value_7,
+	  ig8.ingredient_name as ig_name_8,
+	  analysis.ig_value_8,
+	  ig9.ingredient_name as ig_name_9,
+	  analysis.ig_value_9,
+	  ig10.ingredient_name as ig_name_10,
+	  analysis.ig_value_10,
+	  ig11.ingredient_name as ig_name_11,
+	  analysis.ig_value_11,
+	  ig12.ingredient_name as ig_name_12,
+	  analysis.ig_value_12,
+	  ig13.ingredient_name as ig_name_13,
+	  analysis.ig_value_13,
+	  ig14.ingredient_name as ig_name_14,
+	  analysis.ig_value_14,
+	  ig15.ingredient_name as ig_name_15,
+	  analysis.ig_value_15,
+	  ig16.ingredient_name as ig_name_16,
+	  analysis.ig_value_16,
+	  ig17.ingredient_name as ig_name_17,
+	  analysis.ig_value_17,
+	  ig18.ingredient_name as ig_name_18,
+	  analysis.ig_value_18,
+	  ig19.ingredient_name as ig_name_19,
+	  analysis.ig_value_19,
+	  ig20.ingredient_name as ig_name_20,
+	  analysis.ig_value_20,
+	  ig21.ingredient_name as ig_name_21,
+	  analysis.ig_value_21,
+	  ig22.ingredient_name as ig_name_22,
+	  analysis.ig_value_22,
+	  ig23.ingredient_name as ig_name_23,
+	  analysis.ig_value_23,
+	  ig24.ingredient_name as ig_name_24,
+	  analysis.ig_value_24,
+	  ig25.ingredient_name as ig_name_25,
+	  analysis.ig_value_25,
+	  ig26.ingredient_name as ig_name_26,
+	  analysis.ig_value_26,
+	  ig27.ingredient_name as ig_name_27,
+	  analysis.ig_value_27,
+	  ig28.ingredient_name as ig_name_28,
+	  analysis.ig_value_28,
+	  ig29.ingredient_name as ig_name_29,
+	  analysis.ig_value_29,
+	  ig30.ingredient_name as ig_name_30,
+	  analysis.ig_value_30,
+	  analysis.pm_100_value,
+	  analysis.pm_200_value,
+	  analysis.pm_325_value,
+	  analysis.pm_400_value,
+	  analysis.pm_m400_value,
+	  
+	  analysis.lot_1_ig_1_value,
+	  analysis.lot_1_ig_2_value,
+	  analysis.lot_1_ig_3_value,
+	  analysis.lot_2_ig_1_value,
+	  analysis.lot_2_ig_2_value,
+	  analysis.lot_2_ig_3_value,
+	  analysis.lot_3_ig_1_value,
+	  analysis.lot_3_ig_2_value,
+	  analysis.lot_3_ig_3_value,
+	  analysis.lot_4_ig_1_value,
+	  analysis.lot_4_ig_2_value,
+	  analysis.lot_4_ig_3_value,
+	  analysis.lot_5_ig_1_value,
+	  analysis.lot_5_ig_2_value,
+	  analysis.lot_5_ig_3_value,
+	  analysis.lot_6_ig_1_value,
+	  analysis.lot_6_ig_2_value,
+	  analysis.lot_6_ig_3_value,
+	  analysis.lot_7_ig_1_value,
+	  analysis.lot_7_ig_2_value,
+	  analysis.lot_7_ig_3_value,
+	  analysis.lot_8_ig_1_value,
+	  analysis.lot_8_ig_2_value,
+	  analysis.lot_8_ig_3_value,
+	  analysis.lot_9_ig_1_value,
+	  analysis.lot_9_ig_2_value,
+	  analysis.lot_9_ig_3_value,
+	  analysis.lot_10_ig_1_value,
+	  analysis.lot_10_ig_2_value,
+	  analysis.lot_10_ig_3_value,
+	  analysis.lot_11_ig_1_value,
+	  analysis.lot_11_ig_2_value,
+	  analysis.lot_11_ig_3_value,
+	  analysis.lot_12_ig_1_value,
+	  analysis.lot_12_ig_2_value,
+	  analysis.lot_12_ig_3_value,
+	  analysis.lot_13_ig_1_value,
+	  analysis.lot_13_ig_2_value,
+	  analysis.lot_13_ig_3_value,
+	  analysis.lot_14_ig_1_value,
+	  analysis.lot_14_ig_2_value,
+	  analysis.lot_14_ig_3_value,
+	  analysis.lot_15_ig_1_value,
+	  analysis.lot_15_ig_2_value,
+	  analysis.lot_15_ig_3_value,
+	  analysis.lot_16_ig_1_value,
+	  analysis.lot_16_ig_2_value,
+	  analysis.lot_16_ig_3_value,
+	  analysis.lot_17_ig_1_value,
+	  analysis.lot_17_ig_2_value,
+	  analysis.lot_17_ig_3_value,
+	  analysis.lot_18_ig_1_value,
+	  analysis.lot_18_ig_2_value,
+	  analysis.lot_18_ig_3_value,
+	  analysis.lot_19_ig_1_value,
+	  analysis.lot_19_ig_2_value,
+	  analysis.lot_19_ig_3_value,
+	  analysis.lot_20_ig_1_value,
+	  analysis.lot_20_ig_2_value,
+	  analysis.lot_20_ig_3_value,
+	  analysis.lot_21_ig_1_value,
+	  analysis.lot_21_ig_2_value,
+	  analysis.lot_21_ig_3_value,
+	  analysis.lot_22_ig_1_value,
+	  analysis.lot_22_ig_2_value,
+	  analysis.lot_22_ig_3_value,
+	  analysis.lot_23_ig_1_value,
+	  analysis.lot_23_ig_2_value,
+	  analysis.lot_23_ig_3_value,
+	  analysis.lot_24_ig_1_value,
+	  analysis.lot_24_ig_2_value,
+	  analysis.lot_24_ig_3_value,
+	  analysis.lot_25_ig_1_value,
+	  analysis.lot_25_ig_2_value,
+	  analysis.lot_25_ig_3_value,
+	  analysis.lot_26_ig_1_value,
+	  analysis.lot_26_ig_2_value,
+	  analysis.lot_26_ig_3_value,
+	  analysis.lot_27_ig_1_value,
+	  analysis.lot_27_ig_2_value,
+	  analysis.lot_27_ig_3_value,
+	  analysis.lot_28_ig_1_value,
+	  analysis.lot_28_ig_2_value,
+	  analysis.lot_28_ig_3_value,
+	  analysis.lot_29_ig_1_value,
+	  analysis.lot_29_ig_2_value,
+	  analysis.lot_29_ig_3_value,
+	  analysis.lot_30_ig_1_value,
+	  analysis.lot_30_ig_2_value,
+      analysis.lot_30_ig_3_value,
+	  
+	  analysis.lot_1_ig_1_res,
+	  analysis.lot_1_ig_2_res,
+	  analysis.lot_1_ig_3_res,
+	  analysis.lot_2_ig_1_res,
+	  analysis.lot_2_ig_2_res,
+	  analysis.lot_2_ig_3_res,
+	  analysis.lot_3_ig_1_res,
+	  analysis.lot_3_ig_2_res,
+	  analysis.lot_3_ig_3_res,
+	  analysis.lot_4_ig_1_res,
+	  analysis.lot_4_ig_2_res,
+	  analysis.lot_4_ig_3_res,
+	  analysis.lot_5_ig_1_res,
+	  analysis.lot_5_ig_2_res,
+	  analysis.lot_5_ig_3_res,
+	  analysis.lot_6_ig_1_res,
+	  analysis.lot_6_ig_2_res,
+	  analysis.lot_6_ig_3_res,
+	  analysis.lot_7_ig_1_res,
+	  analysis.lot_7_ig_2_res,
+	  analysis.lot_7_ig_3_res,
+	  analysis.lot_8_ig_1_res,
+	  analysis.lot_8_ig_2_res,
+	  analysis.lot_8_ig_3_res,
+	  analysis.lot_9_ig_1_res,
+	  analysis.lot_9_ig_2_res,
+	  analysis.lot_9_ig_3_res,
+	  analysis.lot_10_ig_1_res,
+	  analysis.lot_10_ig_2_res,
+	  analysis.lot_10_ig_3_res,
+	  analysis.lot_11_ig_1_res,
+	  analysis.lot_11_ig_2_res,
+	  analysis.lot_11_ig_3_res,
+	  analysis.lot_12_ig_1_res,
+	  analysis.lot_12_ig_2_res,
+	  analysis.lot_12_ig_3_res,
+	  analysis.lot_13_ig_1_res,
+	  analysis.lot_13_ig_2_res,
+	  analysis.lot_13_ig_3_res,
+	  analysis.lot_14_ig_1_res,
+	  analysis.lot_14_ig_2_res,
+	  analysis.lot_14_ig_3_res,
+	  analysis.lot_15_ig_1_res,
+	  analysis.lot_15_ig_2_res,
+	  analysis.lot_15_ig_3_res,
+	  analysis.lot_16_ig_1_res,
+	  analysis.lot_16_ig_2_res,
+	  analysis.lot_16_ig_3_res,
+	  analysis.lot_17_ig_1_res,
+	  analysis.lot_17_ig_2_res,
+	  analysis.lot_17_ig_3_res,
+	  analysis.lot_18_ig_1_res,
+	  analysis.lot_18_ig_2_res,
+	  analysis.lot_18_ig_3_res,
+	  analysis.lot_19_ig_1_res,
+	  analysis.lot_19_ig_2_res,
+	  analysis.lot_19_ig_3_res,
+	  analysis.lot_20_ig_1_res,
+	  analysis.lot_20_ig_2_res,
+	  analysis.lot_20_ig_3_res,
+	  analysis.lot_21_ig_1_res,
+	  analysis.lot_21_ig_2_res,
+	  analysis.lot_21_ig_3_res,
+	  analysis.lot_22_ig_1_res,
+	  analysis.lot_22_ig_2_res,
+	  analysis.lot_22_ig_3_res,
+	  analysis.lot_23_ig_1_res,
+	  analysis.lot_23_ig_2_res,
+	  analysis.lot_23_ig_3_res,
+	  analysis.lot_24_ig_1_res,
+	  analysis.lot_24_ig_2_res,
+	  analysis.lot_24_ig_3_res,
+	  analysis.lot_25_ig_1_res,
+	  analysis.lot_25_ig_2_res,
+	  analysis.lot_25_ig_3_res,
+	  analysis.lot_26_ig_1_res,
+	  analysis.lot_26_ig_2_res,
+	  analysis.lot_26_ig_3_res,
+	  analysis.lot_27_ig_1_res,
+	  analysis.lot_27_ig_2_res,
+	  analysis.lot_27_ig_3_res,
+	  analysis.lot_28_ig_1_res,
+	  analysis.lot_28_ig_2_res,
+	  analysis.lot_28_ig_3_res,
+	  analysis.lot_29_ig_1_res,
+	  analysis.lot_29_ig_2_res,
+	  analysis.lot_29_ig_3_res,
+	  analysis.lot_30_ig_1_res,
+	  analysis.lot_30_ig_2_res,
+	  analysis.lot_30_ig_3_res
+	FROM TBL_ORE_COMPONENT_ANALYSIS analysis
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig1
+	ON analysis.IG_CODE_1 = ig1.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig2
+	ON analysis.IG_CODE_2 = ig2.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig3
+	ON analysis.IG_CODE_3 = ig3.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig4
+	ON analysis.IG_CODE_4 = ig4.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig5
+	ON analysis.IG_CODE_5 = ig5.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig6
+	ON analysis.IG_CODE_6 = ig6.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig7
+	ON analysis.IG_CODE_7 = ig7.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig8
+	ON analysis.IG_CODE_8 = ig8.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig9
+	ON analysis.IG_CODE_9 = ig9.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig10
+	ON analysis.IG_CODE_10 = ig10.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig11
+	ON analysis.IG_CODE_11 = ig11.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig12
+	ON analysis.IG_CODE_12 = ig12.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig13
+	ON analysis.IG_CODE_13 = ig13.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig14
+	ON analysis.IG_CODE_14 = ig14.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig15
+	ON analysis.IG_CODE_15 = ig15.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig16
+	ON analysis.IG_CODE_16 = ig16.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig17
+	ON analysis.IG_CODE_17 = ig17.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig18
+	ON analysis.IG_CODE_18 = ig18.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig19
+	ON analysis.IG_CODE_19 = ig19.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig20
+	ON analysis.IG_CODE_20 = ig20.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig21
+	ON analysis.IG_CODE_21 = ig21.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig22
+	ON analysis.IG_CODE_22 = ig22.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig23
+	ON analysis.IG_CODE_23 = ig23.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig24
+	ON analysis.IG_CODE_24 = ig24.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig25
+	ON analysis.IG_CODE_25 = ig25.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig26
+	ON analysis.IG_CODE_26 = ig26.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig27
+	ON analysis.IG_CODE_27 = ig27.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig28
+	ON analysis.IG_CODE_28 = ig28.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig29
+	ON analysis.IG_CODE_29 = ig29.INGREDIENT_ID
+	LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO ig30
+	ON analysis.IG_CODE_30 = ig30.INGREDIENT_ID
+	WHERE analysis.master_id = #{MASTER_ID}
+	</select>
+	
+	
+	<update id="zpp_ore_edoc_insert">
+	/* oracle.yp_edoc.zpp_ore_edoc_insert */
+	INSERT INTO TBL_ORE_EDOC VALUES (
+	  #{MASTER_ID},
+	  #{MENU_ID},
+	  #{EDOC_NO},
+	  #{EDOC_STATUS}
+	)
+	</update>
+	
+	<update id="zpp_ore_edoc_status_update">
+	/* oracle.yp_edoc.zpp_ore_edoc_status_update */
+	UPDATE TBL_ORE_EDOC SET
+		EDOC_STATUS = #{EDOC_STATUS}
+	WHERE 1=1
+	AND MASTER_ID = #{MASTER_ID}
+	AND MENU_ID =  #{MENU_ID}
+	</update>
+	
+	<select id="zpp_ore_load_bl_edoc_info" resultType="java.util.HashMap">
+	/* oracle.yp_edoc.zpp_ore_load_bl_edoc_info */
+	SELECT
+	  (SELECT seller_name FROM TBL_ORE_SELLER_INFO SI WHERE X.SELLER_ID = SI.SELLER_ID) AS SELLER_NAME,
+	  (SELECT material_name FROM TBL_ORE_MATERIAL_INFO MI WHERE X.MATERIAL_ID = MI.MATERIAL_ID) AS MATERIAL_NAME,
+	  X.*
+	FROM(
+	  SELECT 
+	    MASTER_ID,
+	    REGEXP_SUBSTR(MASTER_ID, '[^_]+', 1, 1) AS SELLER_ID,
+	    REGEXP_SUBSTR(MASTER_ID, '[^_]+', 1, 2) AS MATERIAL_ID,
+	    REGEXP_SUBSTR(MASTER_ID, '[^_]+', 1, 3) AS IMPORT_DATE,
+	    IMPORT_NO,
+	    PO_NO,
+	    DISCHARGING_RATE,
+	    DEM_DES,
+	    DMT,
+	    WMT,
+	    MOISTURE,
+	    (SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO II WHERE LBL_IG_1 = II.INGREDIENT_ID) AS LBL_IG_1,
+	    (SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO II WHERE LBL_IG_2 = II.INGREDIENT_ID) AS LBL_IG_2,
+	    (SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO II WHERE LBL_IG_3 = II.INGREDIENT_ID) AS LBL_IG_3,
+	    (SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO II WHERE LBL_IG_4 = II.INGREDIENT_ID) AS LBL_IG_4,
+	    (SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO II WHERE ASSAY_LIMIT_IG_1 = II.INGREDIENT_ID) AS ASSAY_LIMIT_IG_1,
+	    ASSAY_LIMIT_AMT_1,
+	    ASSAY_LIMIT_UNIT_1,
+	    (SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO II WHERE ASSAY_LIMIT_IG_2 = II.INGREDIENT_ID) AS ASSAY_LIMIT_IG_2,
+	    ASSAY_LIMIT_AMT_2,
+	    ASSAY_LIMIT_UNIT_2,
+	    (SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO II WHERE ASSAY_LIMIT_IG_3 = II.INGREDIENT_ID) AS ASSAY_LIMIT_IG_3,
+	    ASSAY_LIMIT_AMT_3,
+	    ASSAY_LIMIT_UNIT_3,
+	    (SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO II WHERE ASSAY_LIMIT_IG_4 = II.INGREDIENT_ID) AS ASSAY_LIMIT_IG_4,
+	    ASSAY_LIMIT_AMT_4,
+	    ASSAY_LIMIT_UNIT_4,
+	    (SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO II WHERE ASSAY_LIMIT_IG_5 = II.INGREDIENT_ID) AS ASSAY_LIMIT_IG_5,
+	    ASSAY_LIMIT_AMT_5,
+	    ASSAY_LIMIT_UNIT_5,
+	    (SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO II WHERE ASSAY_LIMIT_IG_6 = II.INGREDIENT_ID) AS ASSAY_LIMIT_IG_6,
+	    ASSAY_LIMIT_AMT_6,
+	    ASSAY_LIMIT_UNIT_6,
+	    (SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO II WHERE ASSAY_LIMIT_IG_7 = II.INGREDIENT_ID) AS ASSAY_LIMIT_IG_7,
+	    ASSAY_LIMIT_AMT_7,
+	    ASSAY_LIMIT_UNIT_7,
+	    (SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO II WHERE ASSAY_LIMIT_IG_8 = II.INGREDIENT_ID) AS ASSAY_LIMIT_IG_8,
+	    ASSAY_LIMIT_AMT_8,
+	    ASSAY_LIMIT_UNIT_8,
+	    (SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO II WHERE ASSAY_LIMIT_IG_9 = II.INGREDIENT_ID) AS ASSAY_LIMIT_IG_9,
+	    ASSAY_LIMIT_AMT_9,
+	    ASSAY_LIMIT_UNIT_9,
+	    (SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO II WHERE ASSAY_LIMIT_IG_10 = II.INGREDIENT_ID) AS ASSAY_LIMIT_IG_10,
+	    ASSAY_LIMIT_AMT_10,
+	    ASSAY_LIMIT_UNIT_10,
+	    (SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO II WHERE ASSAY_LIMIT_IG_11 = II.INGREDIENT_ID) AS ASSAY_LIMIT_IG_11,
+	    ASSAY_LIMIT_AMT_11,
+	    ASSAY_LIMIT_UNIT_11,
+	    (SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO II WHERE ASSAY_LIMIT_IG_12 = II.INGREDIENT_ID) AS ASSAY_LIMIT_IG_12,
+	    ASSAY_LIMIT_AMT_12,
+	    ASSAY_LIMIT_UNIT_12,
+	    QP,
+	    SURVEYOR,
+	    LC_NO,
+	    CLEARANCE_DATE,
+	    AMOUNT_DECISION,
+	    UNLOADING,
+	    IMPORT_STORAGE,
+	    DOCK_NO,
+	    SPECIAL_SCHEDULE
+	  FROM TBL_ORE_BL_INFO
+	  WHERE MASTER_ID = #{MASTER_ID}
+	)X
+	</select>
+	
+	<select id="zpp_ore_load_seller_query_edoc_info" resultType="java.util.HashMap">
+	/* oracle.yp_edoc.zpp_ore_load_seller_query_edoc_info */
+	SELECT
+	  b.SELLER_NAME
+	  ,c.MATERIAL_NAME
+	  ,a.*
+	FROM(
+		SELECT 
+		   REGEXP_SUBSTR(a.MASTER_ID, '[^_]+', 1, 1) AS SELLER_ID
+		  ,REGEXP_SUBSTR(a.MASTER_ID, '[^_]+', 1, 2) AS MATERIAL_ID
+		  ,REGEXP_SUBSTR(a.MASTER_ID, '[^_]+', 1, 3) AS IMPORT_DATE
+		  ,b.lot_count
+		  ,c.lbl_ig_1
+		  ,c.lbl_ig_2
+		  ,c.lbl_ig_3
+		  ,(SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO ii WHERE ii.ingredient_id = c.lbl_ig_1) as lbl_ig_1_name
+		  ,(SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO ii WHERE ii.ingredient_id = c.lbl_ig_2) as lbl_ig_2_name
+		  ,(SELECT ingredient_name FROM TBL_ORE_INGREDIENT_INFO ii WHERE ii.ingredient_id = c.lbl_ig_3) as lbl_ig_3_name
+		  ,a.*  
+		FROM TBL_ORE_COMPONENT_ANALYSIS a
+		INNER JOIN TBL_ORE_MT_INFO b
+		ON a.MASTER_ID = b.MASTER_ID
+		LEFT OUTER JOIN TBL_ORE_BL_INFO c
+		ON a.MASTER_ID = c.MASTER_ID
+		WHERE a.MASTER_ID = #{MASTER_ID}
+	) a
+	LEFT OUTER JOIN TBL_ORE_SELLER_INFO b
+	ON a.SELLER_ID = b.SELLER_ID
+	LEFT OUTER JOIN TBL_ORE_MATERIAL_INFO c
+	ON a.MATERIAL_ID = c.MATERIAL_ID
+	</select>
+	
+	<select id="zpp_ore_load_seller_compare_edoc_info" resultType="java.util.HashMap">
+	/* oracle.yp_edoc.zpp_ore_load_seller_compare_edoc_info */
+	SELECT
+	  b.SELLER_NAME
+	  ,c.MATERIAL_NAME
+	  ,d.LOT_COUNT
+	  ,a.*
+	FROM(
+	  SELECT 
+	    REGEXP_SUBSTR(a.MASTER_ID, '[^_]+', 1, 1) AS SELLER_ID
+	    ,REGEXP_SUBSTR(a.MASTER_ID, '[^_]+', 1, 2) AS MATERIAL_ID
+	    ,REGEXP_SUBSTR(a.MASTER_ID, '[^_]+', 1, 3) AS IMPORT_DATE
+	    ,a.MASTER_ID
+	    ,a.INGREDIENT_ID
+	    ,b.INGREDIENT_NAME
+	    ,a.LOT_NO
+	    ,a.DMT
+	    ,a.YP
+	    ,a.Seller
+	    ,(a.YP - a.SELLER) as SPLIT
+	    ,(a.YP + a.SELLER)/2 as AVERAGE
+	    ,a.Umpire
+	    ,a.SETTLE
+	    ,a.STATE
+	    ,a.YP_ACTION
+	    ,a.SELLER_ACTION
+	  FROM TBL_ORE_ANALYSIS_RESULT a
+	  LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO b
+	  ON a.INGREDIENT_ID = b.INGREDIENT_ID
+	  WHERE 1=1
+	  AND MASTER_ID = #{MASTER_ID}
+	) a
+	LEFT OUTER JOIN TBL_ORE_SELLER_INFO b
+	ON a.SELLER_ID = b.SELLER_ID
+	LEFT OUTER JOIN TBL_ORE_MATERIAL_INFO c
+	ON a.MATERIAL_ID = c.MATERIAL_ID 
+	LEFT OUTER JOIN TBL_ORE_MT_INFO d
+  	ON a.MASTER_ID = d.MASTER_ID
+	</select>
+
+	
+</mapper>
+

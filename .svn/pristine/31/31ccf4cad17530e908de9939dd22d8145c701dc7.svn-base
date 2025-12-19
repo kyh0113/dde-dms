@@ -1,0 +1,344 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mssql.Auth">
+
+	<select id="authListCnt" resultType="Double">
+	/* mssql.Auth.authListCnt */
+	SELECT	count(*) as CNT 
+	FROM (
+		SELECT	ROW_NUMBER() OVER( ORDER BY A.AUTH_ID asc) RNUM,
+				A.AUTH_ID as auth_id, 
+				A.AUTH_TITLE as auth_title,
+				A.INIT_PAGE as init_page
+		FROM COM_AUTH A
+		WHERE 1 = 1
+		 
+		) GRID
+	WHERE 1 = 1
+	<if test='auth_name != null and !auth_name.equals("")'>
+	AND GRID.AUTH_TITLE LIKE '%${auth_name}%'
+	</if>
+	</select>
+		
+	<select id="authList" resultType="HashMap">
+	/* mssql.Auth.authList */
+	SELECT	GRID.* 
+	FROM (
+		SELECT	ROW_NUMBER() OVER( ORDER BY A.AUTH_ID asc) RNUM,
+				A.AUTH_ID as auth_id, 
+				A.AUTH_TITLE as auth_title,
+				A.INIT_PAGE as init_page
+		FROM COM_AUTH A
+		WHERE 1 = 1
+		 
+		) GRID
+	WHERE 1 = 1
+	<if test='auth_name != null and !auth_name.equals("")'>
+	AND GRID.AUTH_TITLE LIKE '%${auth_name}%'
+	</if>
+	</select>
+
+	<update id="mergeAuth">
+	/* mssql.Auth.mergeAuth */
+	MERGE INTO COM_AUTH A
+	USING (
+	    SELECT #{authModal_auth_code} AS AUTH_ID
+	) B
+	ON (A.AUTH_ID = B.AUTH_ID)
+	WHEN NOT MATCHED THEN
+		INSERT (
+			  AUTH_ID
+			, AUTH_TITLE
+			, INIT_PAGE
+			, USE_YN
+			, REG_ID
+			, REG_DT
+			, MOD_ID
+			, MOD_DT
+		) VALUES (
+			  #{authModal_auth_code}
+			, #{authModal_auth_name}
+			, #{authModal_auth_url}
+			, 'Y'
+			, #{s_emp_code}
+			, GETDATE()
+			, #{s_emp_code}
+			, GETDATE()
+	             )
+	WHEN MATCHED THEN
+		UPDATE SET
+			  AUTH_TITLE = #{authModal_auth_name}
+			, INIT_PAGE  = #{authModal_auth_url}
+			, MOD_ID     = #{s_emp_code}
+			, MOD_DT     = GETDATE()
+	;
+	</update>
+
+	<select id="authEmpListCnt" resultType="double">
+		/* mssql.Auth.authEmpListCnt */
+		SELECT	count(*) as CNT
+		FROM (
+			SELECT
+				ROW_NUMBER() OVER( ORDER BY emp_code asc) RNUM
+				, A.auth_id
+				, B.auth_title as auth_name
+				, C.emp_code
+				, C.emp_name
+			FROM COM_AUTH_USER A
+			INNER JOIN COM_AUTH B
+			ON A.AUTH_ID = B.AUTH_ID
+			INNER JOIN COM_USER C
+			ON A.USER_ID = C.EMP_CODE
+			WHERE 1 = 1
+			AND A.AUTH_ID = #{auth_id}
+			) GRID
+		WHERE 1 = 1
+		AND GRID.RNUM BETWEEN #{start} AND #{end}
+	</select>
+	
+	<select id="authEmpList" resultType="HashMap">
+		/* mssql.Auth.authEmpList */
+		SELECT	GRID.* 
+		FROM (
+			SELECT
+				ROW_NUMBER() OVER( ORDER BY emp_code asc) RNUM
+				, A.auth_id
+				, B.auth_title as auth_name
+				, C.emp_code
+				, C.emp_name
+			FROM COM_AUTH_USER A
+			INNER JOIN COM_AUTH B
+			ON A.AUTH_ID = B.AUTH_ID
+			INNER JOIN COM_USER C
+			ON A.USER_ID = C.EMP_CODE
+			WHERE 1 = 1
+			AND A.AUTH_ID = #{auth_id}
+			) GRID
+		WHERE 1 = 1
+		AND GRID.RNUM BETWEEN #{start} AND #{end}
+	</select>
+
+	<select id="authMenuListCnt" resultType="double">
+	/* mssql.Auth.authMenuListCnt */
+	SELECT 
+		COUNT(*) AS CNT
+	FROM COM_AUTH_MENU A, COM_MENU B
+	WHERE A.MENU_ID = B.MENU_ID 
+	AND   A.AUTH_ID = #{auth_id}
+	</select>
+
+	<select id="authMenuList" resultType="HashMap">
+	/* mssql.Auth.authMenuList */
+	WITH TBL_PARENT AS (
+	SELECT
+				   CAST( A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID
+	             , A.MENU_TITLE AS TITLE
+	             , A.URL AS URL
+	             , A.PARENT_ID
+	             , (SELECT S.MENU_TITLE FROM COM_MENU S WHERE 1=1 AND S.MENU_ID = A.MENU_ID) AS PARENT_TITLE
+	             , A.SORT
+	             , A.USE_YN
+	             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+	             , CAST( '　' AS VARCHAR(100)) AS LVL
+	             , CAST( RIGHT( '000000' + CONVERT( VARCHAR(6), A.SORT ), 6 ) AS VARCHAR(100) ) AS HIERARCHY
+	             , CAST( RIGHT( '000000' + CONVERT( VARCHAR(6), A.MENU_ID ), 6 ) AS VARCHAR(100) ) AS HIERARCHY2
+	             , 1 AS LEVEL
+	       FROM    COM_MENU A
+	       WHERE   A.PARENT_ID = 0
+	UNION ALL
+	SELECT 
+				   CAST( LVL + A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID
+	             , A.MENU_TITLE AS TITLE
+	             , A.URL AS URL
+	             , A.PARENT_ID
+	             , (SELECT S.MENU_TITLE FROM COM_MENU S WHERE 1=1 AND S.MENU_ID = A.MENU_ID) AS PARENT_TITLE
+	             , A.SORT
+	             , A.USE_YN
+	             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+	             , CAST( '　' + LVL AS VARCHAR(100)) AS LVL
+	             , CAST( HIERARCHY + ';' + CAST( RIGHT( '000000' + CONVERT( VARCHAR(6), A.SORT ), 6 ) AS VARCHAR(100)) AS VARCHAR(100)) AS HIERARCHY
+	             , CAST( HIERARCHY2 + ';' + CAST( RIGHT( '000000' + CONVERT( VARCHAR(6), A.MENU_ID ), 6 ) AS VARCHAR(100)) AS VARCHAR(100)) AS HIERARCHY2
+	             , LEVEL + 1 AS LEVEL
+	       FROM    COM_MENU A
+	             , TBL_PARENT C
+	       WHERE   A.PARENT_ID = C.MENU_ID
+	)
+	SELECT	#{auth_id} AS AUTH_ID,
+			A.MENU_ID,
+			A.TITLE_VIEW,
+			A.TITLE,
+			CASE WHEN A.PARENT_ID = 0 OR A.URL = '/' THEN 0
+		         ELSE 1 END AS '$$treeLevel',
+	        dbo.F_PARENT(A.MENU_ID) AS CHECK_PARENT_ID,
+	        dbo.F_CHILD(A.MENU_ID) AS CHECK_CHILD_ID,
+			A.LEVEL,
+	        A.URL,
+	        A.PARENT_ID,
+	        A.PARENT_TITLE,
+	        A.SORT,
+	        ISNULL(A.USE_YN, 'N') AS USE_YN,
+	        CASE WHEN ISNULL(B.MENU_ID, '') = ''
+				THEN 'N'
+				ELSE 'Y'
+			END AS ENBL_YN,
+	        ISNULL(B.BUTTON_AUTH_SEARCH, 'N') AS BUTTON_AUTH_SEARCH,
+	        ISNULL(B.BUTTON_AUTH_EXEC, 'N') AS BUTTON_AUTH_EXEC,
+	        ISNULL(B.BUTTON_AUTH_DELETE, 'N') AS BUTTON_AUTH_DELETE,
+	        ISNULL(B.BUTTON_AUTH_EXCEL, 'N') AS BUTTON_AUTH_EXCEL,
+			HIERARCHY,
+			HIERARCHY2
+	FROM TBL_PARENT A
+	LEFT OUTER JOIN (
+		SELECT	MENU_ID,
+				READ_YN AS BUTTON_AUTH_SEARCH,
+				RUN_YN AS BUTTON_AUTH_EXEC,
+				DEL_YN AS BUTTON_AUTH_DELETE,
+				EXCEL_YN AS BUTTON_AUTH_EXCEL
+		FROM COM_AUTH_MENU
+		WHERE AUTH_ID = #{auth_id}
+	) B
+	ON A.MENU_ID = B.MENU_ID
+	WHERE 1 = 1
+	AND A.USE_YN = 'Y'
+	ORDER BY HIERARCHY
+	</select>
+
+	<delete id="deleteAuthMenu">
+	/* mssql.Auth.deleteAuthMenu */
+	DELETE COM_AUTH_MENU
+	WHERE AUTH_ID = #{auth_id}
+	</delete>
+	
+	<insert id="insertAuthMenu">
+	/* mssql.Auth.insertAuthMenu */
+	INSERT INTO COM_AUTH_MENU
+	(
+		 AUTH_ID
+		,MENU_ID
+		,READ_YN
+		,RUN_YN
+		,DEL_YN
+		,EXCEL_YN
+		,REG_ID
+		,REG_DT
+		,MOD_ID
+		,MOD_DT
+	) VALUES ( 
+		 #{auth_id}
+		,#{menu_id}
+		,#{btn_search}
+		,#{btn_exec}
+		,#{btn_delete}
+		,#{btn_excel}
+		,#{s_emp_code}
+		,GETDATE()
+		,#{s_emp_code}
+		,GETDATE()
+	)
+	</insert>	
+	
+	<delete id="deleteAuth">
+	/* mssql.Auth.deleteAuth */
+	DELETE COM_AUTH
+	WHERE AUTH_ID = #{auth_id}
+	</delete>
+	
+	<delete id="deleteAuth_menu">
+	/* mssql.Auth.deleteAuth_menu */
+	DELETE COM_AUTH_MENU
+	WHERE AUTH_ID = #{auth_id}
+	</delete>
+	
+	<delete id="deleteAuth_user">
+	/* mssql.Auth.deleteAuth_user */
+	DELETE COM_AUTH_USER
+	WHERE AUTH_ID = #{auth_id}
+	</delete>
+	
+	<select id="selectUserCnt" resultType="Double">
+	/* mssql.Auth.selectUserCnt */
+	SELECT count(*) as CNT
+	FROM(
+		SELECT  A.EMP_CODE      as user_id, 
+				A.EMP_NAME      as user_name, 
+				A.AUTHOGRP_CODE as auth_id,
+				B.AUTH_TITLE    as auth_name
+		FROM    COM_USER A
+		LEFT OUTER JOIN COM_AUTH B
+		ON A.AUTHOGRP_CODE = B.AUTH_ID
+	) GRID
+	WHERE 1 = 1	
+	<if test='user_name != null and !user_name.equals("")'>
+	AND GRID.USER_NAME LIKE '%${user_name}%'
+	</if>
+	</select>
+	
+	<select id="selectUserList" resultType="HashMap">
+	/* mssql.Auth.selectUserList */
+	SELECT GRID.*
+	FROM(
+		SELECT  A.EMP_CODE      as user_id, 
+				A.EMP_NAME      as user_name, 
+				A.AUTHOGRP_CODE as now_auth_id,
+				B.AUTH_TITLE    as now_auth_name,
+				#{s_emp_code}   as s_emp_code,
+				#{auth_id}      as auth_id
+		FROM    COM_USER A
+		LEFT OUTER JOIN COM_AUTH B
+		ON A.AUTHOGRP_CODE = B.AUTH_ID
+	) GRID
+	WHERE 1 = 1	
+	<if test='user_name != null and !user_name.equals("")'>
+	AND GRID.USER_NAME LIKE '%${user_name}%'
+	</if>
+	ORDER BY GRID.USER_NAME ASC		
+	</select>
+	
+	<delete id="deleteAuthUser">
+	/* mssql.Auth.deleteAuthUser */
+	DELETE COM_AUTH_USER
+	WHERE USER_ID = #{user_id}
+	AND   AUTH_ID = #{now_auth_id}
+	</delete>
+	
+	<insert id="insertAuthUser">
+	/* mssql.Auth.insertAuthUser */
+	INSERT INTO COM_AUTH_USER
+	VALUES(
+		  #{auth_id}
+		, #{user_id}
+		, #{s_emp_code}
+		, GETDATE()
+		, #{s_emp_code}
+		, GETDATE()
+	)
+	</insert>
+	
+	<insert id="insertAuthUser_history">
+	/* mssql.Auth.insertAuthUser_history */
+	INSERT INTO COM_AUTH_USER_HIS
+	VALUES(
+		  #{user_id}
+		, #{auth_id}
+		, #{now_auth_id}
+		, #{s_emp_code}
+		, GETDATE()
+		, #{s_emp_code}
+		, GETDATE()
+	)
+	</insert>
+	
+	<update id="updateAuthUser">
+	/* mssql.Auth.updateAuthUser */
+	UPDATE COM_USER
+	SET    AUTHOGRP_CODE = #{auth_id},
+	       MOD_EMP_CODE  = #{s_emp_code},
+	       MOD_DATE      = GETDATE()
+	WHERE  EMP_CODE      = #{user_id}
+	</update>
+
+
+
+</mapper>

@@ -1,0 +1,31 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.biz_excel">
+
+<select id="deptExcel" resultType="java.util.LinkedHashMap">
+/* msqql.biz_excel.deptExcel */
+select 
+	dept_code,
+	dept_name,	
+	deptlvl_code,	
+	updept_code
+from COM_DEPT
+where 1 = 1
+</select>
+
+<select id="userExcel" resultType="java.util.LinkedHashMap">
+/* oracle.biz_excel.userExcel */
+select
+	emp_code,
+	emp_name,	
+	'' as password,	
+	authogrp_code,	
+	dept_code,	
+	position_code,	
+	email
+from COM_USER
+where 1 = 1
+</select>
+
+
+</mapper>

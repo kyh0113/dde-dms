@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<beans:beans
+	xmlns="http://www.springframework.org/schema/security"
+	xmlns:beans="http://www.springframework.org/schema/beans"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+	xsi:schemaLocation="http://www.springframework.org/schema/beans
+						http://www.springframework.org/schema/beans/spring-beans.xsd
+						http://www.springframework.org/schema/security
+						http://www.springframework.org/schema/security/spring-security.xsd">
+	
+	<!-- Spring Security 대상에서 제외 -->
+	<http pattern="/biz/dashBoard" security="none" />
+	<http pattern="/resources/**" security="none" />
+	<http pattern="/core/excel/**" security="none" />
+	<http pattern="/biz/ICMTemplateDownload" security="none" />
+	<http pattern="/biz/ICMFileDownload" security="none" />
+	<http pattern="/favicon.ico" security="none" />
+	<http pattern="/core/login/dup_login.do" security="none" />
+	<http pattern="/uiGridLoad" security="none" />
+	<http pattern="/yp/batchSAP" security="none" />
+	<http pattern="/yp/batchSeokpoSoneData" security="none" />
+	<!-- hic 추가 20230515 -->
+	<http pattern="/yp/batchBonsaCapsData" security="none" />
+	<http pattern="/yp/batchAnsanCapsData" security="none" />
+	<http pattern="/yp/batchSeokpoSoneDataYesterday" security="none" />
+	<!-- hic 추가 20230620 -->
+	<http pattern="/yp/common/inv_list" security="none" />
+	<http pattern="/yp/zmm/inv/select_tbl_inv_list" security="none" />
+	<!-- 2022.10.26 kjy batch test 등록 -->
+	<http pattern="/yp/batchMSSQLData" security="none"/>
+	<!-- 2023.03.13 kjy BI Batch data 등록 -->
+	<http pattern="/yp/batchInsertDate" security="none"/>
+	<http pattern="/yp/login/gwlogin" security="none" />
+	<http pattern="/yp/popup/jusoPopup" security="none" />
+	<http pattern="/yp/lme/table" security="none" />
+	<http pattern="/yp/popup/login/pwd_reset" security="none" />
+	<http pattern="/yp/popup/login/update_pwd_reset" security="none" />
+	<!-- Spring Security 대상에서 제외 - 영풍 그룹웨어 전자결재 데이터 요청 URL -->
+	<!-- 조업관리 > 도급검수 > 도급월보 -->
+	<http pattern="/yp/zwc/eai/working_monthly_report" security="none" />
+	<http pattern="/yp/zwc/eai/working_subc_pst_adj" security="none" />
+	<http pattern="/yp/zwc/eai/working_subc_cost_count" security="none" />
+	<http pattern="/yp/zwc/eai/working_reto_cost_count" security="none" />
+	<http pattern="/yp/zcs/eai/construction_chk_rpt" security="none" />
+	<http pattern="/yp/zwc/eai/working_eai_status" security="none" />
+	<!-- 작업표준서 전자결재 -->
+	<http pattern="/yp/zpp/wsd/wsd_edoc_write" security="none" />
+	<http pattern="/yp/zpp/wsd/zpp_wsd_link" security="none" />
+	<http pattern="/yp/zpp/wsd/wsd_edoc_status" security="none" />
+	<!-- 차량 계랑 전자결재 -->
+	<http pattern="/yp/zmm/aw/zmm_weight_calc_edoc_write" security="none" />
+	<http pattern="/yp/popup/zmm/aw/zmm_weight_edoc_calc_detail_list" security="none" />
+	<http pattern="/yp/zmm/aw/zmm_edoc_status_update" security="none" />
+	<http pattern="/yp/zmm/aw/retrieveMATNR_SW" security="none" />
+	<http pattern="/yp/zmm/aw/retrieveKUNNR_SW" security="none" />
+	
+	<!-- 삼우계랑 JSON 연동 개발 추가 -->
+	<http pattern="/yp/zmm/aw/zmm_weight_data_json" security="none" />
+	<http pattern="/yp/zmm/aw/zmm_weight_data_edoc_write" security="none" />
+	<http pattern="/yp/zmm/aw/zmm_edoc_data_update" security="none" />
+	
+	<!-- Spring Security 대상에서 제외 - 영풍 그룹웨어 전자결재 웹포탈 상세보기 페이지 호출 URL -->
+	<!-- 2020-11-06 jamerl - 조업관리 > 보고서 > 업체별 도급비 조정(안) 상세보기 -->
+	<http pattern="/yp/zwc/rpt/zwc_rpt_intervention_view" security="none" />
+	<http pattern="/yp/zcs/cpt/zcs_cpt_view" security="none" />
+	
+	<!-- 비품 연동 -->
+	<!-- 2022-06-28 smh - 전자결재 데이터 연동 -->
+	<http pattern="/yp/fixture/fixture_req_data" security="none" />
+	<!-- 2022-07-07 smh - 전자결재 상태 연동 -->
+	<http pattern="/yp/fixture/fixture_edoc_status_update" security="none" />
+	
+	<!-- 전자결재 상태 연동 -->
+	<http pattern="/yp/wr/wr_req_data" security="none" />
+	<http pattern="/yp/wr/wr_edoc_status_update" security="none" />
+	<http pattern="/yp/wr/wr_edoc_status_update_report" security="none" />
+	<http pattern="/yp/wr/wr_edoc_status_update_final" security="none" />
+	
+	<http pattern="/yp/wr/wr_req_data_D" security="none" />
+	<http pattern="/yp/wr/wr_req_data_A" security="none" />
+	<http pattern="/yp/wr/wr_req_data_E" security="none" />
+	<http pattern="/yp/wr/wr_req_data_B" security="none" />
+	
+	<!-- 정광심판판정 -->
+	<http pattern="/zpp/ore/zpp_ore_fixed_value/edoc/req_data" security="none" />
+	<http pattern="/zpp/ore/zpp_ore_fixed_value/edoc/status" security="none" />
+	<http pattern="/zpp/ore/zpp_ore_request/edoc/req_data_html" security="none" />
+	<http pattern="/zpp/ore/zpp_ore_seller_query/edoc/req_data_html" security="none" />
+	<http pattern="/zpp/ore/zpp_ore_seller_query/edoc/status" security="none" />
+	<http pattern="/zpp/ore/zpp_ore_seller_compare/edoc/req_data_html" security="none" />
+	<http pattern="/zpp/ore/zpp_ore_seller_compare/edoc/status" security="none" />
+	
+	<!-- 테스트 -->
+	<http pattern="/yp/test/get_test_data" security="none" />
+	<http pattern="/yp/test/get_test_data2" security="none" />
+	<http pattern="/yp/test/status_test" security="none" />
+	<http pattern="/yp/test/get_test_column_data" security="none" />
+	
+	<!-- 일일 아연현황 -->
+	<http pattern="/yp/api/endpoint/get_daily_zinc_prod" security="none" />
+	
+	<!-- DLP API 연동 -->
+	<http pattern="/yp/api/sendisapi_json" security="none" />
+
+	<!-- Spring Security - 관리자 -->
+<!-- 	<http auto-config="true" use-expressions="true" pattern="/core/**"> -->
+<!-- 		<intercept-url pattern="/core/**" access="permitAll" /> -->
+<!-- 		<form-login login-page="/core/login/login" /> -->
+<!-- 		<logout -->
+<!-- 			logout-url="/core/login/logout.do" -->
+<!-- 			success-handler-ref="logoutSuccessHandler" -->
+<!-- 			invalidate-session="false" -->
+<!-- 			delete-cookies="JSESSIONID" /> -->
+<!-- 		<csrf disabled="false" /> -->
+<!-- 		<headers> -->
+			<!-- 20200320_khj Google Chrome 접근 위해 주석처리 -->
+			<!-- <content-security-policy policy-directives="script-src 'self'"/> -->
+<!-- 			<frame-options policy="SAMEORIGIN" /> -->
+<!-- 			<xss-protection block="true" /> -->
+<!-- 		</headers> -->
+		<!-- 세션이 끊겼을때 이동할 페이지 -->
+<!-- 		<session-management invalid-session-url="/core/login/sessionOut.do" /> -->
+		<!-- check session time out with ajax -->
+<!-- 		<custom-filter after="EXCEPTION_TRANSLATION_FILTER" ref="ajaxSessionTimeoutFilter" /> -->
+<!-- 	</http> -->
+
+	<!-- Spring Security - 영풍 -->
+	<http auto-config="true" use-expressions="true">
+		<intercept-url pattern="/yp/**" access="permitAll" />
+		<form-login login-page="/yp/login/login" />
+		<logout
+			logout-url="/yp/login/logout"
+			success-handler-ref="logoutYPSuccessHandler"
+			invalidate-session="false"
+			delete-cookies="JSESSIONID" />
+		<csrf disabled="false" />
+		<headers>
+			<!-- 20200320_khj Google Chrome 접근 위해 주석처리 -->
+			<!-- <content-security-policy policy-directives="script-src 'self'"/> -->
+			<frame-options policy="SAMEORIGIN" />
+<!-- 			<xss-protection block="true" /> -->
+		</headers>
+		<!-- 세션이 끊겼을때 이동할 페이지 -->
+		<session-management invalid-session-url="/core/login/sessionOut.do" />
+		<!-- check session time out with ajax -->
+		<custom-filter after="EXCEPTION_TRANSLATION_FILTER" ref="ajaxSessionTimeoutFilter" />
+	</http>
+
+	<beans:bean id="ajaxSessionTimeoutFilter" class="com.vicurus.it.core.secure.AjaxSessionTimeoutFilter">
+		<beans:property name="ajaxHeader" value="AJAX" />
+	</beans:bean>
+
+	<!-- 로그아웃시 커스텀 핸들러 -->
+	<beans:bean id="logoutSuccessHandler" class="com.vicurus.it.core.secure.CustomLogoutSuccessHandler"></beans:bean>
+	<!-- 로그아웃시 커스텀 핸들러 - 발행회사 -->
+	<beans:bean id="logoutYPSuccessHandler" class="com.vicurus.it.core.secure.CustomYPLogoutSuccessHandler"></beans:bean>
+
+	<authentication-manager>
+		<!-- <authentication-provider> <user-service> <user name="user" password="password" 
+			authorities="ROLE_USER" /> </user-service> </authentication-provider> -->
+	</authentication-manager>
+
+</beans:beans>

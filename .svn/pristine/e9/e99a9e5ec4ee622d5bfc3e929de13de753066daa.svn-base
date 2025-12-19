@@ -1,0 +1,344 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">
+    <title>영풍</title>
+	<link rel="stylesheet" href="css/style.css">
+    <script language="JavaScript">
+     
+     function viewLayer(){ 
+        document.getElementById("gnb").style.visibility = "visible"
+        document.getElementById("gnb_nav").style.visibility = "hidden"
+        document.getElementById("closeNav").style.marginLeft = "140px"
+     }
+     
+     function hideLayer(){
+         document.getElementById("gnb").style.visibility = "hidden"
+         document.getElementById("gnb_nav").style.visibility = "visible"
+         document.getElementById("closeNav").style.marginLeft = "350px"
+         
+     }
+     </script>
+</head>
+<body class="bg_gray">
+	<div id="wrapper">
+        <div class="header">
+            <div class="logo"><a href="main.html"><img src="images/logo_sub.png"> 도급관리 웹포탈 시스템</a></div>
+            <div class="top_ic">
+                <ul>
+                    <li>ypAdminUser <a href="#"><img src="images/topic_logout.png"></a>
+                        <div class="topnav_my">
+                            <ul>
+                                <li><a href="#">정보수정</a></li>
+                                <li><a href="#">로그아웃</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="content_body">
+            <!-- gnb S -->
+            <div id="gnb">
+                <ul>
+                    <li><a href="#" onclick="hideLayer('gnb')" ><img src="images/gnb_ic_menu.png"><p>전체메뉴</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_money.png"><p>재무관리</p></a> </li>
+                    <li><a href="#"><img src="images/gnb_ic_buy.png"><p>구매관리</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_person.png"><p>인사관리</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_report.png"><p>준공보고서</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_work.png"><p>조업 도급관리</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_factory.png"><p>공사 도급관리</p></a></li>
+                </ul>
+            </div>
+            <div id="gnb_nav">
+                <div class="mn_container">
+                    <div class="mn_icon"><a href="#" onclick="viewLayer('gnb')" ><img src="images/gnb_ic_menu.png"></a>
+                    </div>
+                    <div class="mn_item">
+                        <input id="ac-1" name="gnb" type="radio" /> <label for="ac-1">재무관리</label> 
+                        <article class="mn_sub">
+                            <ul>
+                                <li><a href="#">전표관리</a> </li>
+                                <ul class="gnb_3lv">
+                                    <li><a href="#">회계전표 목록</a></li>
+                                    <li><a href="#">회계전표 등록</a></li>
+                                </ul>
+
+                                <li><a href="#">예산관리</a> </li>
+                                <ul class="gnb_3lv">
+                                    <li><a href="#">예산조회</a></li>
+                                    <li><a href="#">예산신청</a></li>
+                                    <li><a href="#">예산 결재상신</a></li>
+                                    <li><a href="#">투보수 예산현황 조회</a></li>
+                                    <li><a href="#">일이삼사오육칠팔구십일이삼사오육칠팔구십</a></li>
+                                </ul>
+                            </ul>
+                        </article>
+                    </div>
+                    <div class="mn_item">
+                        <input id="ac-2" name="gnb" type="radio" /> <label for="ac-2">메뉴명 20자</label> 
+                        
+                        <article class="mn_sub">
+                            <ul>
+                                <li><a href="#">일이삼사오육칠팔구십일이삼사오육칠팔구십</a> </li>
+                                <li><a href="#">일이삼사오육칠팔구십일이삼사오육칠팔구십</a> </li>
+                            </ul>
+                        </article>
+                    </div>
+                    <div class="mn_item">
+                        <input id="ac-3" name="gnb" type="radio" checked /> <label for="ac-3">화면템플릿</label> 
+                        <article class="mn_sub">
+                            <ul>
+                                <li><a href="template_01.html">계약등록</a></li>
+                                <li><a href="template_02.html">회계전표 목록</a></li>
+                                <li><a href="template_03.html">회계전표 등록</a></li>
+                                <li><a href="#" onclick="window.open('template_pop02.html','','width=500,height=500')">업체검색</a></li>
+                                <li><a href="template_04.html">투보수 예산현황 조회</a></li>
+                                <li><a href="template_05.html">투보수 예산상세 조회</a></li>
+                                <li><a href="template_06.html">입항스케쥴 조회</a></li>
+                                <li><a href="template_07.html">개인 출퇴근 현황</a></li>
+                                <li><a href="template_08.html">도시락 신청/조회</a></li>
+                                <li><a href="template_09.html">식당관리</a></li>
+                            </ul>
+                        </article>
+                    </div>
+                </div>
+                  
+            </div>
+            <!-- gnb S -->
+            <!--- sub contents S -->
+        
+            <!-- contents box S -->
+            <div class="sub_contents_box" id="closeNav">
+                 <div class="sub_contents" >
+                    <h2>입항스케쥴 조회
+                        <ul class="loc">
+                            <li><a href="#"><img src="images/ic_loc_home.png"></a></li>
+                            <li><a href="#">공사도급관리</a></li>
+                            <li><a href="#">계약관리</a></li>
+                            <li>계약등록</li>
+                        </ul>   
+                    </h2>
+                    <section>
+                        <div class="stitle">LME</div>
+                        <input type="text" class="calendar"><a href="#"><img src="images/ic_search.png"></a>
+                        <div class="space10"></div>
+                        <div class="lst">
+                            <table cellspacing="0" cellpadding="0">
+                                <colgroup>
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                </colgroup>
+                                <tr>
+                                    <th colspan="2">종류</th>
+                                    <th>이번달(avg)</th>
+                                    <th>지난달(avg)</th>
+                                </tr>
+                                <tr>
+                                    <td>ZN</td>
+                                    <td><label>$ </label><input type="text" style="width:200px;"><span class="rate"><img src="images/iic_amount_up.png"> $1000 </span></td>
+                                    <td class="left"> </td>
+                                    <td class="left"></td>
+                                </tr>
+                                 <tr>
+                                    <td>Ag</td>
+                                    <td><label>$ </label><input type="text" style="width:200px;"><span class="rate"> <img src="images/iic_amount_down.png"> $1983 </span></td>
+                                    <td class="left"> </td>
+                                    <td class="left"></td>
+                                </tr>
+                                <tr>
+                                    <td>Cu</td>
+                                    <td><label>$ </label><input type="text" style="width:200px;"><span class="rate"><img src="images/iic_amount_up.png"> $2900</span></td>
+                                    <td class="left"> </td>
+                                    <td class="left"></td>
+                                </tr>
+                               <tr>
+                                    <td>Pb</td>
+                                    <td><label>$ </label><input type="text" style="width:200px;"><span class="rate"> <img src="images/iic_amount_down.png"> $2150 </span></td>
+                                    <td class="left"> </td>
+                                    <td class="left"></td>
+                                </tr>
+                                <tr>
+                                    <td>Au</td>
+                                    <td><label>$ </label><input type="text" style="width:200px;"><span class="rate"><img src="images/iic_amount_down.png"> $2090</span> </td>
+                                    <td class="left"> </td>
+                                    <td class="left"></td>
+                                </tr>
+                                <tr>
+                                    <td>SHG</td>
+                                    <td><label>￦</label><input type="text" style="width:200px;"><span class="rate"><img src="images/iic_amount_down.png"> $6091000 </span></td>
+                                    <td class="left"> </td>
+                                    <td class="left"></td>
+                                </tr>
+                               <tr>
+                                    <td>MG</td>
+                                    <td><label>￦</label><input type="text" style="width:200px;"><span class="rate"> <img src="images/iic_amount_down.png"> $6091000 </span></td>
+                                    <td class="left"> </td>
+                                    <td class="left"></td>
+                                </tr>
+                            </table>
+                        </div>
+                    </section>
+                    <div class="stitle">입항 스케쥴</div>
+                    <section>
+                        <div class="tbl_box">
+                            <table cellspacing="0" cellpadding="0">
+                                <colgroup>
+                                    <col width="12%" />
+                                    <col  />
+                                    <col width="12%" />
+                                    <col  />
+                                </colgroup> 
+                                <tr>
+                                    <th>BL 도착일</th>
+                                    <td><input type="text" class="calendar"> ~ <input type="text" class="calendar"></td>
+                                    <th>업체</th>
+                                    <td><input type="text" style="width:100px;"> <input type="text" style="width:150px;" disabled> <a href="#"><img src="images/ic_search.png"></a></td>
+                                </tr>
+                                <tr>
+                                    <th>실제도착일</th>
+                                    <td><input type="text" class="calendar"> ~ <input type="text" class="calendar"></td>
+                                    <th>광종</th>
+                                    <td><input type="text" style="width:100px;"> <input type="text" style="width:150px;" disabled> <a href="#"><img src="images/ic_search.png"></a></td>
+                                </tr>
+                                <tr>
+                                    <th>선사</th>
+                                    <td><input type="text"></td>
+                                    <th>surveyor</th>
+                                    <td><input type="text"></td>
+                                </tr>
+                            </table>
+                            <div class="btn_wrap">
+                                <button class="btn btn_search" type="">조회</button>
+                            </div>
+                        </div>
+                    </section>
+                    <div class="float_wrap">
+                        <div class="fr">
+                            <div class="btn_wrap">
+                                <button class="btn_g" type="">항목추가</button> <button class="btn_g" type="">항목삭제</button> <button class="btn_g" type="">엑셀다운로드</button> 
+                            </div>
+                        </div>
+                    </div>
+                    <section>
+                        <div class="lst">
+                            <table cellspacing="0" cellpadding="0">
+                                <colgroup>
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                </colgroup>
+                                <tr>
+                                    <th rowspan="2"><input type="checkbox" /></th>
+                                    <th rowspan="2">No</th>
+                                    <th rowspan="2">입고번호</th>
+                                    <th rowspan="2">업체<span class="require">*</span></th>
+                                    <th rowspan="2">광종<span class="require">*</span></th>
+                                    <th rowspan="2">차수</th>
+                                    <th rowspan="2">입고차수<span class="require">*</span></th>
+                                    <th rowspan="2">선박명</th>
+                                    <th rowspan="2">DMT<span class="require">*</span></th>
+                                    <th rowspan="2">Laycan</th>
+                                    <th colspan="2">B/L</th>
+                                    <th rowspan="2">Itinerary</th>
+                                    <th rowspan="2">BL입항일<span class="require">*</span></th>
+                                    <th rowspan="2">실제입항일</th>
+                                    <th rowspan="2">하여완료</th>
+                                    <th rowspan="2">선사</th>
+                                    <th rowspan="2">Surveyor</th>
+                                    <th rowspan="2">B/L입항일 Fix</th>
+                                    <th colspan="3">지불방법</th>
+                                </tr>
+                                <tr>
+                                    <th>수령</th>
+                                    <th>전달</th>
+                                    <th>T/T</th>
+                                    <th>T/C</th>
+                                    <th>조건</th>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox"></td>
+                                    <td>1</td>
+                                    <td>1111</td>
+                                    <td>Samsung</td>
+                                    <td>Cannington</td>
+                                    <td>20-1</td>
+                                    <td>Q</td>
+                                    <td>Bright Ocean</td>
+                                    <td>100</td>
+                                    <td>Xsss</td>
+                                    <td><input type="checkbox"></td>
+                                    <td><input type="checkbox"></td>
+                                    <td>itinerary</td>
+                                    <td>2020-01-31</td>
+                                    <td>2020-01-31</td>
+                                    <td><input type="checkbox"></td>
+                                    <td>세아</td>
+                                    <td>ASI</td>
+                                    <td></td>
+                                    <td><input type="checkbox"></td>
+                                    <td><input type="checkbox"></td>
+                                    <td>CAD</td>  
+                                </tr>
+                                <tr>
+                                    <td colspan="2">등록</td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"> <a href="#"><img src="images/ic_search.png"></a></td>
+                                    <td><input type="text"> <a href="#"><img src="images/ic_search.png"></a></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="checkbox"></td>
+                                    <td><input type="checkbox"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text" class="calendar"></td>
+                                    <td><input type="text" class="calendar"></td>
+                                    <td><input type="checkbox"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="checkbox"></td>
+                                    <td><input type="checkbox"></td>
+                                    <td><input type="checkbox"></td>
+                                    <td><input type="text"></td>
+                                </tr>
+
+                            </table>
+                        </div>
+                        <div class="btn_wrap space10">
+                            <button class="btn btn_save" type="">등록</button>
+                        </div>
+                    </section>
+                </div>
+             
+            </div>
+            <!-- contents box E -->
+            <!--- sub contents S -->
+        </div>
+    </div>
+</body>
+</html>

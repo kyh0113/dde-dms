@@ -1,0 +1,276 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">
+    <title>영풍</title>
+	<link rel="stylesheet" href="css/style.css">
+    <script language="JavaScript">
+     
+     function viewLayer(){ 
+        document.getElementById("gnb").style.visibility = "visible"
+        document.getElementById("gnb_nav").style.visibility = "hidden"
+        document.getElementById("closeNav").style.marginLeft = "140px"
+     }
+     
+     function hideLayer(){
+         document.getElementById("gnb").style.visibility = "hidden"
+         document.getElementById("gnb_nav").style.visibility = "visible"
+         document.getElementById("closeNav").style.marginLeft = "350px"
+         
+     }
+     </script>
+</head>
+<body class="bg_gray">
+	<div id="wrapper">
+        <div class="header">
+            <div class="logo"><a href="main.html"><img src="images/logo_sub.png"> 도급관리 웹포탈 시스템</a></div>
+            <div class="top_ic">
+                <ul>
+                    <li>ypAdminUser <a href="#"><img src="images/topic_logout.png"></a>
+                        <div class="topnav_my">
+                            <ul>
+                                <li><a href="#">정보수정</a></li>
+                                <li><a href="#">로그아웃</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="content_body">
+            <!-- gnb S -->
+            <div id="gnb">
+                <ul>
+                    <li><a href="#" onclick="hideLayer('gnb')" ><img src="images/gnb_ic_menu.png"><p>전체메뉴</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_money.png"><p>재무관리</p></a> </li>
+                    <li><a href="#"><img src="images/gnb_ic_buy.png"><p>구매관리</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_person.png"><p>인사관리</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_report.png"><p>준공보고서</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_work.png"><p>조업 도급관리</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_factory.png"><p>공사 도급관리</p></a></li>
+                </ul>
+            </div>
+            <div id="gnb_nav">
+                <div class="mn_container">
+                    <div class="mn_icon"><a href="#" onclick="viewLayer('gnb')" ><img src="images/gnb_ic_menu.png"></a>
+                    </div>
+                    <div class="mn_item">
+                        <input id="ac-1" name="gnb" type="radio" /> <label for="ac-1">재무관리</label> 
+                        <article class="mn_sub">
+                            <ul>
+                                <li><a href="#">전표관리</a> </li>
+                                <ul class="gnb_3lv">
+                                    <li><a href="#">회계전표 목록</a></li>
+                                    <li><a href="#">회계전표 등록</a></li>
+                                </ul>
+
+                                <li><a href="#">예산관리</a> </li>
+                                <ul class="gnb_3lv">
+                                    <li><a href="#">예산조회</a></li>
+                                    <li><a href="#">예산신청</a></li>
+                                    <li><a href="#">예산 결재상신</a></li>
+                                    <li><a href="#">투보수 예산현황 조회</a></li>
+                                    <li><a href="#">일이삼사오육칠팔구십일이삼사오육칠팔구십</a></li>
+                                </ul>
+                            </ul>
+                        </article>
+                    </div>
+                    <div class="mn_item">
+                        <input id="ac-2" name="gnb" type="radio" /> <label for="ac-2">메뉴명 20자</label> 
+                        
+                        <article class="mn_sub">
+                            <ul>
+                                <li><a href="#">일이삼사오육칠팔구십일이삼사오육칠팔구십</a> </li>
+                                <li><a href="#">일이삼사오육칠팔구십일이삼사오육칠팔구십</a> </li>
+                            </ul>
+                        </article>
+                    </div>
+                    <div class="mn_item">
+                        <input id="ac-3" name="gnb" type="radio" checked /> <label for="ac-3">화면템플릿</label> 
+                        <article class="mn_sub">
+                            <ul>
+                                <li><a href="template_01.html">계약등록</a></li>
+                                <li><a href="template_02.html">회계전표 목록</a></li>
+                                <li><a href="template_03.html">회계전표 등록</a></li>
+                                <li><a href="#" onclick="window.open('template_pop02.html','','width=500,height=500')">업체검색</a></li>
+                                <li><a href="template_04.html">투보수 예산현황 조회</a></li>
+                                <li><a href="template_05.html">투보수 예산상세 조회</a></li>
+                                <li><a href="template_06.html">입항스케쥴 조회</a></li>
+                                <li><a href="template_07.html">개인 출퇴근 현황</a></li>
+                                <li><a href="template_08.html">도시락 신청/조회</a></li>
+                                <li><a href="template_09.html">식당관리</a></li>
+                            </ul>
+                        </article>
+                    </div>
+                </div>
+                  
+            </div>
+            <!-- gnb S -->
+            <!--- sub contents S -->
+        
+            <!-- contents box S -->
+            <div class="sub_contents_box" id="closeNav">
+                <div class="sub_contents">
+                    <h2>식당관리
+                    <ul class="loc">
+                        <li><a href="#"><img src="images/ic_loc_home.png"></a></li>
+                        <li><a href="#">공사도급관리</a></li>
+                        <li><a href="#">계약관리</a></li>
+                        <li>계약등록</li>
+                    </ul>   
+                </h2>
+               
+                    <div class="float_wrap">
+                        <div class="fl"><div class="stitle">도시락 수기등록</div></div>
+                        <div class="fr">
+                            <div class="btn_wrap">
+                                <button class="btn_g" type="">+ 1줄추가</button>
+                                <button class="btn_g" type="">+ 5줄추가</button> 
+                            </div>
+                        </div>
+                    </div>
+                    <section>
+                        <div class="lst">
+                            <table cellspacing="0" cellpadding="0">
+                                <colgroup>
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                </colgroup>
+                                <tr>
+                                    <th><input type="checkbox"></th>
+                                    <th>일자</th>
+                                    <th>식사</th>
+                                    <th>사번</th>
+                                    <th>부서</th>
+                                    <th>근무반</th>
+                                    <th>근무조</th>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox"></td>
+                                    <td><input type="text" class="calendar"></td>
+                                    <td>
+                                        <select>
+                                            <option>중식</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox"></td>
+                                    <td><input type="text" class="calendar"></td>
+                                    <td>
+                                        <select>
+                                            <option>중식</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="btn_wrap space10">
+                            <button class="btn btn_save" type="">등록</button>
+                        </div>
+                    </section>
+                    <div class="float_wrap">
+                        <div class="fl"><div class="stitle">식당 수기등록</div></div>
+                        <div class="fr">
+                            <div class="btn_wrap">
+                                <button class="btn_g" type="">+ 1줄추가</button>
+                                <button class="btn_g" type="">+ 5줄추가</button> 
+                            </div>
+                        </div>
+                    </div>
+                    <section>
+                        <div class="lst">
+                            <table cellspacing="0" cellpadding="0">
+                                <colgroup>
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                    <col />
+                                </colgroup>
+                                <tr>
+                                    <th><input type="checkbox"></th>
+                                    <th>일자</th>
+                                    <th>식사</th>
+                                    <th>사번</th>
+                                    <th>부서</th>
+                                    <th>근무반</th>
+                                    <th>근무조</th>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox"></td>
+                                    <td><input type="text" class="calendar"></td>
+                                    <td>
+                                        <select>
+                                            <option>중식</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                </tr>
+                                <tr>
+                                    <td><input type="checkbox"></td>
+                                    <td><input type="text" class="calendar"></td>
+                                    <td>
+                                        <select>
+                                            <option>중식</option>
+                                        </select>
+                                    </td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                    <td><input type="text"></td>
+                                </tr>
+                            </table>
+                        </div>
+                        <div class="btn_wrap space10">
+                            <button class="btn btn_save" type="">등록</button>
+                        </div>
+                    </section>
+                    <div class="stitle">식당자료 엑셀저장</div>
+                    <div class="tbl_box">
+                        <table cellspacing="0" cellpadding="0">
+                                <colgroup>
+                                    <col width="12%" />
+                                    <col />
+                                </colgroup> 
+                                <tr>
+                                    <th>샘플(템플릿)파일 다운로드</th>
+                                    <td><button class="btn_s" type="">엑셀다운로드</button></td>
+                                </tr>
+                                <tr>
+                                    <th>업로드 할 파일선택</th>
+                                    <td><button class="btn_s" type="">파일찾아보기</button> <span class="require">선택된 파일이 없습니다. 오류메세지는 이렇게 보입니다.</span></td>
+                                </tr>
+                        </table>
+                    </div>
+                    <div class="btn_wrap space10">
+                        <button class="btn btn_save" type="">등록</button>
+                    </div> 
+                </div>
+            </div>
+            <!-- contents box E -->
+            <!--- sub contents S -->
+        </div>
+    </div>
+</body>
+</html>

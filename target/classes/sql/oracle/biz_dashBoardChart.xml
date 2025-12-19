@@ -1,0 +1,307 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.biz_dashBoardChart">
+
+<select id="account_cnt" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.account_cnt*/
+	SELECT  100 as total_cnt,
+			50 as qntfact_cnt,
+			50 as qltfact_cnt
+	FROM DUAL		
+</select>
+
+<select id="process_cnt" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.process_cnt*/
+	select 150 as process_cnt
+	FROM DUAL
+</select>
+
+<select id="elc_cnt" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.elc_cnt*/
+select 80 as elc_cnt
+FROM DUAL
+</select>
+
+<select id="plc_cnt" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.plc_cnt*/
+select 250 as plc_cnt
+FROM DUAL
+</select>
+
+<select id="remark_cnt" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.remark_cnt*/
+select 10 as remark_y_cnt,
+	   10 as remark_n_cnt
+FROM DUAL	   
+</select>
+
+<select id="mrc_ipe_cnt" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.mrc_ipe_cnt*/
+select	250 as plc_cnt,
+		0 as mrc_cnt,
+		30 ipe_cnt
+FROM DUAL		
+</select>
+
+<select id="modal_account_cnt" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.modal_account_cnt*/
+	SELECT 
+		'현재' as term_code,
+		100 AS total_cnt,
+		50 AS qntfact_cnt,
+		50 AS qltfact_cnt
+	FROM DUAL	
+UNION ALL
+	SELECT 
+		'전기간' as term_code,
+		90 AS total_cnt,
+		40 AS qntfact_cnt,
+		50 AS qltfact_cnt
+	FROM DUAL	
+UNION ALL
+	SELECT 
+		'전 전기간' as term_code,
+		80 AS total_cnt,
+		30 AS qntfact_cnt,
+		50 AS qltfact_cnt
+	FROM DUAL	
+</select>
+
+<select id="modal_process_cnt" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.modal_process_cnt*/
+select 
+	'현재' as term_code,
+	150  as process_cnt
+FROM DUAL	
+union all
+select 
+	'전기간' as term_code, 
+	140 as process_cnt
+FROM DUAL	
+union all
+select 
+	'전 전기간' as term_code,
+	130 as process_cnt
+FROM DUAL	
+</select>
+
+<select id="modal_elc_cnt" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.modal_elc_cnt*/
+select 
+	'현재' as term_code,
+	80 as elc_cnt
+FROM DUAL	
+union all
+select 
+	'전기간' as term_code,
+	70 as elc_cnt
+FROM DUAL	
+union all
+select 
+	'전 전기간' as term_code,
+	60 as elc_cnt
+FROM DUAL	
+</select>
+
+<select id="modal_plc_cnt" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.modal_plc_cnt*/
+select  '현재' as term_code,
+		150 as plc_cnt
+FROM DUAL	
+union all
+select  '전기간' as term_code, 
+		140 as plc_cnt
+FROM DUAL		
+union all
+select  
+		'전 전기간' as term_code,
+		130 as plc_cnt
+FROM DUAL		
+</select>
+
+<select id="modal_remark_cnt" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.modal_remark_cnt*/
+select 
+	'현재' as term_code,
+	10 as remark_y_cnt,
+	10 as remark_n_cnt
+FROM DUAL	
+union all
+select 
+	'전기간' as term_code,
+	9 as remark_y_cnt,
+	10 as remark_n_cnt
+FROM DUAL	
+union all
+select 
+	'전 전기간' as term_code,
+	8 as remark_y_cnt,
+	10 as remark_n_cnt
+FROM DUAL	
+</select>
+
+<select id="modal_mrc_ipe_cnt" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.modal_mrc_ipe_cnt*/							  
+	SELECT '현재' AS term_code, 
+	   0 as mrc_cnt,
+	   30 as ipe_cnt
+	FROM DUAL 
+	union all
+	SELECT '전기간' AS term_code, 
+		   0 as mrc_cnt,
+		   20 as ipe_cnt
+	FROM DUAL	   
+	union all
+	SELECT '전 전기간' AS term_code, 
+		   0 as mrc_cnt,
+		   10 as ipe_cnt
+	FROM DUAL	   
+</select>
+
+<select id="perform_percent" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.perform_percent*/
+select 
+	100 as end_cnt,
+	0  as nend_cnt
+FROM DUAL	
+</select>
+
+
+<select id="total_test_progress" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.total_test_progress*/	
+	SELECT                                                                            
+             '율(%)' AS gubun,                                                                                                                                                                                                                   
+             100 AS test_target,                                                        
+			 10 AS test_notwrite,                                                      
+             15 AS test_notsubmit,                                                    
+             35 AS test_approving,                                
+             0  AS test_reject,                                                          
+             40 AS test_approved
+    FROM DUAL         
+</select>
+
+<select id="test_progress" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.test_progress*/	
+	SELECT                                                                            
+         'gubun1' as gubun,
+		 10       as test_target,
+		 10       as test_notwrite,  
+		 10       as test_notsubmit, 
+		 10       as test_approving,
+		 10       as test_reject,
+		 10       as test_approved
+	FROM DUAL	 
+	union all
+	SELECT
+		'gubun2' as gubun,
+		 15       as test_target,
+		 15       as test_notwrite,  
+		 15       as test_notsubmit, 
+		 15       as test_approving,
+		 15       as test_reject,
+		 15       as test_approved
+	FROM DUAL	 
+	union all
+	SELECT
+		'gubun3' as gubun,
+		 20       as test_target,
+		 20       as test_notwrite,  
+		 20       as test_notsubmit, 
+		 20       as test_approving,
+		 20       as test_reject,
+		 20       as test_approved
+	FROM DUAL	 
+	union all
+	SELECT
+		'gubun4' as gubun,
+		 25       as test_target,
+		 25       as test_notwrite,  
+		 25       as test_notsubmit, 
+		 25       as test_approving,
+		 25       as test_reject,
+		 25       as test_approved	
+	FROM DUAL	  
+</select>
+
+<select id="gap_progress" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.gap_progress*/	
+	SELECT  5 AS ing_gap_cnt,
+			3 AS end_gap_cnt
+	FROM DUAL		
+</select>
+
+<select id="dept_progress" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.icm_dashBoardChart.dept_progress*/	
+	SELECT                                                                            
+         '부서1' dept_name,
+		 10 as test_target,
+		 10 as test_notwrite,  
+		 10 as test_notsubmit, 
+		 10 as test_approving,
+		 10 as test_reject,
+		 10 as test_approved
+	FROM DUAL	 
+	UNION ALL
+	SELECT                                                                            
+         '부서2' dept_name,
+		 5 as test_target,
+		 5 as test_notwrite,  
+		 5 as test_notsubmit, 
+		 5 as test_approving,
+		 5 as test_reject,
+		 5 as test_approved
+	FROM DUAL	 
+	UNION ALL
+	SELECT
+		'부서3' dept_name,
+		 15 as test_target,
+		 15 as test_notwrite,  
+		 15 as test_notsubmit, 
+		 15 as test_approving,
+		 15 as test_reject,
+		 15 as test_approved
+	FROM DUAL	 
+	UNION ALL
+	SELECT
+		'부서4' dept_name,
+		 20 as test_target,
+		 20 as test_notwrite,  
+		 20 as test_notsubmit, 
+		 20 as test_approving,
+		 20 as test_reject,
+		 20 as test_approved
+	FROM DUAL	 
+	UNION ALL
+	SELECT
+		'부서5' dept_name,
+		 10 as test_target,
+		 10 as test_notwrite,  
+		 10 as test_notsubmit, 
+		 10 as test_approving,
+		 10 as test_reject,
+		 10 as test_approved
+	FROM DUAL	 
+	UNION ALL
+	SELECT
+		'부서6' dept_name,
+		 30 as test_target,
+		 30 as test_notwrite,  
+		 30 as test_notsubmit, 
+		 30 as test_approving,
+		 30 as test_reject,
+		 30 as test_approved
+	FROM DUAL	 
+	UNION ALL
+	SELECT
+		'부서7' dept_name,
+		 5 as test_target,
+		 5 as test_notwrite,  
+		 5 as test_notsubmit, 
+		 5 as test_approving,
+		 5 as test_reject,
+		 5 as test_approved	
+	FROM DUAL	  	 	 	 
+</select>
+
+
+</mapper>

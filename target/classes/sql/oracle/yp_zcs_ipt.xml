@@ -1,0 +1,1479 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_zcs_ipt">
+
+<select id="pre_select_zcs_ipt_mon_manh_create" resultType="Integer">
+/* oracle.yp_zcs_ipt.pre_select_zcs_ipt_mon_manh_create */
+SELECT COUNT(*)
+FROM TBL_CONSTRUCTION_MONTHLY_RPT1 A
+WHERE 1=1
+AND A.BASE_YYYYMM = REPLACE( #{BASE_YYYYMM}, '/', '')
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</select>
+
+<select id="select_zcs_ipt_mon_manh_create" resultType="HashMap">
+/* oracle.yp_zcs_ipt.select_zcs_ipt_mon_manh_create */
+SELECT
+	ROW_NUMBER() OVER(ORDER BY TO_CHAR( TO_DATE( A.WORK_START_DT, 'YYYY/MM/DD' ), 'YYYY/MM/DD' ) DESC, A.ORDER_NUMBER, A.COST_CODE ) AS RN,
+	'Y' AS DBYN,
+	A.BASE_YYYYMM,
+	A.VENDOR_CODE,
+	A.CONTRACT_CODE,
+	A.SEQ,
+	A.ORDER_NUMBER AS ORDER_NUMBER, /* 오더번호 */
+	A.WORK_CONTENTS AS WORK_CONTENTS, /* 작업내역 */
+	A.COST_CODE AS COST_CODE, /* 코스트센터 */
+	A.COST_NAME AS COST_NAME, /* 코스트센터명 */
+	TO_CHAR( TO_DATE( A.WORK_START_DT, 'YYYY/MM/DD' ), 'YYYY/MM/DD' ) AS WORK_START_DT, /* 시작일자 */
+	A.WORK_START_TIME AS WORK_START_TIME, /* 시작시간 */
+	TO_CHAR( TO_DATE( A.WORK_END_DT, 'YYYY/MM/DD' ), 'YYYY/MM/DD' ) AS WORK_END_DT, /* 종료일자 */
+	A.WORK_END_TIME AS WORK_END_TIME, /* 종료시간 */
+	A.MANHOUR AS MANHOUR, /* 공수 */
+	A.MANHOUR_CORRECTION AS MANHOUR_CORRECTION, /* 보정 */
+	A.MANHOUR_SUM AS MANHOUR_SUM, /* 공수합계 */
+	A.MEMO AS MEMO /* 비고 */
+FROM TBL_CONSTRUCTION_MONTHLY_RPT1 A
+WHERE 1=1
+<if test="BASE_YYYYMM != null">
+AND A.BASE_YYYYMM = REPLACE( #{BASE_YYYYMM}, '/', '')
+</if>
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+-- AND REPLACE( A.WORK_START_DT, '/', '') BETWEEN REPLACE( '${STD}', '/', '') AND REPLACE( '${EDD}', '/', '') /* 2021-04-19 jamerl - 최승빈 : 도급월보 데이터를 가져오는 경우는 작업 시작일자 조건 제외 */
+</select>
+
+<select id="select_zcs_ipt_mon_manh_create_new" resultType="HashMap">
+/* oracle.yp_zcs_ipt.select_zcs_ipt_mon_manh_create_new */
+SELECT
+	ROW_NUMBER() OVER(ORDER BY MIN( B.W_START_DATE ) DESC, A.AUFNR, A.KOSTL ) AS RN,
+	'N' AS DBYN,
+	REPLACE( #{BASE_YYYYMM}, '/', '') AS BASE_YYYYMM,
+	#{VENDOR_CODE} AS VENDOR_CODE,
+	#{CONTRACT_CODE} AS CONTRACT_CODE,
+	NULL AS SEQ,
+	A.AUFNR AS ORDER_NUMBER, /* 오더번호 */
+	MAX( A.AUFTEXT ) AS WORK_CONTENTS, /* 작업내역 */
+	A.KOSTL AS COST_CODE, /* 코스트센터 */
+	MAX( A.KTEXT ) AS COST_NAME, /* 코스트센터명 */
+	TO_CHAR( MIN( B.W_START_DATE ), 'YYYY/MM/DD' ) AS WORK_START_DT, /* 시작일자 */
+	TO_CHAR( MIN( B.W_START_DATE ), 'HH24:MI:SS' ) AS WORK_START_TIME, /* 시작시간 */
+	TO_CHAR( MAX( B.W_END_DATE ), 'YYYY/MM/DD' ) AS WORK_END_DT, /* 종료일자 */
+	TO_CHAR( MAX( B.W_END_DATE ), 'HH24:MI:SS' ) AS WORK_END_TIME, /* 종료시간 */
+	CASE
+		WHEN COUNT( D.MHOUR ) = 0 THEN 0
+		ELSE TRUNC( SUM( NVL( D.MHOUR, 0 ) ) / COUNT( D.MHOUR ), 2 )
+	END AS MANHOUR, /* 공수 */
+	0 AS MANHOUR_CORRECTION, /* 보정 */
+	CASE
+		WHEN COUNT( D.MHOUR ) = 0 THEN 0
+		ELSE TRUNC( SUM( NVL( D.MHOUR, 0 ) ) / COUNT( D.MHOUR ), 2 )
+	END AS MANHOUR_SUM, /* 공수합계 */
+	'' AS MEMO /* 비고 */
+FROM TBL_WK A
+INNER JOIN TBL_WK_ACCESS B
+	ON A.AUFNR = B.AUFNR
+	AND B.W_START_DATE BETWEEN TO_DATE( REPLACE( #{STD}, '/', '' ) || '000000', 'YYYYMMDDHH24MISS' ) AND TO_DATE( REPLACE( #{EDD}, '/', '' ) || '235959', 'YYYYMMDDHH24MISS' )
+	AND B.W_END_DATE IS NOT NULL
+INNER JOIN T_SECOM_PERSON C
+	ON B.CARD_NO = C.CARDNO
+	AND B.SABUN = C.SABUN
+	/* 운영반영시 주석해제 */ AND C.CARDTYPE = '5' /* 정비용역 */
+	AND C.TEAM = #{TEAM}
+INNER JOIN (
+	SELECT
+		A.AUFNR, /* 오더번호 */
+		A.KOSTL, /* 코스트센터 */
+		/* 2021-03-29 jamerl - 최승빈 : 소수점 두자리 반올림 한 값을 SUM 하여 사용하도록 의사결정 */
+		SUM( ROUND( ( CAST( B.W_END_DATE AS DATE ) - CAST( B.W_START_DATE AS DATE ) ), 2 ) * 24 / 8 ) AS MHOUR /* 공수 */
+	FROM TBL_WK A
+	INNER JOIN TBL_WK_ACCESS B
+		ON A.AUFNR = B.AUFNR
+		AND B.W_START_DATE BETWEEN TO_DATE( REPLACE( #{STD}, '/', '' ) || '000000', 'YYYYMMDDHH24MISS' ) AND TO_DATE( REPLACE( #{EDD}, '/', '' ) || '235959', 'YYYYMMDDHH24MISS' )
+		AND B.W_END_DATE IS NOT NULL
+	INNER JOIN T_SECOM_PERSON C
+		ON B.CARD_NO = C.CARDNO
+		AND B.SABUN = C.SABUN
+		-- /* 운영반영시 주석해제 */ AND C.CARDTYPE = '5' /* 정비용역 */
+		AND C.TEAM = #{TEAM}
+	WHERE 1=1
+	AND A.WORK_STATUS = '2' /* 작업완료 */
+	GROUP BY
+		A.AUFNR, A.KOSTL
+) D
+	ON A.AUFNR = D.AUFNR
+	AND A.KOSTL = D.KOSTL
+WHERE 1=1
+AND A.WORK_STATUS = '2' /* 작업완료 */
+GROUP BY
+	A.AUFNR, A.KOSTL
+</select>
+
+<select id="select_zcs_ipt_mon_manh_create_commute" resultType="HashMap">
+/* oracle.yp_zcs_ipt.select_zcs_ipt_mon_manh_create_commute */
+SELECT
+	A.COMMUTE AS COMMUTE,
+	A.COMMUTE_CORRECTION AS COMMUTE_CORRECTION,
+	A.COMMUTE_SUM AS COMMUTE_SUM,
+	A.SUBTRACTION AS SUBTRACTION
+FROM TBL_CONSTR_MONTHLY_RPT1_CMT A
+WHERE 1=1
+AND A.BASE_YYYYMM = REPLACE( #{BASE_YYYYMM}, '/', '')
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</select>
+
+<select id="select_zcs_ipt_mon_manh_create_commute_new" resultType="HashMap">
+/* oracle.yp_zcs_ipt.select_zcs_ipt_mon_manh_create_commute_new */
+SELECT
+	COUNT(A.SABUN) AS COMMUTE,
+	0 AS COMMUTE_CORRECTION,
+	COUNT(A.SABUN) AS COMMUTE_SUM
+FROM TBL_ACCESS A
+INNER JOIN T_SECOM_PERSON B
+	ON A.SABUN = B.SABUN
+	AND B.TEAM = #{TEAM}
+WHERE 1=1
+AND A.A_START_DATE IS NOT NULL
+AND A.A_START_DATE BETWEEN TO_DATE( REPLACE( #{STD}, '/', '' ) || '000000', 'YYYYMMDDHH24MISS' ) AND TO_DATE( REPLACE( #{EDD}, '/', '' ) || '235959', 'YYYYMMDDHH24MISS' )
+</select>
+
+<update id="merge_zcs_ipt_mon_manh_create">
+/* oracle.yp_zcs_ipt.merge_zcs_ipt_mon_manh_create */
+MERGE INTO TBL_CONSTRUCTION_MONTHLY_RPT1 A
+USING (
+	SELECT
+		REPLACE( #{BASE_YYYYMM}, '/', '') AS BASE_YYYYMM,
+		#{VENDOR_CODE} AS VENDOR_CODE,
+		#{CONTRACT_CODE} AS CONTRACT_CODE,
+		<choose>
+			<when test='"Y".equalsIgnoreCase( DBYN )'>
+		#{SEQ} AS SEQ, /* DB 데이터 */
+			</when>
+			<otherwise>
+		(
+			SELECT NVL( MAX( SEQ + 1 ), 1 ) FROM TBL_CONSTRUCTION_MONTHLY_RPT1
+			WHERE 1=1
+			AND BASE_YYYYMM = REPLACE( #{BASE_YYYYMM}, '/', '')
+			AND VENDOR_CODE = #{VENDOR_CODE}
+			AND CONTRACT_CODE = #{CONTRACT_CODE}
+		) AS SEQ, /* 행추가 데이터 */
+			</otherwise>
+		</choose>
+		#{ORDER_NUMBER} AS ORDER_NUMBER,
+		#{WORK_CONTENTS} AS WORK_CONTENTS,
+		#{COST_CODE} AS COST_CODE,
+		#{COST_NAME} AS COST_NAME,
+		SUBSTR( REPLACE( #{WORK_START_DT}, '/', ''), 1, 4 ) AS YYYY,
+		SUBSTR( REPLACE( #{WORK_START_DT}, '/', ''), 5, 2 ) AS MM,
+		SUBSTR( REPLACE( #{WORK_START_DT}, '/', ''), 7, 2 ) AS DD,
+		#{WORK_START_DT} AS WORK_START_DT,
+		#{WORK_START_TIME} AS WORK_START_TIME,
+		#{WORK_END_DT} AS WORK_END_DT,
+		#{WORK_END_TIME} AS WORK_END_TIME,
+		#{MANHOUR} AS MANHOUR,
+		#{MANHOUR_CORRECTION} AS MANHOUR_CORRECTION,
+		#{MANHOUR_SUM} AS MANHOUR_SUM,
+		#{MEMO} AS MEMO,
+		#{s_emp_code} AS REG_EMP,
+		SYSDATE AS REG_DATE,
+		#{s_emp_code} AS UPD_EMP,
+		SYSDATE AS UPD_DATE
+	FROM DUAL
+) B
+ON (
+		A.BASE_YYYYMM = B.BASE_YYYYMM
+	AND A.VENDOR_CODE = B.VENDOR_CODE
+	AND A.CONTRACT_CODE = B.CONTRACT_CODE
+	AND A.SEQ = B.SEQ
+)
+WHEN NOT MATCHED THEN
+INSERT (
+	BASE_YYYYMM,
+	VENDOR_CODE,
+	CONTRACT_CODE,
+	SEQ,
+	ORDER_NUMBER,
+	WORK_CONTENTS,
+	COST_CODE,
+	COST_NAME,
+	YYYY,
+	MM,
+	DD,
+	WORK_START_DT,
+	WORK_START_TIME,
+	WORK_END_DT,
+	WORK_END_TIME,
+	MANHOUR,
+	MANHOUR_CORRECTION,
+	MANHOUR_SUM,
+	MEMO,
+	REG_EMP,
+	REG_DATE
+) VALUES (
+	B.BASE_YYYYMM,
+	B.VENDOR_CODE,
+	B.CONTRACT_CODE,
+	B.SEQ,
+	B.ORDER_NUMBER,
+	B.WORK_CONTENTS,
+	B.COST_CODE,
+	B.COST_NAME,
+	B.YYYY,
+	B.MM,
+	B.DD,
+	B.WORK_START_DT,
+	B.WORK_START_TIME,
+	B.WORK_END_DT,
+	B.WORK_END_TIME,
+	B.MANHOUR,
+	B.MANHOUR_CORRECTION,
+	B.MANHOUR_SUM,
+	B.MEMO,
+	B.REG_EMP,
+	B.REG_DATE
+)
+WHEN MATCHED THEN
+UPDATE SET
+	MANHOUR_CORRECTION = B.MANHOUR_CORRECTION,
+	MANHOUR_SUM = B.MANHOUR_SUM,
+	MEMO = B.MEMO,
+	UPD_EMP = B.UPD_EMP,
+	UPD_DATE = B.UPD_DATE
+</update>
+
+<update id="merge_zcs_ipt_mon_manh_create_commute">
+/* oracle.yp_zcs_ipt.merge_zcs_ipt_mon_manh_create_commute */
+MERGE INTO TBL_CONSTR_MONTHLY_RPT1_CMT A
+USING (
+	SELECT
+		REPLACE( #{BASE_YYYYMM}, '/', '') AS BASE_YYYYMM,
+		#{VENDOR_CODE} AS VENDOR_CODE,
+		#{CONTRACT_CODE} AS CONTRACT_CODE,
+		#{COMMUTE} AS COMMUTE,
+		#{COMMUTE_CORRECTION} AS COMMUTE_CORRECTION,
+		#{COMMUTE_SUM} AS COMMUTE_SUM,
+		#{SUBTRACTION} AS SUBTRACTION,
+		#{s_emp_code} AS REG_EMP,
+		SYSDATE AS REG_DATE,
+		#{s_emp_code} AS UPD_EMP,
+		SYSDATE AS UPD_DATE
+	FROM DUAL
+) B
+ON (
+		A.BASE_YYYYMM = B.BASE_YYYYMM
+	AND A.VENDOR_CODE = B.VENDOR_CODE
+	AND A.CONTRACT_CODE = B.CONTRACT_CODE
+)
+WHEN NOT MATCHED THEN
+INSERT (
+	BASE_YYYYMM,
+	VENDOR_CODE,
+	CONTRACT_CODE,
+	COMMUTE,
+	COMMUTE_CORRECTION,
+	COMMUTE_SUM,
+	SUBTRACTION,
+	REG_EMP,
+	REG_DATE
+) VALUES (
+	B.BASE_YYYYMM,
+	B.VENDOR_CODE,
+	B.CONTRACT_CODE,
+	B.COMMUTE,
+	B.COMMUTE_CORRECTION,
+	B.COMMUTE_SUM,
+	B.SUBTRACTION,
+	B.REG_EMP,
+	B.REG_DATE
+)
+WHEN MATCHED THEN
+UPDATE SET
+	COMMUTE_CORRECTION = B.COMMUTE_CORRECTION,
+	COMMUTE_SUM = B.COMMUTE_SUM,
+	SUBTRACTION = B.SUBTRACTION,
+	UPD_EMP = B.UPD_EMP,
+	UPD_DATE = B.UPD_DATE
+</update>
+
+<delete id="delete_zcs_ipt_mon_manh_create">
+/* oracle.yp_zcs_ipt.delete_zcs_ipt_mon_manh_create */
+DELETE FROM TBL_CONSTRUCTION_MONTHLY_RPT1 A
+WHERE 1=1
+AND A.BASE_YYYYMM = REPLACE( #{BASE_YYYYMM}, '/', '')
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+AND A.SEQ = #{SEQ}
+</delete>
+
+<delete id="delete_zcs_ipt_mon_manh_create_commute">
+/* oracle.yp_zcs_ipt.delete_zcs_ipt_mon_manh_create_commute - 월보년월, 거래처코드, 계약코드로 데이터가 존재하지 않는 경우에만 삭제 */
+DELETE FROM TBL_CONSTR_MONTHLY_RPT1_CMT A
+WHERE 1=1
+AND A.BASE_YYYYMM = REPLACE( #{BASE_YYYYMM}, '/', '')
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</delete>
+
+<select id="select_chk_enable_proc" resultType="integer">
+/* oracle.yp_zcs_ipt.select_chk_enable_proc */
+SELECT
+	COUNT(*) AS CNT
+FROM TBL_CONSTRUCTION_CHK_RPT A
+INNER JOIN TBL_CONSTRUCTION_SUBC B
+	ON A.CONTRACT_CODE = B.CONTRACT_CODE
+	AND B.PAY_STANDARD IN (1, 2, 3) -- 지급기준 : 공수, 작업, 월정액
+WHERE 1=1
+<if test="BASE_YYYYMM != null">
+AND A.BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+<if test="VENDOR_CODE != null">
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test="CONTRACT_CODE != null">
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<if test="REPORT_CODE != null">
+AND A.REPORT_CODE = #{REPORT_CODE}
+</if>
+AND NVL(A.STATUS, 'NULL') NOT IN ('5', '7', 'NULL')
+</select>
+
+<select id="select_construction_monthly_rpt1_cnt" resultType="Double">
+/* oracle.yp_zcs_ipt.select_construction_monthly_rpt1_cnt */
+
+	
+SELECT
+    COUNT(*) as cnt
+FROM(
+    SELECT 
+        BASE_YYYYMM,
+        CONTRACT_CODE,
+        VENDOR_CODE,
+        SEQ,
+        YYYY || MM || DD as WORK_DATE,
+        YYYY,
+        MM,
+        DD,
+        WORK_START_TIME,
+        WORK_END_TIME,
+        COST_CODE,
+        COST_NAME,
+        WORK_CONTENTS,
+        ORDER_NUMBER,
+        MANHOUR
+    FROM TBL_CONSTRUCTION_MONTHLY_RPT1
+) A
+WHERE 1=1
+<if test='BASE_YYYYMM != null'>
+AND A.BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<if test='VENDOR_CODE != null'>
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_START_DATE != null'>
+AND A.WORK_DATE <![CDATA[>=]]> #{CONTRACT_START_DATE}
+</if>
+<if test='CONTRACT_END_DATE != null'>
+AND A.WORK_DATE <![CDATA[<=]]> #{CONTRACT_END_DATE}
+</if>
+</select>
+
+<select id="select_construction_monthly_rpt1" resultType="HashMap">
+/* oracle.yp_zcs_ipt.select_construction_monthly_rpt1 */
+SELECT
+    BASE_YYYYMM,
+    CONTRACT_CODE,
+    VENDOR_CODE,
+    SEQ,
+    YYYY || MM || DD as WORK_DATE,
+    YYYY,
+    MM,
+    DD,
+    WORK_START_TIME,
+    WORK_END_TIME,
+    COST_CODE,
+    COST_NAME,
+    WORK_CONTENTS,
+    ORDER_NUMBER,
+    MANHOUR
+FROM(
+    SELECT 
+        BASE_YYYYMM,
+        CONTRACT_CODE,
+        VENDOR_CODE,
+        SEQ,
+        YYYY || MM || DD as WORK_DATE,
+        YYYY,
+        MM,
+        DD,
+        WORK_START_TIME,
+        WORK_END_TIME,
+        COST_CODE,
+        COST_NAME,
+        WORK_CONTENTS,
+        ORDER_NUMBER,
+        MANHOUR
+    FROM TBL_CONSTRUCTION_MONTHLY_RPT1
+) A
+WHERE 1=1
+<if test='BASE_YYYYMM != null'>
+AND A.BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<if test='VENDOR_CODE != null'>
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_START_DATE != null'>
+AND A.WORK_DATE <![CDATA[>=]]> #{CONTRACT_START_DATE}
+</if>
+<if test='CONTRACT_END_DATE != null'>
+AND A.WORK_DATE <![CDATA[<=]]> #{CONTRACT_END_DATE}
+</if>
+ORDER BY SEQ
+</select>
+
+<update id="create_construction_monthly_rpt1" parameterType="java.util.HashMap">
+/* oracle.yp_zcs_ipt.create_construction_monthly_rpt1 */
+	INSERT INTO TBL_CONSTRUCTION_MONTHLY_RPT1(
+    BASE_YYYYMM,
+    CONTRACT_CODE,
+    VENDOR_CODE,
+    SEQ,
+    YYYY,
+    MM,
+    DD,
+    WORK_START_TIME,
+    WORK_END_TIME,
+    COST_CODE,
+    COST_NAME,
+    WORK_CONTENTS,
+    ORDER_NUMBER,
+    MANHOUR,
+    REG_EMP,
+    UPD_EMP,
+    REG_DATE,
+    UPD_DATE
+)VALUES(
+    #{BASE_YYYYMM},
+    #{CONTRACT_CODE},
+    #{VENDOR_CODE},
+    (
+    	SELECT NVL(MAX(SEQ+1),1)  FROM TBL_CONSTRUCTION_MONTHLY_RPT1 
+     	WHERE 1=1
+     	AND BASE_YYYYMM = #{BASE_YYYYMM}
+     	AND VENDOR_CODE = #{VENDOR_CODE}
+     	AND CONTRACT_CODE = #{CONTRACT_CODE}
+    ),
+    LPAD(#{YYYY}, 4, '0'),
+    LPAD(#{MM}, 2, '0'),
+    LPAD(#{DD}, 2, '0'), 
+    #{WORK_START_TIME},
+    #{WORK_END_TIME},
+    #{COST_CODE},
+    #{COST_NAME},
+    #{WORK_CONTENTS},
+    #{ORDER_NUMBER},
+    #{MANHOUR}, 
+    #{s_emp_code},
+    #{s_emp_code},
+    sysdate,
+    sysdate
+)
+</update>
+
+<update id="merge_construction_month_rpt1" parameterType="java.util.HashMap">
+/* oracle.yp_zcs_ipt.merge_construction_month_rpt1 */
+MERGE INTO TBL_CONSTRUCTION_MONTHLY_RPT1 A
+USING (
+	SELECT
+		#{BASE_YYYYMM} AS BASE_YYYYMM,
+		#{CONTRACT_CODE} AS CONTRACT_CODE,
+		#{VENDOR_CODE} AS VENDOR_CODE,
+	    #{SEQ} AS SEQ,
+	    LPAD(#{YYYY}, 4, '0') AS YYYY,
+	    LPAD(#{MM}, 2, '0') AS MM,
+	    LPAD(#{DD}, 2, '0') AS DD,
+	    #{WORK_START_TIME} AS WORK_START_TIME,
+	    #{WORK_END_TIME} AS WORK_END_TIME,
+	    #{COST_CODE} AS COST_CODE,
+	    #{COST_NAME} AS COST_NAME,
+	    #{WORK_CONTENTS} AS WORK_CONTENTS,
+	    #{ORDER_NUMBER} AS ORDER_NUMBER,
+	    #{MANHOUR} AS MANHOUR,
+	    #{s_emp_code} AS REG_EMP,
+	    #{s_emp_code} AS UPD_EMP,
+	    SYSDATE AS REG_DATE,
+	    SYSDATE AS UPD_DATE
+	FROM DUAL
+) B
+ON (
+		A.BASE_YYYYMM = B.BASE_YYYYMM
+	AND	A.CONTRACT_CODE = B.CONTRACT_CODE
+	AND	A.VENDOR_CODE = B.VENDOR_CODE
+	AND	A.SEQ = B.SEQ
+)
+WHEN NOT MATCHED THEN
+INSERT(
+    BASE_YYYYMM,
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	SEQ,
+	YYYY,
+	MM,
+	DD,
+	WORK_START_TIME,
+	WORK_END_TIME,
+	COST_CODE,
+	COST_NAME,
+	WORK_CONTENTS,
+	ORDER_NUMBER,
+	MANHOUR,
+	REG_EMP,
+	UPD_EMP,
+	REG_DATE,
+	UPD_DATE
+) VALUES(
+    
+    B.BASE_YYYYMM,
+	B.CONTRACT_CODE,
+	B.VENDOR_CODE,
+	(
+		SELECT NVL(MAX(SEQ),0)+1 FROM TBL_CONSTRUCTION_MONTHLY_RPT1 
+		WHERE BASE_YYYYMM = #{BASE_YYYYMM}
+		AND CONTRACT_CODE = #{CONTRACT_CODE}
+		AND VENDOR_CODE = #{VENDOR_CODE}
+	),--데이터가없으면 0 데이터가 있으면 최대값 +1
+	B.YYYY,
+	B.MM,
+	B.DD,
+	B.WORK_START_TIME,
+	B.WORK_END_TIME,
+	B.COST_CODE,
+	B.COST_NAME,
+	B.WORK_CONTENTS,
+	B.ORDER_NUMBER,
+	B.MANHOUR,
+	B.REG_EMP,
+	B.UPD_EMP,
+	B.REG_DATE,
+	B.UPD_DATE
+)
+WHEN MATCHED THEN
+UPDATE SET
+    YYYY = B.YYYY,
+	MM = B.MM,
+	DD = B.DD,
+	WORK_START_TIME = B.WORK_START_TIME,
+	WORK_END_TIME = B.WORK_END_TIME,
+	COST_CODE = B.COST_CODE,
+	COST_NAME = B.COST_NAME,
+	WORK_CONTENTS = B.WORK_CONTENTS,
+	ORDER_NUMBER = B.ORDER_NUMBER,
+	MANHOUR = B.MANHOUR,
+	UPD_EMP = B.UPD_EMP,
+	UPD_DATE = B.UPD_DATE
+</update>
+
+<select id="month_manh_excelUpload_check" resultType="int">
+/* oracle.yp_zcs_ipt.month_manh_excelUpload_check */
+SELECT 
+    COUNT(*) as cnt
+FROM TBL_CONSTRUCTION_MONTHLY_RPT1
+WHERE 1=1
+<if test='BASE_YYYYMM != null'>
+AND BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if> 
+</select>
+
+<update id="month_manh_delete">
+/* oracle.yp_zcs_ipt.month_manh_delete */
+DELETE FROM TBL_CONSTRUCTION_MONTHLY_RPT1
+WHERE 1=1
+AND BASE_YYYYMM = #{BASE_YYYYMM}
+AND VENDOR_CODE = #{VENDOR_CODE}
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+AND SEQ = #{SEQ}
+</update>
+
+<select id="select_construction_monthly_rpt2_cnt" resultType="Double">
+/* oracle.yp_zcs_ipt.select_construction_monthly_rpt2_cnt */
+SELECT 
+	COUNT(*) as cnt
+FROM TBL_CONSTRUCTION_MONTHLY_RPT2
+WHERE 1=1
+<if test='BASE_YYYYMM != null'>
+AND BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_START_DATE != null'>
+AND YYYY || MM || DD <![CDATA[>=]]> #{CONTRACT_START_DATE}
+</if>
+<if test='CONTRACT_END_DATE != null'>
+AND YYYY || MM || DD <![CDATA[<=]]> #{CONTRACT_END_DATE}
+</if>
+</select>
+
+<select id="select_construction_monthly_rpt2" resultType="HashMap">
+/* oracle.yp_zcs_ipt.select_construction_monthly_rpt2 */
+SELECT
+    BASE_YYYYMM,
+    CONTRACT_CODE,
+    VENDOR_CODE,
+    SEQ,
+    YYYY || MM || DD as WORK_DATE,
+    YYYY,
+    MM,
+    DD,
+    WORK_START_TIME,
+    WORK_END_TIME,
+    COST_CODE,
+    COST_NAME,
+    WORK_CONTENTS,
+    ORDER_NUMBER,
+    QTY
+FROM(
+    SELECT 
+        BASE_YYYYMM,
+        CONTRACT_CODE,
+        VENDOR_CODE,
+        SEQ,
+        YYYY || MM || DD as WORK_DATE,
+        YYYY,
+        MM,
+        DD,
+        WORK_START_TIME,
+        WORK_END_TIME,
+        COST_CODE,
+        COST_NAME,
+        WORK_CONTENTS,
+        ORDER_NUMBER,
+        QTY
+    FROM TBL_CONSTRUCTION_MONTHLY_RPT2
+) A
+WHERE 1=1
+<if test='BASE_YYYYMM != null'>
+AND A.BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<if test='VENDOR_CODE != null'>
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_START_DATE != null'>
+AND A.WORK_DATE <![CDATA[>=]]> #{CONTRACT_START_DATE}
+</if>
+<if test='CONTRACT_END_DATE != null'>
+AND A.WORK_DATE <![CDATA[<=]]> #{CONTRACT_END_DATE}
+</if>
+ORDER BY SEQ
+</select>
+
+<select id="select_construction_monthly_rpt2_tag_cnt" resultType="Double">
+/* oracle.yp_zcs_ipt.select_construction_monthly_rpt2_tag_cnt */
+SELECT 
+	COUNT(*) as cnt
+FROM TBL_CONST_MONTHLY_RPT2_TAG
+WHERE 1=1
+<if test='BASE_YYYYMM != null'>
+AND BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_START_DATE != null'>
+AND WORK_DT <![CDATA[>=]]> #{CONTRACT_START_DATE}
+</if>
+<if test='CONTRACT_END_DATE != null'>
+AND WORK_DT <![CDATA[<=]]> #{CONTRACT_END_DATE}
+</if>
+</select>
+
+<select id="select_construction_monthly_rpt2_tag" resultType="HashMap">
+/* oracle.yp_zcs_ipt.select_construction_monthly_rpt2_tag */
+SELECT
+    BASE_YYYYMM,
+    CONTRACT_CODE,
+    VENDOR_CODE,
+    SEQ,
+    WORK_DT as WORK_DATE,
+	SUBSTR( REPLACE( WORK_DT, '/', ''), 1, 4 ) AS YYYY,
+	SUBSTR( REPLACE( WORK_DT, '/', ''), 5, 2 ) AS MM,
+	SUBSTR( REPLACE( WORK_DT, '/', ''), 7, 2 ) AS DD,
+    WORK_START_TIME,
+    WORK_END_TIME,
+    COST_CODE,
+    COST_NAME,
+    WORK_CONTENTS,
+    ORDER_NUMBER,
+    MANHOUR,
+    MANHOUR_CORRECTION,
+    MANHOUR_SUM
+FROM(
+    SELECT 
+        BASE_YYYYMM,
+        CONTRACT_CODE,
+        VENDOR_CODE,
+        SEQ,
+        WORK_DT,
+        WORK_START_DT,
+        WORK_START_TIME,
+        WORK_END_DT,
+        WORK_END_TIME,
+        COST_CODE,
+        COST_NAME,
+        WORK_CONTENTS,
+        ORDER_NUMBER,
+        MANHOUR,
+        MANHOUR_CORRECTION,
+        MANHOUR_SUM
+    FROM TBL_CONST_MONTHLY_RPT2_TAG
+) A
+WHERE 1=1
+<if test='BASE_YYYYMM != null'>
+AND A.BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_START_DATE != null'>
+AND WORK_DT <![CDATA[>=]]> #{CONTRACT_START_DATE}
+</if>
+<if test='CONTRACT_END_DATE != null'>
+AND WORK_DT <![CDATA[<=]]> #{CONTRACT_END_DATE}
+</if>
+ORDER BY SEQ
+</select>
+
+<select id="select_construction_monthly_rpt2_excel" resultType="java.util.LinkedHashMap">
+/* oracle.yp_zcs_ipt.select_construction_monthly_rpt2_excel */
+SELECT
+	A.CONTRACT_CODE,
+	A.SEQ,
+	A.CONTENTS,
+	A.MARK_UNIT,
+	-- RTRIM(TO_CHAR(A.AMOUNT, 'FM9,999,999,999,999,999,999,990.999'), '.') AS AMOUNT,
+	A.AMOUNT,
+	CASE A.UNIT WHEN '\' THEN '￦' WHEN '%' THEN '％' ELSE '' END AS UNIT
+FROM TBL_CONSTRUCTION_SUBC_EMP_COST A
+WHERE 1=1
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+ORDER BY SEQ
+</select>
+
+<select id="month_opt_excelUpload_check" resultType="int">
+/* oracle.yp_zcs_ipt.month_opt_excelUpload_check */
+SELECT 
+    COUNT(*) as cnt
+FROM TBL_CONSTRUCTION_MONTHLY_RPT2
+WHERE 1=1
+<if test='BASE_YYYYMM != null'>
+AND BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if> 
+</select>
+
+<update id="create_construction_monthly_rpt2" parameterType="java.util.HashMap">
+/* oracle.yp_zcs_ipt.create_construction_monthly_rpt2 */
+	INSERT INTO TBL_CONSTRUCTION_MONTHLY_RPT2(
+    BASE_YYYYMM,
+    CONTRACT_CODE,
+    VENDOR_CODE,
+    SEQ,
+    YYYY,
+    MM,
+    DD,
+    WORK_START_TIME,
+    WORK_END_TIME,
+    COST_CODE,
+    COST_NAME,
+    WORK_CONTENTS,
+    ORDER_NUMBER,
+    QTY,
+    REG_EMP,
+    UPD_EMP,
+    REG_DATE,
+    UPD_DATE
+)VALUES(
+    #{BASE_YYYYMM},
+    #{CONTRACT_CODE},
+    #{VENDOR_CODE},
+    (
+    	SELECT NVL(MAX(SEQ+1),1)  FROM TBL_CONSTRUCTION_MONTHLY_RPT2 
+     	WHERE 1=1
+     	AND BASE_YYYYMM = #{BASE_YYYYMM}
+     	AND VENDOR_CODE = #{VENDOR_CODE}
+     	AND CONTRACT_CODE = #{CONTRACT_CODE}
+    ),
+    LPAD(#{YYYY}, 4, '0'),
+    LPAD(#{MM}, 2, '0'),
+    LPAD(#{DD}, 2, '0'), 
+    #{WORK_START_TIME},
+    #{WORK_END_TIME},
+    #{COST_CODE},
+    #{COST_NAME},
+    #{WORK_CONTENTS},
+    #{ORDER_NUMBER},
+    #{QTY},
+    #{s_emp_code},
+    #{s_emp_code},
+    sysdate,
+    sysdate
+)
+</update>
+
+<update id="merge_construction_month_rpt2" parameterType="java.util.HashMap">
+/* oracle.yp_zcs_ipt.merge_construction_month_rpt2 */
+MERGE INTO TBL_CONSTRUCTION_MONTHLY_RPT2 A
+USING (
+	SELECT
+		#{BASE_YYYYMM} AS BASE_YYYYMM,
+		#{CONTRACT_CODE} AS CONTRACT_CODE,
+		#{VENDOR_CODE} AS VENDOR_CODE,
+	    #{SEQ} AS SEQ,
+	    LPAD(#{YYYY}, 4, '0') AS YYYY,
+	    LPAD(#{MM}, 2, '0') AS MM,
+	    LPAD(#{DD}, 2, '0') AS DD,
+	    #{WORK_START_TIME} AS WORK_START_TIME,
+	    #{WORK_END_TIME} AS WORK_END_TIME,
+	    #{COST_CODE} AS COST_CODE,
+	    #{COST_NAME} AS COST_NAME,
+	    #{WORK_CONTENTS} AS WORK_CONTENTS,
+	    #{ORDER_NUMBER} AS ORDER_NUMBER,
+	    #{QTY} AS QTY,
+	    #{s_emp_code} AS REG_EMP,
+	    #{s_emp_code} AS UPD_EMP,
+	    SYSDATE AS REG_DATE,
+	    SYSDATE AS UPD_DATE
+	FROM DUAL
+) B
+ON (
+		A.BASE_YYYYMM = B.BASE_YYYYMM
+	AND	A.CONTRACT_CODE = B.CONTRACT_CODE
+	AND	A.VENDOR_CODE = B.VENDOR_CODE
+	AND	A.SEQ = B.SEQ
+)
+WHEN NOT MATCHED THEN
+INSERT(
+    BASE_YYYYMM,
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	SEQ,
+	YYYY,
+	MM,
+	DD,
+	WORK_START_TIME,
+	WORK_END_TIME,
+	COST_CODE,
+	COST_NAME,
+	WORK_CONTENTS,
+	ORDER_NUMBER,
+	QTY,
+	REG_EMP,
+	UPD_EMP,
+	REG_DATE,
+	UPD_DATE
+) VALUES(
+    
+    B.BASE_YYYYMM,
+	B.CONTRACT_CODE,
+	B.VENDOR_CODE,
+	(
+		SELECT NVL(MAX(SEQ),0)+1 FROM TBL_CONSTRUCTION_MONTHLY_RPT2 
+		WHERE BASE_YYYYMM = #{BASE_YYYYMM}
+		AND CONTRACT_CODE = #{CONTRACT_CODE}
+		AND VENDOR_CODE = #{VENDOR_CODE}
+	),--데이터가없으면 0 데이터가 있으면 최대값 +1
+	B.YYYY,
+	B.MM,
+	B.DD,
+	B.WORK_START_TIME,
+	B.WORK_END_TIME,
+	B.COST_CODE,
+	B.COST_NAME,
+	B.WORK_CONTENTS,
+	B.ORDER_NUMBER,
+	B.QTY,
+	B.REG_EMP,
+	B.UPD_EMP,
+	B.REG_DATE,
+	B.UPD_DATE
+)
+WHEN MATCHED THEN
+UPDATE SET
+    YYYY = B.YYYY,
+	MM = B.MM,
+	DD = B.DD,
+	WORK_START_TIME = B.WORK_START_TIME,
+	WORK_END_TIME = B.WORK_END_TIME,
+	COST_CODE = B.COST_CODE,
+	COST_NAME = B.COST_NAME,
+	WORK_CONTENTS = B.WORK_CONTENTS,
+	ORDER_NUMBER = B.ORDER_NUMBER,
+	QTY = B.QTY,
+	UPD_EMP = B.UPD_EMP,
+	UPD_DATE = B.UPD_DATE
+</update>
+
+<update id="month_opt_delete">
+/* oracle.yp_zcs_ipt.month_opt_delete */
+DELETE FROM TBL_CONSTRUCTION_MONTHLY_RPT2
+WHERE 1=1
+AND BASE_YYYYMM = #{BASE_YYYYMM}
+AND VENDOR_CODE = #{VENDOR_CODE}
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+AND SEQ = #{SEQ}
+</update>
+
+<select id="select_construction_monthly_rpt3_cnt" resultType="Double">
+/* oracle.yp_zcs_ipt.select_construction_monthly_rpt3_cnt */
+SELECT 
+	COUNT(*) as cnt
+FROM TBL_CONSTRUCTION_MONTHLY_RPT3
+WHERE 1=1
+<if test='BASE_YYYYMM != null'>
+AND BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE = #{VENDOR_CODE}
+</if>
+</select>
+
+<select id="select_construction_monthly_rpt3" resultType="HashMap">
+/* oracle.yp_zcs_ipt.select_construction_monthly_rpt3 */
+SELECT
+    BASE_YYYYMM,
+    CONTRACT_CODE,
+    VENDOR_CODE,
+    SEQ,
+    YYYY || MM || DD as WORK_DATE,
+    YYYY,
+    MM,
+    DD,
+    WORK_START_TIME,
+    WORK_END_TIME,
+    COST_CODE,
+    COST_NAME,
+    WORK_CONTENTS,
+    ORDER_NUMBER,
+    MANHOUR
+FROM(
+    SELECT 
+        BASE_YYYYMM,
+        CONTRACT_CODE,
+        VENDOR_CODE,
+        SEQ,
+        YYYY || MM || DD as WORK_DATE,
+        YYYY,
+        MM,
+        DD,
+        WORK_START_TIME,
+        WORK_END_TIME,
+        COST_CODE,
+        COST_NAME,
+        WORK_CONTENTS,
+        ORDER_NUMBER,
+        MANHOUR
+    FROM TBL_CONSTRUCTION_MONTHLY_RPT3
+) A
+WHERE 1=1
+<if test='BASE_YYYYMM != null'>
+AND A.BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<if test='VENDOR_CODE != null'>
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_START_DATE != null'>
+AND A.WORK_DATE <![CDATA[>=]]> #{CONTRACT_START_DATE}
+</if>
+<if test='CONTRACT_END_DATE != null'>
+AND A.WORK_DATE <![CDATA[<=]]> #{CONTRACT_END_DATE}
+</if>
+ORDER BY SEQ
+</select>
+
+<select id="month_excelUpload_check" resultType="int">
+/* oracle.yp_zcs_ipt.month_excelUpload_check */
+SELECT 
+    COUNT(*) as cnt
+FROM TBL_CONSTRUCTION_MONTHLY_RPT3
+WHERE 1=1
+<if test='BASE_YYYYMM != null'>
+AND BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if> 
+</select>
+
+<update id="create_construction_monthly_rpt3" parameterType="java.util.HashMap">
+/* oracle.yp_zcs_ipt.create_construction_monthly_rpt3 */
+	INSERT INTO TBL_CONSTRUCTION_MONTHLY_RPT3(
+    BASE_YYYYMM,
+    CONTRACT_CODE,
+    VENDOR_CODE,
+    SEQ,
+    YYYY,
+    MM,
+    DD,
+    WORK_START_TIME,
+    WORK_END_TIME,
+    COST_CODE,
+    COST_NAME,
+    WORK_CONTENTS,
+    ORDER_NUMBER,
+    MANHOUR,
+    REG_EMP,
+    UPD_EMP,
+    REG_DATE,
+    UPD_DATE
+)VALUES(
+    #{BASE_YYYYMM},
+    #{CONTRACT_CODE},
+    #{VENDOR_CODE},
+    (
+    	SELECT NVL(MAX(SEQ+1),1)  FROM TBL_CONSTRUCTION_MONTHLY_RPT3 
+     	WHERE 1=1
+     	AND BASE_YYYYMM = #{BASE_YYYYMM}
+     	AND VENDOR_CODE = #{VENDOR_CODE}
+     	AND CONTRACT_CODE = #{CONTRACT_CODE}
+    ),
+    LPAD(#{YYYY}, 4, '0'),
+    LPAD(#{MM}, 2, '0'),
+    LPAD(#{DD}, 2, '0'), 
+    #{WORK_START_TIME},
+    #{WORK_END_TIME},
+    #{COST_CODE},
+    #{COST_NAME},
+    #{WORK_CONTENTS},
+    #{ORDER_NUMBER},
+    #{MANHOUR}, 
+    #{s_emp_code},
+    #{s_emp_code},
+    sysdate,
+    sysdate
+)
+</update>
+
+<update id="merge_construction_month_rpt3" parameterType="java.util.HashMap">
+/* oracle.yp_zcs_ipt.merge_construction_month_rpt3 */
+MERGE INTO TBL_CONSTRUCTION_MONTHLY_RPT3 A
+USING (
+	SELECT
+		#{BASE_YYYYMM} AS BASE_YYYYMM,
+		#{CONTRACT_CODE} AS CONTRACT_CODE,
+		#{VENDOR_CODE} AS VENDOR_CODE,
+	    #{SEQ} AS SEQ,
+	    LPAD(#{YYYY}, 4, '0') AS YYYY,
+	    LPAD(#{MM}, 2, '0') AS MM,
+	    LPAD(#{DD}, 2, '0') AS DD,
+	    #{WORK_START_TIME} AS WORK_START_TIME,
+	    #{WORK_END_TIME} AS WORK_END_TIME,
+	    #{COST_CODE} AS COST_CODE,
+	    #{COST_NAME} AS COST_NAME,
+	    #{WORK_CONTENTS} AS WORK_CONTENTS,
+	    #{ORDER_NUMBER} AS ORDER_NUMBER,
+	    #{MANHOUR} AS MANHOUR,
+	    #{s_emp_code} AS REG_EMP,
+	    #{s_emp_code} AS UPD_EMP,
+	    SYSDATE AS REG_DATE,
+	    SYSDATE AS UPD_DATE
+	FROM DUAL
+) B
+ON (
+		A.BASE_YYYYMM = B.BASE_YYYYMM
+	AND	A.CONTRACT_CODE = B.CONTRACT_CODE
+	AND	A.VENDOR_CODE = B.VENDOR_CODE
+	AND	A.SEQ = B.SEQ
+)
+WHEN NOT MATCHED THEN
+INSERT(
+    BASE_YYYYMM,
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	SEQ,
+	YYYY,
+	MM,
+	DD,
+	WORK_START_TIME,
+	WORK_END_TIME,
+	COST_CODE,
+	COST_NAME,
+	WORK_CONTENTS,
+	ORDER_NUMBER,
+	MANHOUR,
+	REG_EMP,
+	UPD_EMP,
+	REG_DATE,
+	UPD_DATE
+) VALUES(
+    
+    B.BASE_YYYYMM,
+	B.CONTRACT_CODE,
+	B.VENDOR_CODE,
+	(
+		SELECT NVL(MAX(SEQ),0)+1 FROM TBL_CONSTRUCTION_MONTHLY_RPT3 
+		WHERE BASE_YYYYMM = #{BASE_YYYYMM}
+		AND CONTRACT_CODE = #{CONTRACT_CODE}
+		AND VENDOR_CODE = #{VENDOR_CODE}
+	),--데이터가없으면 0 데이터가 있으면 최대값 +1
+	B.YYYY,
+	B.MM,
+	B.DD,
+	B.WORK_START_TIME,
+	B.WORK_END_TIME,
+	B.COST_CODE,
+	B.COST_NAME,
+	B.WORK_CONTENTS,
+	B.ORDER_NUMBER,
+	B.MANHOUR,
+	B.REG_EMP,
+	B.UPD_EMP,
+	B.REG_DATE,
+	B.UPD_DATE
+)
+WHEN MATCHED THEN
+UPDATE SET
+    YYYY = B.YYYY,
+	MM = B.MM,
+	DD = B.DD,
+	WORK_START_TIME = B.WORK_START_TIME,
+	WORK_END_TIME = B.WORK_END_TIME,
+	COST_CODE = B.COST_CODE,
+	COST_NAME = B.COST_NAME,
+	WORK_CONTENTS = B.WORK_CONTENTS,
+	ORDER_NUMBER = B.ORDER_NUMBER,
+	MANHOUR = B.MANHOUR,
+	UPD_EMP = B.UPD_EMP,
+	UPD_DATE = B.UPD_DATE
+</update>
+
+<update id="month_delete">
+/* oracle.yp_zcs_ipt.month_delete */
+DELETE FROM TBL_CONSTRUCTION_MONTHLY_RPT3
+WHERE 1=1
+AND BASE_YYYYMM = #{BASE_YYYYMM}
+AND VENDOR_CODE = #{VENDOR_CODE}
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+AND SEQ = #{SEQ}
+</update>
+
+<select id="select_zcs_ipt_process_list" resultType="HashMap">
+/* oracle.yp_zcs_ipt.select_zcs_ipt_process_list */
+SELECT
+	DENSE_RANK() OVER(ORDER BY A.VAPLZ) AS RNUM,
+	A.VAPLZ, /* 작업장코드 */
+	A.VATXT, /* 작업장 */
+	A.AUFNR, /* 오더번호 */
+	A.KOSTL, /* 코스트센터코드 */
+	A.KTEXT, /* 코스트센터 */
+	A.AUFTEXT, /* 작업명 */
+	TO_CHAR(B.W_START_DATE, 'YYYY/MM/DD HH24:MI') AS W_START_DATE,
+	TO_CHAR(C.W_END_DATE, 'YYYY/MM/DD HH24:MI') AS W_END_DATE,
+	(
+		SELECT
+			COUNT(A.AUFNR) AS AUFNR_CNT
+		FROM TBL_WK_ACCESS S
+		WHERE 1=1
+		AND S.AUFNR = A.AUFNR
+	) AS WK_CNT /* 작업인원 */
+FROM TBL_WK A /* 1. 메인 */
+INNER JOIN (
+	SELECT
+		RANK() OVER(PARTITION BY S.AUFNR ORDER BY S.WORK_SEQ ASC) AS RN,
+		S.AUFNR,
+		S.W_START_DATE
+	FROM TBL_WK_ACCESS S
+	WHERE 1=1
+	<if test="A_START_DATE_START != null">
+	AND TO_CHAR(S.W_START_DATE, 'YYYYMMDD') <![CDATA[>=]]> #{A_START_DATE_START}
+	</if>
+	<if test="A_START_DATE_END != null">
+	AND TO_CHAR(S.W_START_DATE, 'YYYYMMDD') <![CDATA[<=]]> #{A_START_DATE_END}
+	</if>
+) B /* 작업입장 */
+	ON 1=1
+	AND A.AUFNR = B.AUFNR
+	AND B.RN = 1
+LEFT OUTER JOIN (
+	SELECT
+		RANK() OVER(PARTITION BY S.AUFNR ORDER BY S.WORK_SEQ DESC) AS RN,
+		S.AUFNR,
+		S.W_END_DATE
+	FROM TBL_WK_ACCESS S
+	WHERE 1=1
+) C /* 작업퇴장 */
+	ON 1=1
+	AND A.AUFNR = C.AUFNR
+	AND C.RN = 1
+WHERE 1=1
+<if test="VAPLZ != null">
+AND A.VAPLZ in (${VAPLZ}) /* 작업장 */
+</if>
+<if test="KOSTL != null">
+AND A.KOSTL = #{KOSTL} /* 코스트센터 */
+</if>
+ORDER BY DENSE_RANK() OVER(ORDER BY A.VAPLZ), A.KOSTL, A.AUFNR
+</select>
+
+<select id="select_zcs_ipt_worker_list" resultType="HashMap">
+/* oracle.yp_zcs_ipt.select_zcs_ipt_worker_list */
+SELECT
+	DENSE_RANK() OVER(ORDER BY A.CARD_NO) AS RNUM,
+	(SELECT TEAM FROM T_SECOM_PERSON S WHERE 1=1 AND S.CARDNO = A.CARD_NO) AS COMPANY_ID,
+	A.CARD_NO,
+	A.USER_NAME,
+	TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD HH24:MI') AS A_START_DATE,
+	TO_CHAR(A.A_END_DATE, 'YYYY/MM/DD HH24:MI') AS A_END_DATE,
+	B.AUFNR,
+	C.KOSTL,
+	C.KTEXT,
+	C.AUFTEXT,
+	TO_CHAR(B.W_START_DATE, 'YYYY/MM/DD HH24:MI') AS W_START_DATE,
+	TO_CHAR(B.W_END_DATE, 'YYYY/MM/DD HH24:MI') AS W_END_DATE
+FROM (
+	/* 2021-04-02 jamerl - 최승빈씨가 보내준 쿼리 기반으로 출퇴근 데이터가 사용되도록 변경 */
+	SELECT
+		A1.COMPANY_ID,
+		A1.CARD_NO,
+		A1.USER_NAME,
+		MIN( A1.A_START_DATE ) AS A_START_DATE,
+		MAX( A2.A_END_DATE ) AS A_END_DATE
+	FROM (
+		SELECT
+			S.COMPANY_ID,
+			S.CARD_NO,
+			S.USER_NAME,
+			TO_CHAR( S.A_START_DATE, 'YYYYMMDD' ) AS GDT,
+			S.A_START_DATE
+		FROM TBL_ACCESS S
+		WHERE 1=1
+		AND S.COMPANY_ID = '(주)영풍석포제련소'
+		AND TO_CHAR( S.A_START_DATE, 'YYYYMMDD' ) = #{A_START_DATE}
+	) A1 /* 입소 데이터 */
+	LEFT JOIN (
+		SELECT
+			S.COMPANY_ID,
+			S.CARD_NO,
+			S.USER_NAME,
+			TO_CHAR( S.A_END_DATE, 'YYYYMMDD' ) AS GDT,
+			S.A_END_DATE
+		FROM TBL_ACCESS S
+		WHERE 1=1
+		AND S.COMPANY_ID = '(주)영풍석포제련소'
+		AND TO_CHAR( S.A_END_DATE, 'YYYYMMDD' ) = #{A_START_DATE}
+	) A2 /* 퇴소 데이터 */
+		ON  A1.CARD_NO = A2.CARD_NO
+		AND A1.COMPANY_ID = A2.COMPANY_ID
+		AND A1.GDT = A2.GDT
+	WHERE 1=1
+	GROUP BY
+		A1.COMPANY_ID, A1.CARD_NO, A1.USER_NAME
+) A
+LEFT OUTER JOIN TBL_WK_ACCESS B
+	ON 1 = 1
+	AND A.CARD_NO = B.CARD_NO
+	AND TO_CHAR(B.W_START_DATE, 'YYYYMMDD') = #{A_START_DATE} /* 2021-03-30 jamerl - 최승빈 : 작업입장에 입소일 조회조건 적용 */
+LEFT OUTER JOIN TBL_WK C
+	ON 1 = 1
+	AND B.AUFNR = C.AUFNR
+WHERE 1=1
+<if test="COMPANY_ID != null">
+<!-- AND A.COMPANY_ID = #{COMPANY_ID} -->
+AND (SELECT TEAM FROM T_SECOM_PERSON S WHERE 1=1 AND S.CARDNO = A.CARD_NO) like '%' || #{COMPANY_ID} || '%'
+</if>
+<if test="USER_NAME != null">
+AND A.USER_NAME = #{USER_NAME}
+</if>
+</select>
+
+<select id="select_zcs_ipt_unexpected_list" resultType="HashMap">
+/* oracle.yp_zcs_ipt.select_zcs_ipt_unexpected_list */
+SELECT
+	DENSE_RANK() OVER(ORDER BY A.CARD_NO) AS RNUM,
+	B.WORK_SEQ,
+	(SELECT TEAM FROM T_SECOM_PERSON S WHERE 1=1 AND S.CARDNO = A.CARD_NO) as COMPANY_ID,
+<!-- 	A.COMPANY_ID  -->
+	A.CARD_NO,
+	A.USER_NAME,
+	A.SABUN,
+	TO_CHAR(A.A_START_DATE, 'YYYY/MM/DD HH24:MI') AS A_START_DATE,
+	TO_CHAR(A.A_END_DATE, 'YYYY/MM/DD HH24:MI') AS A_END_DATE,
+	B.AUFNR,
+	TO_CHAR(B.W_START_DATE, 'YYYY/MM/DD') AS W_START_DATE_VIEW,
+	TO_CHAR(B.W_START_DATE, 'HH24:MI') AS W_START_TIME_VIEW,
+	TO_CHAR(B.W_END_DATE, 'YYYY/MM/DD') AS W_END_DATE_VIEW,
+	TO_CHAR(B.W_END_DATE, 'HH24:MI') AS W_END_TIME_VIEW,
+	TO_CHAR(B.W_START_DATE, 'YYYYMMDD') AS W_START_DATE,
+	TO_CHAR(B.W_START_DATE, 'HH24MISS') AS W_START_TIME,
+	TO_CHAR(B.W_END_DATE, 'YYYYMMDD') AS W_END_DATE,
+	TO_CHAR(B.W_END_DATE, 'HH24MISS') AS W_END_TIME,
+	TO_CHAR(B.REG_DATE, 'YYYYMMDD HH24MISS') AS REG_DATE,
+	TO_CHAR(B.UPDATE_DATE, 'YYYYMMDD HH24MISS') AS UPDATE_DATE
+FROM (
+	SELECT
+		A.COMPANY_ID,
+		A.CARD_NO,
+		A.USER_NAME,
+		( SELECT S.SABUN FROM T_SECOM_PERSON S WHERE S.CARDNO = A.CARD_NO ) AS SABUN,
+		MIN(A.A_START_DATE) AS A_START_DATE,
+		MIN(A.A_END_DATE) AS A_END_DATE
+	FROM TBL_ACCESS A
+	WHERE 1=1
+	GROUP BY A.COMPANY_ID, A.CARD_NO, A.USER_NAME
+) A
+INNER JOIN TBL_WK_ACCESS B
+	ON 1 = 1
+--	AND A.COMPANY_ID = B.COMPANY_ID /* 데이터없어서 조인절 제외 */
+	AND A.CARD_NO = B.CARD_NO
+WHERE 1=1
+AND B.AUFNR IS NULL
+AND B.W_START_DATE IS NOT NULL
+<if test="COMPANY_ID != null">
+AND (SELECT TEAM FROM T_SECOM_PERSON S WHERE 1=1 AND S.CARDNO = A.CARD_NO) = #{COMPANY_ID}
+</if>
+<if test="USER_NAME != null">
+AND A.USER_NAME = #{USER_NAME}
+</if>
+<if test="A_START_DATE != null">
+AND TO_CHAR(B.W_START_DATE, 'YYYYMMDD') <![CDATA[>=]]> #{A_START_DATE}
+</if>
+<if test="A_END_DATE != null">
+AND TO_CHAR(B.W_END_DATE, 'YYYYMMDD') <![CDATA[<=]]> #{A_END_DATE}
+</if>
+</select>
+
+<select id="unexpected_aufnr_check" resultType="Integer">
+/* oracle.yp_zcs_ipt.unexpected_aufnr_check - 돌발 작업/오더 매핑 오더번호 확인 */
+SELECT 
+	COUNT(AUFNR) as CNT 
+FROM TBL_WK
+	WHERE AUFNR = CASE WHEN LENGTHB(#{AUFNR}) > 8 THEN SUBSTR(#{AUFNR}, 7) ELSE #{AUFNR} END
+</select>
+
+<update id="update_tbl_wk_access">
+/* oracle.yp_zcs_ipt.update_tbl_wk_access - 돌발 작업/오더 매핑 오더번호, 코스트센터 수정 */
+/*
+대상 테이블에 코스트 센터 필드 없음
+오더번호만 업데이트
+*/
+UPDATE TBL_WK_ACCESS A SET
+	A.AUFNR = CASE WHEN LENGTHB(#{AUFNR}) > 8 THEN SUBSTR(#{AUFNR}, 7) ELSE #{AUFNR} END
+WHERE 1=1
+AND A.WORK_SEQ = #{WORK_SEQ}
+</update>
+
+<insert id="insert_tbl_wk">
+/* oracle.yp_zcs_ipt.insert_tbl_wk - 돌발 작업/오더 매핑 작업 삽입 */
+INSERT INTO TBL_WK (
+	SEQ,
+	AUFNR,
+	VAPLZ,
+	VATXT,
+	KOSTL,
+	KTEXT,
+	AUFTEXT,
+	WORK_TYPE,
+	WORK_STATUS,
+	REG_DATE,
+	UPDATE_DATE
+)
+SELECT
+	NVL(MAX(SEQ), 0) + 1 AS SEQ,
+	CASE WHEN LENGTHB(#{AUFNR}) > 8 THEN SUBSTR(#{AUFNR}, 7) ELSE #{AUFNR} END,
+	#{VAPLZ},
+	#{VATXT},
+	CASE WHEN LENGTHB(#{KOSTL}) > 6 THEN SUBSTR(#{KOSTL}, 5) ELSE #{KOSTL} END,
+	#{KTEXT},
+	#{AUFTEXT},
+	'1',
+	'2',
+	<choose>
+		<when test='"null".equals( REG_DATE ) or REG_DATE == null'>
+			null,
+		</when>
+		<otherwise>
+			TO_DATE(#{REG_DATE},'YYYYMMDD HH24MISS'),
+		</otherwise>
+	</choose>
+	<choose>
+		<when test='"null".equals( UPDATE_DATE ) or UPDATE_DATE == null'>
+			null
+		</when>
+		<otherwise>
+			TO_DATE(#{UPDATE_DATE},'YYYYMMDD HH24MISS')
+		</otherwise>
+	</choose>
+FROM TBL_WK A
+WHERE 1=1
+</insert>
+
+<select id="popup_company_id" resultType="HashMap">
+/* oracle.yp_zcs_ipt.popup_company_id - 거래처 팝업 */
+SELECT
+	A.TEAM AS COMPANY_ID
+FROM T_SECOM_PERSON A
+WHERE 1=1
+AND A.DEPARTMENT = '공사업체'
+<if test="COMPANY_ID">
+AND A.TEAM LIKE '%' || #{search_text} || '%'
+</if>
+GROUP BY A.TEAM
+ORDER BY A.TEAM
+</select>
+
+<select id="popup_name" resultType="HashMap">
+/* oracle.yp_zcs_ipt.popup_name - 작업자 팝업 */
+SELECT
+	A.TEAM AS COMPANY_ID,
+	A.CARDNO AS CARD_NO,
+	A.NAME AS USER_NAME
+FROM T_SECOM_PERSON A
+WHERE 1=1
+AND A.DEPARTMENT = '공사업체'
+<if test="search_text != null">
+AND A.NAME = #{search_text}
+</if>
+<if test="COMPANY_ID != null">
+AND A.TEAM = #{COMPANY_ID}
+</if>
+</select>
+
+</mapper>

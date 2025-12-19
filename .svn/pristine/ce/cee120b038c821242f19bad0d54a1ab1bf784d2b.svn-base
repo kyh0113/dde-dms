@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.Common">
+	
+	<insert id="insertSysLog_Login">
+	/* oracle.Common.insertSysLog_Login ICM */
+	INSERT INTO COM_LOGINLOG
+	VALUES
+	(
+	#{s_emp_code},
+	(SELECT TO_CHAR(SYSTIMESTAMP,'YYYYMMDDHH24MIDDSSFF1') AS KEY FROM DUAL),
+	null,
+	#{s_emp_name},
+	#{ip},
+	#{s_dept_code},
+	#{s_dept_name}
+	)
+	</insert>
+	
+	<update id="insertSysLog_Logout">
+	/* oracle.Common.insertSysLog_Logout ICM*/
+	UPDATE COM_LOGINLOG 
+	SET logout_datetime = TO_CHAR(SYSTIMESTAMP,'YYYYMMDDHH24MIDDSSFF1')
+	WHERE login_id = #{s_emp_code} 
+	AND login_datetime = (SELECT MAX(login_datetime) FROM COM_LOGINLOG WHERE login_id = #{s_emp_code})
+	</update>
+	
+	<update id="updateLogout_datetime">
+	/* oracle.Common.updateLogout_datetime */
+	UPDATE COM_USER
+	SET   LOGOUT_DATETIME = (SELECT TO_CHAR(SYSTIMESTAMP,'YYYYMMDDHH24MIDDSSFF1') AS KEY FROM DUAL)
+	WHERE EMP_CODE = #{s_emp_code}
+	</update>
+	
+	<update id="Scheduler_UserStatus_N">
+	/* oracle.Common.Scheduler_UserStatus_N ICM*/
+		UPDATE COM_USER
+		SET STATUS = 'D'
+		where emp_code in
+		 (
+				select login_id
+				from(
+				select  ROW_NUMBER() OVER(PARTITION BY LOGIN_ID ORDER BY login_datetime desc) RNUM,
+						login_id,
+						substr(replace(LOGIN_DATETIME,'-',''),1,8) as login_date,
+						(select to_char(SYSDATE, 'YYYYMMDD') from dual) as today_date,
+						login_ip,
+						TRUNC(SYSDATE) - TO_DATE(substr(replace(login_datetime,'-',''),1,8), 'YYYYMMDD') as diff_day
+				from COM_LOGINLOG
+				) t
+				where t.RNUM = '1'
+				and   t.diff_day <![CDATA[>=]]> 60
+		)
+		and authogrp_code != '00'
+	</update>
+	
+	<select id="selectCntSysLog_Login" resultType="int">
+	/* oracle.Common.selectSysLog_Login */	
+	SELECT count(*) FROM COM_LOGINLOG
+	WHERE LOGIN_ID = #{s_emp_code}
+	</select>
+	
+	<select id="selectSysLog_Login_Last" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.Common.selectSysLog_Login_Last */	
+		SELECT * FROM(
+		SELECT 
+			ROW_NUMBER() OVER(ORDER BY login_datetime DESC) AS row_num,
+			login_id,
+			to_char(to_date(substr(login_datetime,1,12),'YYYYMMDDHH24MI'),'YYYY-MM-DD HH:MI') as login_datetime,
+			logout_datetime,
+			login_name,
+			login_ip,
+			dept_code,
+			dept_name
+			FROM COM_LOGINLOG
+			WHERE LOGIN_ID = #{s_emp_code}
+		) T
+		WHERE T.row_num ='2'
+	</select>
+	
+	<select id="getActionKey" resultType="String">
+	/* oracle.Common.getActionKey */	
+	SELECT TO_CHAR(SYSTIMESTAMP,'YYYYMMDDHH24MIDDSSFF1') AS KEY FROM DUAL
+	</select>
+	
+	<insert id="initActionLog">
+		/* oracle.Common.initActionLog */
+		INSERT INTO COM_ACTION_LOG 
+                 ( ID
+                  ,URL
+                  ,IP
+                  ,START_PROC
+                  ,USER_ID
+                  ,REG_DT
+                  ,ERROR_YN
+				)
+         VALUES ( #{id}
+                 ,#{url}
+                 ,#{ip}
+                 ,TO_CHAR(SYSTIMESTAMP,'YYYYMMDDHH24MIDDSSFF1')
+                 ,#{user_id}
+                 ,SYSTIMESTAMP
+                 ,'I'
+                 )
+	</insert>
+	
+	<update id="finishActionLog">
+	/* oracle.Common.CommonDAO.finishActionLog */
+         UPDATE COM_ACTION_LOG SET  
+         	 FINISH_PROC = TO_CHAR(SYSTIMESTAMP,'YYYYMMDDHH24MIDDSSFF1')
+            ,ERROR_YN    = #{error_yn}
+         WHERE ID        = #{id}           
+	</update>
+	
+</mapper>

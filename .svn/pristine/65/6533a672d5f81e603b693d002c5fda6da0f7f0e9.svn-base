@@ -1,0 +1,25 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mssql.biz_main">
+
+<select id="grid_cnt_todoList" resultType="double">
+/* mssql.biz_main.grid_cnt_todoList */
+select count(*) from COM_USER
+</select>
+
+<select id="grid_todoList" resultType = "HashMap">
+/* mssql.biz_main.grid_todoList */
+
+select emp_code, emp_name, email, pwchg_date, convert(varchar(20), login_datetime, 120) as login_datetime
+from COM_USER
+</select>
+
+
+
+<select id="getUserDeptCode" resultType="String">
+/* mssql.biz_main.getUserDeptCode */
+select dept_code from COM_USER where 1 = 1 and emp_code = #{s_emp_code}
+</select>
+
+
+</mapper>

@@ -1,0 +1,56 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ypzinc.safety.empprocess.repository.IEmpProcessRepository">
+
+    <select id="selectEmpProcessList" parameterType="map" resultType="com.ypzinc.safety.empprocess.model.EmpProcess">
+        SELECT 
+            A.EMP_NAME    AS userName,
+            A.PHONE       AS cellPhone,
+            A.DEPT_NAME   AS deptName,
+            A.USR_ID      AS usrId,
+            B.PROCESS     AS processNm
+        FROM 
+            NAON.V_USER_LIST@GW_LINK A
+        LEFT JOIN 
+            TBL_EMP_PROCESS B ON A.USR_ID = B.USR_ID
+        JOIN 
+            NAON.ORG_DEPARTMENT@GW_LINK D ON A.DEPT_ID = D.DEPT_ID
+        <where>
+            AND D.DEPT_LOC LIKE '%D887240305%'
+            <if test="deptName != null and deptName != ''">
+                AND A.DEPT_NAME = #{deptName}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND A.EMP_NAME LIKE '%' || #{keyword} || '%'
+            </if>
+        </where>
+        ORDER BY A.DEPT_NAME, A.EMP_NAME
+    </select>
+
+    <select id="selectProcessCodeList" resultType="com.ypzinc.safety.empprocess.model.ProcessCode">
+    	SELECT 
+        	C.DEPT_NAME AS deptName,
+        	C.PROCESS_NAME AS processName,
+        	NVL(U.CNT, 0) AS empCount
+    	FROM TBL_PROCESS_CODE C
+    	LEFT JOIN (
+        	SELECT DEPT_NAME, COUNT(*) AS CNT
+        	FROM NAON.V_USER_LIST@GW_LINK
+        	GROUP BY DEPT_NAME
+    	) U ON C.DEPT_NAME = U.DEPT_NAME
+    	ORDER BY C.DEPT_NAME, C.SORT_ORDER
+	</select>
+
+    <update id="saveEmpProcess" parameterType="com.ypzinc.safety.empprocess.model.EmpProcess">
+        MERGE INTO TBL_EMP_PROCESS T
+        USING DUAL
+           ON (T.USR_ID = #{usrId})
+        WHEN MATCHED THEN
+            UPDATE SET PROCESS = #{processNm}, UPD_DT = SYSDATE
+        WHEN NOT MATCHED THEN
+            INSERT (USR_ID, PROCESS, UPD_DT)
+            VALUES (#{usrId}, #{processNm}, SYSDATE)
+    </update>
+
+</mapper>

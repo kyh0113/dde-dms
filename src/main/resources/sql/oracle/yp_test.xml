@@ -1,0 +1,41 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_test">
+	
+	<select id="grid_ore_analysis_result_list_cnt" resultType="double">
+		/* oracle.yp_test.grid_ore_analysis_result_list_cnt */
+		SELECT COUNT(1)
+		FROM TBL_ORE_ANALYSIS_RESULT A
+		LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO B
+		ON A.ingredient_id = B.ingredient_id
+		WHERE 1=1
+	</select>
+	
+	<select id="grid_ore_analysis_result_list" resultType="java.util.HashMap">
+		/* oracle.yp_test.grid_ore_analysis_result_list */
+		SELECT
+		  A.MASTER_ID,
+		  A.INGREDIENT_ID,
+		  B.INGREDIENT_NAME,
+		  A.LOT_NO,
+		  A.DMT,
+		  A.YP,
+		  A.SELLER,
+		  A.UMPIRE,
+		  A.SETTLE,
+		  A.STATE,
+		  A.YP_ACTION,
+		  A.SELLER_ACTION
+		FROM TBL_ORE_ANALYSIS_RESULT A
+		LEFT OUTER JOIN TBL_ORE_INGREDIENT_INFO B
+		ON A.ingredient_id = B.ingredient_id
+		WHERE 1=1
+	</select>
+	
+	<select id="select_daily_zinc_production" resultType="java.util.HashMap">
+		/* oracle.yp_test.select_daily_zinc_production */
+		SELECT * FROM CMDIT007@ZBBI
+	</select>
+	    
+</mapper>
+

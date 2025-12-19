@@ -1,0 +1,177 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mssql.biz_board">
+	
+	<select id="grid_boardCnt" resultType="double">
+		/* mssql.biz_board.grid_boardCnt */
+		SELECT COUNT(1)
+		FROM COM_BOARD
+		WHERE 1=1
+		<if test='board_searchValue != null and !board_searchValue.equals("") and board_search.equals("title")'>
+	    AND title LIKE  '%' + #{board_searchValue} + '%'
+	    </if>
+	    <if test='board_searchValue != null and !board_searchValue.equals("") and board_search.equals("creator")'>
+	    AND created_by LIKE  '%' + #{board_searchValue} + '%'
+	    </if>
+	</select>
+	
+	<select id="grid_boardList" resultType="HashMap">
+		/* mssql.biz_board.grid_boardList */
+		SELECT * FROM(
+			SELECT 
+				ROW_NUMBER() OVER (ORDER BY HEADER_YN , BOARD_NO ) rnum,
+				board_no,
+				title, 
+				popup_yn,
+				ISNULL(HEADER_YN,'N') AS header_yn,
+				(SELECT count(*) FROM COM_ATTACH D
+				  WHERE D.ATTACH_NO=A.attach_no) AS file_num,
+				attach_no, 
+				created_by, 
+				substring(convert(varchar,creation_date, 120),0,17) as  creation_date, 
+				last_updated_by, 
+				substring(convert(varchar,last_update_date, 120),0,17) as last_update_date,
+				cnt,
+				(SELECT EMP_NAME FROM COM_USER B WHERE 1 = 1 AND A.created_by = B.EMP_CODE) AS created_by_name
+			FROM COM_BOARD A
+		)AS D
+		WHERE 1=1
+		<if test='board_searchValue != null and !board_searchValue.equals("") and board_search.equals("title")'>
+	    AND D.title LIKE  '%' + #{board_searchValue} + '%'
+	    </if>
+	    <if test='board_searchValue != null and !board_searchValue.equals("") and board_search.equals("creator")'>
+	    AND D.created_by_name LIKE  '%' + #{board_searchValue} + '%'
+	    </if>
+	    ORDER BY D.POPUP_YN DESC, D.HEADER_YN DESC, D.BOARD_NO DESC
+	</select>
+	
+	<insert id="board_insert">
+	/* mssql.biz_board.board_insert */
+	INSERT INTO COM_BOARD
+	 (
+		title,
+		content ,
+		header_yn,
+		popup_yn,
+		cnt,
+		attach_no,
+		created_by,
+		creation_date,
+		last_updated_by,
+		last_update_date
+	 ) VALUES (
+		#{board_title}, 
+		#{write_content}, 
+		#{board_header_yn}, 
+		<if test='popup_yn=="Y"'>
+		#{popup_yn},
+		</if>
+		<if test='popup_yn!="Y"'>
+		'N',
+		</if>
+		0, 
+	    #{attach_no},
+		#{s_emp_code}, 
+		getDate(), 
+		#{s_emp_code},
+		getDate()
+	)
+	</insert>
+	
+	<select id="board_select" resultType="HashMap">
+		/* mssql.biz_board.board_select */
+		SELECT 
+			board_no,
+			title, 
+			content,
+			popup_yn,
+			ISNULL(HEADER_YN,'N') AS header_yn,
+			attach_no, 
+			created_by, 
+			substring(convert(varchar,creation_date, 120),0,17) as  creation_date,
+			last_updated_by, 
+			substring(convert(varchar,last_update_date, 120),0,17) as last_update_date,
+			cnt,
+			(SELECT EMP_NAME FROM COM_USER B WHERE 1=1 AND A.created_by = B.EMP_CODE) AS created_by_name
+		FROM COM_BOARD A
+		WHERE 1=1
+	    AND board_no = #{board_no}
+	    
+	</select>
+	
+	
+	<select id="board_get_attach_no" resultType="HashMap">
+	/* mssql.biz_board.board_get_attach_no */
+	SELECT
+		attach as attach_no
+	FROM COM_BOARD
+	WHERE board_no = #{board_no}
+	</select>
+	
+	<update id="board_update">
+	/* mssql.biz_board.board_update */
+	UPDATE COM_BOARD SET  title = #{board_update_title}
+					,content = #{update_content}
+				    ,attach_no = #{attach_no}
+					,header_yn = #{board_update_header_yn}
+					,last_updated_by = #{s_emp_code}
+					,last_update_date = getdate()
+					,popup_yn = <if test='update_popup_yn=="Y"'>
+								#{update_popup_yn}
+								</if>
+								<if test='update_popup_yn!="Y"'>
+								'N'
+								</if> 
+	WHERE board_no = #{update_board_no}
+	</update>
+	
+	<delete id="board_delete">
+	/* mssql.biz_board.board_delete */
+	DELETE FROM COM_BOARD
+	WHERE board_no=#{board_no}
+	</delete>
+	
+	<delete id="board_attach_delete">
+	/* mssql.biz_board.board_attach_delete */
+	DELETE FROM COM_ATTACH
+	WHERE attach_no=#{attach_no}
+	</delete>
+	
+	<update id="board_cnt_up">
+	/* mssql.biz_board.board_cnt_up */
+	UPDATE COM_BOARD SET cnt=cnt+1
+	WHERE board_no = #{board_no}
+	</update>
+	
+	<select id="popupData" resultType="HashMap">
+	/* mssql.biz_board.popupData */
+	SELECT board_no,
+			title,
+			content,
+			header_yn,
+			popup_yn,
+			cnt,
+			attach_no,
+			created_by,
+			substring(convert(varchar,creation_date, 120),0,17) as  creation_date,
+			last_updated_by,
+			substring(convert(varchar,last_update_date, 120),0,17) as last_update_date,
+			(SELECT EMP_NAME FROM COM_USER B WHERE 1=1 AND A.created_by = B.EMP_CODE) AS created_by_name
+	FROM COM_BOARD A
+	WHERE POPUP_YN='Y'	
+	</select>
+	
+	<select id="popupChk" resultType="int">
+	/* mssql.biz_board.popupChk */
+	SELECT count(*) as popup_chk FROM COM_BOARD
+	WHERE POPUP_YN='Y'	
+	</select>
+	
+	<update id="board_update_popupY">
+	/* mssql.biz_board.board_update_popupY */
+	UPDATE COM_BOARD SET popup_yn='N'
+	WHERE popup_yn='Y'
+	</update>
+	
+</mapper>
+

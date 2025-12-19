@@ -1,0 +1,141 @@
+/* body,td{font-family:verdana,±¼¸²;letter-spacing:0;font-size:9pt;line-height:140%;color:#555555; } */
+
+/* a:link{font-family:verdana,±¼¸²;letter-spacing:0;font-size:9pt;line-height:140%;color:#555555;text-decoration:none} */
+/* a:hover{font-family:verdana,±¼¸²;letter-spacing:0;font-size:9pt;line-height:140%;color:#555555;text-decoration:underline} */
+/* a:action{font-family:verdana,±¼¸²;letter-spacing:0;font-size:9pt;line-height:140%;color:#555555;text-decoration:none} */
+/* a:visited{font-family:verdana,±¼¸²;letter-spacing:0;font-size:9pt;line-height:140%;color:#555555;text-decoration:none} */
+
+input{border:1 solid white;background-color:white;width:100%;height:20;font-size:9pt;font-family:verdana;color:black;letter-spacing:-1}
+select{width:35;font-size:8pt}
+textarea{border:1 solid white;background-color:white;width:100%;height:50;font-size:9pt;font-family:verdana;color:black;letter-spacing:-1}
+
+.OuterBox { width:794px; border-color:#AAAAAA; border-style:solid; border-width:1px; }
+.InnerBox { padding-left:10px; width:745px; }
+#lme_date { border-left: solid 1px #000; border-right: solid 1px #000; }
+
+@charset "utf-8";
+/* CSS Document */
+* html body {overflow-x:hidden; overflow-y: auto; _overflow:hidden; _overflow-y:hidden;_overflow-x:hidden; font-size:0.75em; padding:10px 30px 30px 30px;}
+*:first-child+html body {overflow-x: hidden; overflow-y: auto;}
+
+html, body {height:100%;  overflow:auto; overflow-x:hidden; overflow-y: auto; *overflow:hidden; _overflow:hidden; _overflow-y:hidden;_overflow-x:hidden;font-family:¸¼Àº °íµñ, malgun gothic, AppleGothicNeoSD, Apple SD »êµ¹°íµñ Neo, Microsoft NeoGothic,Droid sans, Arial,Verdana, sans-serif; font-size:12px;padding:0; margin:0;}
+body { }
+html {overflow:visible; *overflow:auto; font-family:¸¼Àº °íµñ, malgun gothic, AppleGothicNeoSD, Apple SD »êµ¹°íµñ Neo, Microsoft NeoGothic,Droid sans, Arial,Verdana, sans-serif; }
+header, footer, section, article, nav, aside, hgroup, address, time, blockquote {display: block;}
+body {width:100%;}
+h1, h2, h3, h4, h5, h6 {}
+h1, h2, h3, h4, h5, h6, div, p, dl, dt, dd, ul, ol, li, form, fieldset, blockquote, address, table, thead, tbody, tfoot, tr, td, th, caption, menu {margin:0; padding:0;}
+ul, ol, menu {list-style:none;}
+img {border:0;}
+
+
+a, a:link, a:visited {color:#666; text-decoration:none;}
+a:hover, a:active, a:focus {color:#333; text-decoration:none;}
+
+fieldset {border:0;}
+legend {display:none;}
+input,select, textarea, form, fieldset, legend, button {outline: none;  font-family:¸¼Àº °íµñ, malgun gothic, AppleGothicNeoSD, Apple SD »êµ¹°íµñ Neo, Microsoft NeoGothic,Droid sans, Arial,Verdana, sans-serif;  font-size:12px; font-weight:normal; color:#333; vertical-align:middle; margin:0; padding:0; box-sizing: border-box;}
+select * {vertical-align:middle;}
+/* select {font-family:¸¼Àº °íµñ, malgun gothic, AppleGothicNeoSD, Apple SD »êµ¹°íµñ Neo, Microsoft NeoGothic,Droid sans, Arial,Verdana, sans-serif; line-height:180%; vertical-align:middle; height:20px; padding:0; border-radius:0; border:1px solid #aaa} */
+:root select { height:20px;padding:0; line-height:180%; vertical-align:middle; padding:0; border-radius:0; border:1px solid #aaa; box-sizing: border-box; }
+
+th img, td img {vertical-align:middle;}
+img, form, input, label, fieldset, span, button  * {vertical-align:middle; margin:0; padding:0;}
+em, address {font-style:normal;}
+div,p filedset {margin:0;padding:0;}
+button {background:transparent; overflow:visible;}
+/* table {width:100%; border:0;} */
+table {width:100%; /*table-layout:fixed;*/ border:0;}
+table caption {display:none;}
+td, th  {}
+
+td {}
+/**:first-child+html td, *:first-child+html th  {line-height:16px;}*/
+embed, object {vertical-align:bottom}
+
+label {cursor:pointer}
+img, fieldset {border:0}
+option, x:-moz-any-link {padding-right:6px}
+option, x:-moz-any-link, x:default {padding-right:0}
+legend {position:absolute; top:0; left:0; width:0; height:0; overflow:hidden; visibility:hidden; font-size:0; line-height:0}
+
+
+output {color:#202020; background:#ececec; border-top:1px solid #8b8b8b; border-left:1px solid #8b8b8b; border-right:1px solid #dcdcdc; border-bottom:1px solid #dcdcdc; width:150px; height:22px; line-height:22px; text-indent:4px; font-weight:bold;}
+/*.png24 {_tmp:expression(setPng24(this));}*/
+
+.lme-wrap {margin:0 auto; width:794px; padding:0 0; }
+.lme-header {border-top:solid 1px #000;  border-left:solid 1px #000;  border-right:solid 1px #000; box-sizing:border-box;}
+.lme-wrap h1 {text-align:center;  color:#000; text-decoration:underline;}
+.lme-wrap .calendar {text-align:center;  color:#000}
+.lme-wrap .unit {text-align:right; padding-bottom:5px;  padding-top:5px;}
+
+.searchBox {padding:10px 30px; border-left:solid 1px #000;  border-right:solid 1px #000; box-sizing:border-box;}
+.searchBox table {    border-bottom: solid 2px #dcdcdc;  padding-bottom: 10px;}
+.lme-wrap .header {padding:0 0; position:relative;  border-left:solid 1px #000;  border-right:solid 1px #000; box-sizing:border-box;}
+.content {padding:10px 30px 30px 30px; border-left:solid 1px #000;  border-right:solid 1px #000; border-bottom:solid 1px #000; box-sizing:border-box;}
+
+.btn-print {border:solid 1px #fff; color:#fff; position:absolute; right:10px; bottom:10px; padding:5px 15px; display:inline-block;}
+a.btn-print, a.btn-print:link, a.btn-print:visited {color:#fff; text-decoration:none;}
+a.btn-print:hover, a.btn-print:active, a.btn-print:focus {color:#fff; text-decoration:none;}
+
+
+.basicTable {background:#B4B281; margin-bottom:5px; border-spacing: 1px; }
+.basicTable thead th {background-color: #bdcdf9;font-size:0.85em; padding:3px 3px; color:#000;}
+.basicTable thead td {font-size:0.85em; padding:3px 3px; color:#000;}
+.basicTable tbody th {font-size:0.85em; background:#bdcdf9; font-weight:bold;  text-align:center; padding:2px 0; color:#000;}
+.basicTable tbody th.normal  {font-weight:normal}
+.basicTable tbody td {background:#fff; text-align:right; font-size:0.85em; padding:2px 5px; color:#000;}
+
+.basicTable tbody th.sm {font-size:0.75em; font-weight:bold;}
+
+.basicTable thead td.table_hdtd_in,
+.basicTable tbody th.table_hdtd_in,
+.basicTable tbody td.table_hdtd_in {background: #bdcdf9; text-align: center ; }
+
+.basicTableGray {background:#9c9c9c; margin-bottom:5px; border-spacing: 1px;}
+.basicTableGray thead th {background-color: #c7c7c7;font-size:0.85em; padding:3px 3px; color:#000;}
+.basicTableGray thead td {font-size:0.85em; padding:3px 3px; color:#000;}
+.basicTableGray tbody th {font-size:0.85em; background:#c7c7c7; font-weight:bold;  text-align:center; padding:2px 0; color:#000;}
+.basicTableGray tbody th.normal  {font-weight:normal}
+.basicTableGray tbody td {background:#fff; text-align:right; font-size:0.85em; padding:2px 5px; color:#000;}
+.basicTableGray tbody td.table_hdtd_in02 { color: #333333;  background-color: #E5E5E5;}
+
+
+/*
+tr.borderT th, 
+tr.borderT td {border-top:solid 1px grey; border-right:solid 1px grey; border-left:solid 1px grey; border-bottom:solid 1px grey;}
+
+tr.borderR th, 
+tr.borderR td {border-top:solid 1px grey; border-right:solid 1px grey; border-left:solid 1px grey; border-bottom:solid 1px grey;}
+*/
+
+
+.font10 {font-size:0.85em !important;}
+.font11 {font-size:0.95em !important;}
+.th {background:#bdcdf9 !important;  text-align:center; }
+.marB30 {margin-bottom:30px;}
+/*
+.borderTWhite {border-top:solid 1px #fff !important; }
+.borderT {border-top:solid 1px grey; }
+.borderR {border-right:solid 1px grey; }
+.borderB {border-bottom:solid 1px grey; }
+.borderL {border-left:solid 1px grey; }
+*/
+ 
+.al {text-align:left !important;}
+.ac {text-align:center !important;}
+.ar {text-align:right !important;}
+
+.avg {padding:0 !important;}
+.avg .element-wrap {margin:-1px;}
+.avg .element-wrap .element-name {height:21px; width:18px; background: #bdcdf9;  }
+.element-wrap {display:table; width:100%; }
+.element-wrap .element-name {display:table-cell; text-align:left; padding-left:5px;}
+.element-wrap .element-value {width:42px; display:table-cell; text-align:right; padding-right:5px;}
+
+.date-wrap {display:table; width:44px;}
+.date-wrap .date {display:table-cell; width:50%; text-align:left;}
+.date-wrap .month {display:table-cell; text-align:left;}
+
+.noData {padding:30px 30px 30px 30px; border-left:solid 1px #000;  border-right:solid 1px #000; border-bottom:solid 1px #000; box-sizing:border-box;}
+.noData>div{font-size: 1.8em;  text-align:center;   background: #bdcdf9;   font-weight:bold;    padding:40px 0px 40px 0px;    border:solid 1px #B4B281;    margin-bottom: 10px;    }

@@ -1,0 +1,101 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ypzinc.safety.externalstaff.repository.IExternalstaffRepository">
+
+    <insert id="insertExternalstaff" parameterType="com.ypzinc.safety.externalstaff.model.Externalstaff">
+        <selectKey keyProperty="id" resultType="long" order="BEFORE">
+            SELECT SEQ_EXTERNALSTAFF_ID.NEXTVAL FROM DUAL
+        </selectKey>
+
+        INSERT INTO EXTERNALSTAFF (
+            ID,
+            EXTERNALSTAFF_COMPANY,
+            EXTERNALSTAFF_NAME,
+            EXTERNALSTAFF_PHONE,
+            EXTERNALSTAFF_DEPT,
+            EXTERNALSTAFF_PROCESS,
+            REG_DATE
+        ) VALUES (
+            #{id}, 
+            #{externalstaffCompany},
+            #{externalstaffName},
+            #{externalstaffPhone},
+            #{externalstaffDept},
+            #{externalstaffProcess},
+            SYSDATE 
+        )
+    </insert>
+    
+    <select id="selectExternalstaffList" resultType="com.ypzinc.safety.externalstaff.model.Externalstaff">
+        SELECT 
+            ID,
+            EXTERNALSTAFF_COMPANY AS externalstaffCompany,
+            EXTERNALSTAFF_NAME    AS externalstaffName,
+            EXTERNALSTAFF_PHONE   AS externalstaffPhone,
+            EXTERNALSTAFF_DEPT    AS externalstaffDept,
+            EXTERNALSTAFF_PROCESS AS externalstaffProcess,
+            REG_DATE              AS regDate
+        FROM 
+            EXTERNALSTAFF
+        ORDER BY 
+            ID DESC
+    </select>
+    
+    <select id="selectExternalstaffSearch" parameterType="map" resultType="com.ypzinc.safety.externalstaff.model.Externalstaff">
+        SELECT 
+            ID,
+            EXTERNALSTAFF_COMPANY AS externalstaffCompany,
+            EXTERNALSTAFF_NAME    AS externalstaffName,
+            EXTERNALSTAFF_PHONE   AS externalstaffPhone,
+            EXTERNALSTAFF_DEPT    AS externalstaffDept,
+            EXTERNALSTAFF_PROCESS AS externalstaffProcess,
+            REG_DATE              AS regDate
+        FROM 
+            EXTERNALSTAFF
+        <where>
+            <if test="keyword != null and keyword != ''">
+                <choose>
+                    <when test="searchType == 'externalstaffCompany'">
+                        AND EXTERNALSTAFF_COMPANY LIKE '%' || #{keyword} || '%'
+                    </when>
+                    <when test="searchType == 'externalstaffName'">
+                        AND EXTERNALSTAFF_NAME LIKE '%' || #{keyword} || '%'
+                    </when>
+                    <when test="searchType == 'externalstaffPhone'">
+                        AND EXTERNALSTAFF_PHONE LIKE '%' || #{keyword} || '%'
+                    </when>
+                    <when test="searchType == 'externalstaffDept'">
+                        AND EXTERNALSTAFF_DEPT LIKE '%' || #{keyword} || '%'
+                    </when>
+                    <when test="searchType == 'externalstaffProcess'">
+                        AND EXTERNALSTAFF_PROCESS LIKE '%' || #{keyword} || '%'
+                    </when>
+                </choose>
+            </if>
+        </where>
+        ORDER BY ID DESC
+    </select>
+    
+    <update id="modifyExternalstaff" parameterType="com.ypzinc.safety.externalstaff.model.Externalstaff">
+        UPDATE EXTERNALSTAFF
+        SET
+            EXTERNALSTAFF_COMPANY = #{externalstaffCompany},
+            EXTERNALSTAFF_NAME    = #{externalstaffName},
+            EXTERNALSTAFF_PHONE   = #{externalstaffPhone},
+            EXTERNALSTAFF_DEPT    = #{externalstaffDept},
+            EXTERNALSTAFF_PROCESS = #{externalstaffProcess}
+        WHERE
+            ID = #{id}
+    </update>
+    
+    <delete id="removeByIds" parameterType="java.util.List">
+        DELETE FROM EXTERNALSTAFF
+        WHERE ID IN
+        <foreach collection="list" item="id" open="(" separator="," close=")">
+            #{id}
+        </foreach>
+    </delete>
+
+</mapper> 

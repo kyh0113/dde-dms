@@ -1,0 +1,2098 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_zwc_ctr">
+<!-- 도급계약 관리 -->
+<select id="select_retrieveDEPT" resultType="HashMap">
+/* oracle.yp_zwc_ctr.select_retrieveDEPT */
+SELECT
+	A.DEPT_1LV_CODE,
+	A.DEPT_UP_CODE,
+	A.DEPT_CODE AS KOST1,
+	A.DEPT_NAME AS VERAK
+FROM COM_DEPT_V_YP A
+WHERE 1=1
+AND A.DEPT_LV = 1
+<if test='"I_LTEXT".equalsIgnoreCase( search_type )'>
+AND A.DEPT_NAME LIKE '%' || #{search_text} || '%'
+</if>
+<if test='"I_KOSTL".equalsIgnoreCase( search_type )'>
+AND A.DEPT_CODE = #{search_text}
+</if>
+<choose>
+	<when test='"SA".equalsIgnoreCase( s_authogrp_code )'>
+/* 부서 전체 - 【${s_authogrp_code}】 */
+	</when>
+	<when test='"MA".equalsIgnoreCase( s_authogrp_code )'>
+/* 부서 전체 - 【${s_authogrp_code}】 */
+	</when>
+	<when test='"CA".equalsIgnoreCase( s_authogrp_code )'>
+/* 부서 전체 - 【${s_authogrp_code}】 */
+	</when>
+	<when test='"IM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속부서 (+ 겸임부서) - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</when>
+	<when test='"TM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속부서 - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</when>
+	<when test='"WM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속부서 - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</when>
+	<when test='"CM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속부서 - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</when>
+	<when test='"SM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속부서 - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</when>
+	<otherwise>
+/* 소속부서 - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</otherwise>
+</choose>
+ORDER BY A.DEPT_NAME
+</select>
+
+<select id="select_emp_work_dept" resultType="java.util.HashMap">
+/* oracle.yp_zwc_ctr.select_emp_work_dept */
+select
+	u.emp_cd as emp_cd,
+	u.user_name as emp_name,
+	u.emp_status as status,
+	w.orgeh as orgeh,
+	w.orgtx as orgtx,
+	nvl(w.zclss, '00000000') as zclss,
+	w.zclst as zclst,
+	w.schkz as schkz,
+	w.jo_name as jo_name
+from gw_user u
+left outer join TBL_COMMON_EMP_WORK w
+	on u.emp_cd = w.pernr
+where 1=1
+and u.emp_status = 'W'
+and u.emp_cd = #{s_emp_code}
+</select>
+
+<select id="select_team_list" resultType="java.util.HashMap">
+/* oracle.yp_zwc_ctr.select_team_list */
+SELECT
+	A.DEPT_1LV_CODE,
+	A.DEPT_UP_CODE,
+	A.DEPT_CODE AS OBJID,
+	A.DEPT_NAME AS STEXT
+FROM COM_DEPT_V_YP A
+WHERE 1=1
+AND A.DEPT_LV = 1
+<choose>
+	<when test='"SA".equalsIgnoreCase( s_authogrp_code )'>
+/* 부서 전체 - 【${s_authogrp_code}】 */
+	</when>
+	<when test='"MA".equalsIgnoreCase( s_authogrp_code )'>
+/* 부서 전체 - 【${s_authogrp_code}】 */
+	</when>
+	<when test='"CA".equalsIgnoreCase( s_authogrp_code )'>
+/* 부서 전체 - 【${s_authogrp_code}】 */
+	</when>
+	<when test='"IM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속부서 (+ 겸임부서) - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</when>
+	<when test='"TM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속부서 - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</when>
+	<when test='"WM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속부서 - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</when>
+	<when test='"CM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속부서 - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</when>
+	<when test='"SM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속부서 - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</when>
+	<otherwise>
+/* 소속부서 - 【${s_authogrp_code}】 */
+AND A.DEPT_CODE = #{orgeh}
+	</otherwise>
+</choose>
+ORDER BY A.DEPT_NAME
+</select>
+
+<select id="select_group_list" resultType="java.util.HashMap">
+/* oracle.yp_zwc_ctr.select_group_list */
+SELECT
+	A.DEPT_1LV_CODE,
+	A.DEPT_UP_CODE,
+	A.DEPT_CODE AS OBJID,
+	A.DEPT_NAME AS STEXT
+FROM COM_DEPT_V_YP A
+WHERE 1=1
+AND A.DEPT_LV = 2
+<choose>
+	<when test='"SA".equalsIgnoreCase( s_authogrp_code )'>
+/* 반 전체 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+	</when>
+	<when test='"MA".equalsIgnoreCase( s_authogrp_code )'>
+/* 반 전체 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+	</when>
+	<when test='"CA".equalsIgnoreCase( s_authogrp_code )'>
+/* 반 전체 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+	</when>
+	<when test='"IM".equalsIgnoreCase( s_authogrp_code )'>
+/* 반 전체 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+	</when>
+	<when test='"TM".equalsIgnoreCase( s_authogrp_code )'>
+/* 반 전체 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+	</when>
+	<when test='"WM".equalsIgnoreCase( s_authogrp_code )'>
+/* 반 전체 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+	</when>
+	<when test='"CM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속 반 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+AND A.DEPT_CODE = #{zclss}
+	</when>
+	<when test='"SM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속 반 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+AND A.DEPT_CODE = #{zclss}
+	</when>
+	<otherwise>
+/* 소속 반 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{orgeh}
+AND A.DEPT_CODE = #{zclss}
+	</otherwise>
+</choose>
+ORDER BY A.DEPT_CODE
+</select>
+
+<select id="select_shift_list" resultType="java.util.HashMap">
+/* oracle.yp_zwc_ctr.select_shift_list */
+SELECT
+	A.DEPT_1LV_CODE,
+	A.DEPT_UP_CODE,
+	A.DEPT_CODE AS OBJID,
+	A.DEPT_NAME AS STEXT
+FROM COM_DEPT_V_YP A
+WHERE 1=1
+AND A.DEPT_LV = 3
+<choose>
+	<when test='"SA".equalsIgnoreCase( s_authogrp_code )'>
+/* 근무조 전체 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+	</when>
+	<when test='"MA".equalsIgnoreCase( s_authogrp_code )'>
+/* 근무조 전체 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+	</when>
+	<when test='"CA".equalsIgnoreCase( s_authogrp_code )'>
+/* 근무조 전체 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+	</when>
+	<when test='"IM".equalsIgnoreCase( s_authogrp_code )'>
+/* 근무조 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+	</when>
+	<when test='"TM".equalsIgnoreCase( s_authogrp_code )'>
+/* 근무조 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+	</when>
+	<when test='"WM".equalsIgnoreCase( s_authogrp_code )'>
+/* 근무조 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+	</when>
+	<when test='"CM".equalsIgnoreCase( s_authogrp_code )'>
+/* 근무조 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+	</when>
+	<when test='"SM".equalsIgnoreCase( s_authogrp_code )'>
+/* 소속 근무조 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+AND A.DEPT_CODE = #{schkz}
+	</when>
+	<otherwise>
+/* 소속 근무조 - 【${s_authogrp_code}】 */
+AND A.DEPT_1LV_CODE = #{orgeh}
+AND A.DEPT_UP_CODE = #{zclss}
+AND A.DEPT_CODE = #{schkz}
+	</otherwise>
+</choose>
+ORDER BY A.DEPT_CODE
+</select>
+
+<select id="select_zwc_ctr_cnt" resultType="double">
+/* oracle.yp_zwc_ctr.select_zwc_ctr_cnt */
+SELECT
+	COUNT(*) AS CNT
+FROM TBL_WORKING_SUBC A
+WHERE 1=1
+AND A.BASE_YYYY BETWEEN #{BASE_YYYY_S} AND #{BASE_YYYY_E}
+<if test='VENDOR_CODE != null'>
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_NAME != null'>
+AND A.CONTRACT_NAME LIKE '%' || #{CONTRACT_NAME} || '%'
+</if>
+<if test='DEPT_CODE != null'>
+AND A.DEPT_CODE = #{DEPT_CODE}
+</if>
+<if test='DEPT_NAME != null'>
+AND A.DEPT_NAME LIKE '%' || #{DEPT_NAME} || '%'
+</if>
+<if test='GUBUN_CODE != null'>
+AND A.GUBUN_CODE = #{GUBUN_CODE}
+</if>
+<if test='UNIT_CODE != null'>
+AND A.UNIT_CODE = #{UNIT_CODE}
+</if>
+</select>
+
+<select id="select_zwc_ctr" resultType="HashMap">
+/* oracle.yp_zwc_ctr.select_zwc_ctr */
+SELECT
+	A.BASE_YYYY,
+	A.CONTRACT_CODE,
+	A.CONTRACT_NAME,
+	TO_CHAR(TO_DATE(A.START_YYYYMM, 'YYYY/MM'), 'YYYY/MM') AS START_YYYYMM,
+	TO_CHAR(TO_DATE(A.END_YYYYMM, 'YYYY/MM'), 'YYYY/MM') AS END_YYYYMM,
+	A.VENDOR_CODE,
+	(SELECT S.CODE_NAME FROM TBL_WORKING_MASTER S WHERE SUBSTR(S.CODE, 1, 1) = 'V' AND S.CODE = A.VENDOR_CODE) AS VENDOR_NAME,
+	A.DEPT_CODE,
+	A.DEPT_NAME,
+	A.COST_CODE,
+	A.COST_NAME,
+	A.GUBUN_CODE,
+	(SELECT S.CODE_NM FROM COM_CODE_DETAIL S WHERE S.CODE = 'YP_SUBC_GUBUN' AND S.CODE_VALUE = A.GUBUN_CODE) AS GUBUN_NAME,
+	A.FACTORY_CODE,
+	(SELECT S.CODE_NM FROM COM_CODE_DETAIL S WHERE S.CODE = 'YP_FACTORY_GUBUN' AND S.CODE_VALUE = A.FACTORY_CODE) AS FACTORY_NAME,
+	A.UNIT_CODE,
+	(SELECT S.CODE_NAME FROM TBL_WORKING_MASTER S WHERE SUBSTR(S.CODE, 1, 1) = 'U' AND S.CODE = A.UNIT_CODE) AS UNIT_NAME,
+	TO_CHAR(TO_DATE(A.RETROACT_START_DATE, 'YYYY/MM/DD'), 'YYYY/MM/DD') AS RETROACT_START_DATE,
+	TO_CHAR(TO_DATE(A.RETROACT_END_DATE, 'YYYY/MM/DD'), 'YYYY/MM/DD') AS RETROACT_END_DATE,
+	A.EXTENSION_YN,
+	A.END_YN,
+	A.STATUS,
+	A.WORKING_GUBUN
+FROM TBL_WORKING_SUBC A
+WHERE 1=1
+AND A.BASE_YYYY BETWEEN #{BASE_YYYY_S} AND #{BASE_YYYY_E}
+<if test='VENDOR_CODE != null'>
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_NAME != null'>
+AND A.CONTRACT_NAME LIKE '%' || #{CONTRACT_NAME} || '%'
+</if>
+<if test='DEPT_CODE != null'>
+AND A.DEPT_CODE = #{DEPT_CODE}
+</if>
+<if test='GUBUN_CODE != null'>
+AND A.GUBUN_CODE = #{GUBUN_CODE}
+</if>
+<if test='UNIT_CODE != null'>
+AND A.UNIT_CODE = #{UNIT_CODE}
+</if>
+ORDER BY A.CONTRACT_CODE
+</select>
+
+<select id="select_cb_gubun" resultType="HashMap">
+/* oracle.yp_zwc_ctr.select_cb_gubun */
+SELECT
+	B.CODE_VALUE AS CODE,
+	B.CODE_NM AS CODE_NAME
+FROM COM_CODE_MASTER A
+INNER JOIN COM_CODE_DETAIL B
+	ON A.CODE = B.CODE
+	AND B.USE_YN = 'Y'
+WHERE 1=1
+AND A.USE_YN = 'Y'
+AND A.CODE = #{CODE}
+ORDER BY B.SORT_NO
+</select>
+
+<select id="select_cb_working_master_u" resultType="HashMap">
+/* oracle.yp_zwc_ctr.select_cb_working_master_u */
+SELECT
+	A.CODE,
+	A.CODE_NAME
+FROM TBL_WORKING_MASTER A
+WHERE 1=1
+AND A.USE_YN = 'Y'
+AND SUBSTR(A.CODE, 1, 1) = 'U'
+ORDER BY A.BASE_YYYY, TO_NUMBER(REGEXP_REPLACE(A.CODE, '[^0-9]'))
+</select>
+
+<select id="select_cb_working_master_v" resultType="HashMap">
+/* oracle.yp_zwc_ctr.select_cb_working_master_v */
+SELECT
+	A.CODE,
+	A.CODE_NAME
+FROM TBL_WORKING_MASTER A
+WHERE 1=1
+AND A.USE_YN = 'Y'
+AND SUBSTR(A.CODE, 1, 1) = 'V'
+AND A.ENTERPRISE_GUBUN IN ('1', '2') -- 조업 및 정비 거래처
+ORDER BY A.BASE_YYYY, TO_NUMBER(REGEXP_REPLACE(A.CODE, '[^0-9]'))
+</select>
+
+<select id="select_cb_working_master_w" resultType="HashMap">
+/* oracle.yp_zwc_ctr.select_cb_working_master_w */
+SELECT
+	A.CODE,
+	A.CODE_NAME
+FROM TBL_WORKING_MASTER A
+WHERE 1=1
+AND A.USE_YN = 'Y'
+AND SUBSTR(A.CODE, 1, 1) = 'W'
+ORDER BY A.BASE_YYYY, TO_NUMBER(REGEXP_REPLACE(A.CODE, '[^0-9]'))
+</select>
+
+<select id="zwc_ctr_delete_chk" resultType="Integer">
+/* oracle.yp_zwc_ctr.zwc_ctr_delete_chk */
+SELECT
+	COUNT(*) AS CNT
+FROM TBL_WORKING_DAILY_REPORT A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</select>
+
+<delete id="zwc_ctr_delete">
+/* oracle.yp_zwc_ctr.zwc_ctr_delete */
+DELETE TBL_WORKING_SUBC A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</delete>
+
+<delete id="delete_tbl_working_subc_ctn">
+/* oracle.yp_zwc_ctr.delete_tbl_working_subc_ctn */
+DELETE TBL_WORKING_SUBC_CTN A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</delete>
+
+<delete id="delete_tbl_working_subc_ctn_dt">
+/* oracle.yp_zwc_ctr.delete_tbl_working_subc_ctn_dt */
+DELETE TBL_WORKING_SUBC_CTN_DT A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</delete>
+
+<delete id="delete_tbl_working_ptc">
+/* oracle.yp_zwc_ctr.delete_tbl_working_ptc */
+DELETE TBL_WORKING_PTC A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</delete>
+
+<delete id="delete_tbl_working_ptc_dt">
+/* oracle.yp_zwc_ctr.delete_tbl_working_ptc_dt */
+DELETE TBL_WORKING_PTC_DT A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</delete>
+
+<delete id="delete_tbl_working_nft">
+/* oracle.yp_zwc_ctr.delete_tbl_working_nft */
+DELETE TBL_WORKING_NFT A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</delete>
+
+<delete id="delete_tbl_working_nft_dt">
+/* oracle.yp_zwc_ctr.delete_tbl_working_nft_dt */
+DELETE TBL_WORKING_NFT_DT A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</delete>
+
+<update id="merge_zwc_ctr">
+/* oracle.yp_zwc_ctr.merge_zwc_ctr */
+MERGE INTO TBL_WORKING_SUBC A
+USING (
+	SELECT
+		#{BASE_YYYY} AS BASE_YYYY,
+<choose>
+	<when test='"".equalsIgnoreCase( CONTRACT_CODE )'>
+		( SELECT S.SEQ FROM TBL_WORKING_MASTER S WHERE 1=1 AND S.CODE = #{VENDOR_CODE} ) || 
+		( 	SELECT
+				LPAD( TO_NUMBER( NVL( MAX( SUBSTR( S.CONTRACT_CODE, 3 ) ), 0 ) ) + 1, 3, '0' ) 
+			FROM TBL_WORKING_SUBC S 
+			WHERE 1=1 
+			AND S.VENDOR_CODE = #{VENDOR_CODE}
+		) AS CONTRACT_CODE, /* 【신규】 : 거래처코드 SEQ + 업체별 순번[LPAD(3)] - 01001*/
+	</when>
+	<otherwise>
+		#{CONTRACT_CODE} AS CONTRACT_CODE, /* 【수정】 */
+	</otherwise>
+</choose>
+		#{VENDOR_CODE} AS VENDOR_CODE,
+		#{CONTRACT_NAME} AS CONTRACT_NAME,
+		REPLACE( #{START_YYYYMM}, '/', '' ) AS START_YYYYMM,
+		REPLACE( #{END_YYYYMM}, '/', '' ) AS END_YYYYMM,
+		#{DEPT_CODE} AS DEPT_CODE,
+		#{DEPT_NAME} AS DEPT_NAME,
+		#{COST_CODE} AS COST_CODE,
+		#{COST_NAME} AS COST_NAME,
+		#{GUBUN_CODE} AS GUBUN_CODE,
+		#{FACTORY_CODE} AS FACTORY_CODE,
+		#{UNIT_CODE} AS UNIT_CODE,
+		REPLACE( #{RETROACT_START_DATE}, '/', '' ) AS RETROACT_START_DATE,
+		REPLACE( #{RETROACT_END_DATE}, '/', '' ) AS RETROACT_END_DATE,
+		#{EXTENSION_YN} AS EXTENSION_YN,
+		#{END_YN} AS END_YN,
+		#{WORKING_GUBUN} AS WORKING_GUBUN,
+		#{s_emp_code} AS REG_EMP,
+		SYSDATE AS REG_DATE,
+		#{s_emp_code} AS UPD_EMP,
+		SYSDATE AS UPD_DATE
+	FROM DUAL
+) B
+ON (
+		A.BASE_YYYY = B.BASE_YYYY
+	AND A.CONTRACT_CODE = B.CONTRACT_CODE
+	AND A.VENDOR_CODE = B.VENDOR_CODE
+)
+WHEN NOT MATCHED THEN
+INSERT (
+	BASE_YYYY,
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	CONTRACT_NAME,
+	START_YYYYMM,
+	END_YYYYMM,
+	DEPT_CODE,
+	DEPT_NAME,
+	COST_CODE,
+	COST_NAME,
+	GUBUN_CODE,
+	FACTORY_CODE,
+	UNIT_CODE,
+	RETROACT_START_DATE,
+	RETROACT_END_DATE,
+	EXTENSION_YN,
+	END_YN,
+	WORKING_GUBUN,
+	REG_EMP,
+	REG_DATE
+) VALUES (
+	B.BASE_YYYY,
+	B.CONTRACT_CODE,
+	B.VENDOR_CODE,
+	B.CONTRACT_NAME,
+	B.START_YYYYMM,
+	B.END_YYYYMM,
+	B.DEPT_CODE,
+	B.DEPT_NAME,
+	B.COST_CODE,
+	B.COST_NAME,
+	B.GUBUN_CODE,
+	B.FACTORY_CODE,
+	B.UNIT_CODE,
+	B.RETROACT_START_DATE,
+	B.RETROACT_END_DATE,
+	B.EXTENSION_YN,
+	B.END_YN,
+	B.WORKING_GUBUN,
+	B.REG_EMP,
+	B.REG_DATE
+)
+WHEN MATCHED THEN
+UPDATE SET
+	CONTRACT_NAME = B.CONTRACT_NAME,
+	START_YYYYMM = B.START_YYYYMM,
+	END_YYYYMM = B.END_YYYYMM,
+	DEPT_CODE = B.DEPT_CODE,
+	DEPT_NAME = B.DEPT_NAME,
+	COST_CODE = B.COST_CODE,
+	COST_NAME = B.COST_NAME,
+	GUBUN_CODE = B.GUBUN_CODE,
+	FACTORY_CODE = B.FACTORY_CODE,
+	UNIT_CODE = B.UNIT_CODE,
+	RETROACT_START_DATE = B.RETROACT_START_DATE,
+	RETROACT_END_DATE = B.RETROACT_END_DATE,
+	EXTENSION_YN = B.EXTENSION_YN,
+	END_YN = B.END_YN,
+	WORKING_GUBUN = B.WORKING_GUBUN,
+	UPD_EMP = B.UPD_EMP,
+	UPD_DATE = B.UPD_DATE
+</update>
+
+<!-- 도급계약 관리 > 참조생성 시작 -->
+<select id="ref_tbl_working_master_cnt" resultType="int">
+/* oracle.yp_zwc_ctr.ref_tbl_working_master_cnt */
+SELECT COUNT(*) AS CNT
+FROM TBL_WORKING_MASTER A
+WHERE 1=1
+AND SUBSTR(A.CODE, 1, 1) = 'P'
+AND A.BASE_YYYY = #{BASE_YYYY_NEW}
+</select>
+
+<insert id="ref_tbl_working_master_insert">
+/* oracle.yp_zwc_ctr.ref_tbl_working_master_insert */
+INSERT INTO TBL_WORKING_MASTER
+(
+	CODE,
+	SEQ,
+	BASE_YYYY,
+	CODE_NAME,
+	SAP_CODE,
+	REPRESENTATIVE,
+	UNIT_PRICE,
+	CONTENTS,
+	UNIT,
+	USE_YN,
+	REG_EMP,
+	REG_DATE
+)
+SELECT
+	CODE,
+	SEQ,
+	#{BASE_YYYY_NEW},
+	CODE_NAME,
+	SAP_CODE,
+	REPRESENTATIVE,
+	UNIT_PRICE,
+	CONTENTS,
+	UNIT,
+	USE_YN,
+	#{s_emp_code},
+	SYSDATE
+FROM TBL_WORKING_MASTER A
+WHERE 1=1
+AND SUBSTR(A.CODE, 1, 1) = 'P'
+AND A.BASE_YYYY = #{BASE_YYYY}
+</insert>
+
+<select id="ref_tbl_working_unit_price_cnt" resultType="int">
+/* oracle.yp_zwc_ctr.ref_tbl_working_unit_price_cnt */
+SELECT COUNT(*) AS CNT
+FROM TBL_WORKING_UNIT_PRICE A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY_NEW}
+</select>
+
+<insert id="ref_tbl_working_unit_price_insert">
+/* oracle.yp_zwc_ctr.ref_tbl_working_unit_price_insert */
+INSERT INTO TBL_WORKING_UNIT_PRICE
+(
+	BASE_YYYY,
+	WORKTYPE_CODE,
+	BASE_PAY_HOUR,
+	BASE_PAY_WORKING_HOUR,
+	SATURDAY_HOUR,
+	SATURDAY_WEEK,
+	SATURDAY_DOUBLE,
+	HOLIDAY_HOUR,
+	HOLIDAY_WEEK,
+	HOLIDAY_DOUBLE,
+	NIGHT_HOUR,
+	NIGHT_WEEK,
+	NIGHT_DOUBLE,
+	REGULAR_HOLIDAY_HOUR,
+	REGULAR_HOLIDAY_DAY,
+	REGULAR_HOLIDAY_DOUBLE,
+	ANNUAL_LEAVE_USE_HOUR,
+	ANNUAL_LEAVE_USE_DAY,
+	ANNUAL_LEAVE_USE_DOUBLE,
+	ANNUAL_LEAVE_UNUSE_HOUR,
+	ANNUAL_LEAVE_UNUSE_DAY,
+	ANNUAL_LEAVE_UNUSE_DOUBLE,
+	BASE_PAY_AMOUNT,
+	SATURDAY_AMOUNT,
+	HOLIDAY_AMOUNT,
+	NIGHT_AMOUNT,
+	REGULAR_HOLIDAY_AMOUNT,
+	ANNUAL_LEAVE_USE_AMOUNT,
+	ANNUAL_LEAVE_UNUSE_AMOUNT,
+	EXTRA_PAY_AMOUNT,
+	PAY_AMOUNT,
+	RETIREMENT_GRANTS_AMOUNT,
+	SAFETY_INSURANCE_AMOUNT,
+	NATIONAL_PENSION_AMOUNT,
+	HEALTH_INSURANCE_AMOUNT,
+	LONGTERM_INSURANCE_AMOUNT,
+	EMPLOYMENT_INSURANCE_AMOUNT,
+	GENERAL_INCOME_TAX_AMOUNT,
+	TAX_AFFAIRS_REPORT_AMOUNT,
+	EXPENSE_AMOUNT,
+	UNIT_PRICE_AMOUNT,
+	REG_EMP,
+	REG_DATE
+)
+SELECT
+	#{BASE_YYYY_NEW},
+	WORKTYPE_CODE,
+	BASE_PAY_HOUR,
+	BASE_PAY_WORKING_HOUR,
+	SATURDAY_HOUR,
+	SATURDAY_WEEK,
+	SATURDAY_DOUBLE,
+	HOLIDAY_HOUR,
+	HOLIDAY_WEEK,
+	HOLIDAY_DOUBLE,
+	NIGHT_HOUR,
+	NIGHT_WEEK,
+	NIGHT_DOUBLE,
+	REGULAR_HOLIDAY_HOUR,
+	REGULAR_HOLIDAY_DAY,
+	REGULAR_HOLIDAY_DOUBLE,
+	ANNUAL_LEAVE_USE_HOUR,
+	ANNUAL_LEAVE_USE_DAY,
+	ANNUAL_LEAVE_USE_DOUBLE,
+	ANNUAL_LEAVE_UNUSE_HOUR,
+	ANNUAL_LEAVE_UNUSE_DAY,
+	ANNUAL_LEAVE_UNUSE_DOUBLE,
+	BASE_PAY_AMOUNT,
+	SATURDAY_AMOUNT,
+	HOLIDAY_AMOUNT,
+	NIGHT_AMOUNT,
+	REGULAR_HOLIDAY_AMOUNT,
+	ANNUAL_LEAVE_USE_AMOUNT,
+	ANNUAL_LEAVE_UNUSE_AMOUNT,
+	EXTRA_PAY_AMOUNT,
+	PAY_AMOUNT,
+	RETIREMENT_GRANTS_AMOUNT,
+	SAFETY_INSURANCE_AMOUNT,
+	NATIONAL_PENSION_AMOUNT,
+	HEALTH_INSURANCE_AMOUNT,
+	LONGTERM_INSURANCE_AMOUNT,
+	EMPLOYMENT_INSURANCE_AMOUNT,
+	GENERAL_INCOME_TAX_AMOUNT,
+	TAX_AFFAIRS_REPORT_AMOUNT,
+	EXPENSE_AMOUNT,
+	UNIT_PRICE_AMOUNT,
+	#{s_emp_code},
+	SYSDATE
+FROM TBL_WORKING_UNIT_PRICE A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+</insert>
+
+<select id="ref_tbl_working_combined_cost_cnt" resultType="int">
+/* oracle.yp_zwc_ctr.ref_tbl_working_combined_cost_cnt */
+SELECT COUNT(*) AS CNT
+FROM TBL_WORKING_COMBINED_COST A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY_NEW}
+</select>
+
+<insert id="ref_tbl_working_combined_cost_insert">
+/* oracle.yp_zwc_ctr.ref_tbl_working_combined_cost_insert */
+INSERT INTO TBL_WORKING_COMBINED_COST
+(
+	BASE_YYYY,
+	RETIREMENT_GRANTS,
+	SAFETY_INSURANCE,
+	NATIONAL_PENSION,
+	HEALTH_INSURANCE,
+	LONGTERM_INSURANCE,
+	EMPLOYMENT_INSURANCE,
+	GENERAL_INCOME_TAX,
+	TAX_AFFAIRS_REPORT,
+	REG_EMP,
+	REG_DATE
+)
+SELECT
+	#{BASE_YYYY_NEW},
+	RETIREMENT_GRANTS,
+	SAFETY_INSURANCE,
+	NATIONAL_PENSION,
+	HEALTH_INSURANCE,
+	LONGTERM_INSURANCE,
+	EMPLOYMENT_INSURANCE,
+	GENERAL_INCOME_TAX,
+	TAX_AFFAIRS_REPORT,
+	#{s_emp_code},
+	SYSDATE
+FROM TBL_WORKING_COMBINED_COST A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+</insert>
+
+<select id="ref_tbl_working_ent_cost_cnt" resultType="int">
+/* oracle.yp_zwc_ctr.ref_tbl_working_ent_cost_cnt */
+SELECT COUNT(*) AS CNT
+FROM TBL_WORKING_ENT_COST A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY_NEW}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</select>
+
+<insert id="ref_tbl_working_ent_cost_insert">
+/* oracle.yp_zwc_ctr.ref_tbl_working_ent_cost_insert */
+INSERT INTO TBL_WORKING_ENT_COST
+(
+	BASE_YYYY,
+	VENDOR_CODE,
+	COST_CODE,
+	COST_AMOUNT,
+	REG_EMP,
+	REG_DATE
+)
+SELECT
+	#{BASE_YYYY_NEW},
+	VENDOR_CODE,
+	COST_CODE,
+	COST_AMOUNT,
+	#{s_emp_code},
+	SYSDATE
+FROM TBL_WORKING_ENT_COST A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</insert>
+
+<select id="ref_tbl_working_ent_unit_price_cnt" resultType="int">
+/* oracle.yp_zwc_ctr.ref_tbl_working_ent_unit_price_cnt */
+SELECT COUNT(*) AS CNT
+FROM TBL_WORKING_ENT_UNIT_PRICE A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY_NEW}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</select>
+
+<insert id="ref_tbl_working_ent_unit_price_insert">
+/* oracle.yp_zwc_ctr.ref_tbl_working_ent_unit_price_insert */
+INSERT INTO TBL_WORKING_ENT_UNIT_PRICE
+(
+	BASE_YYYY,
+	VENDOR_CODE,
+	WORKTYPE_CODE,
+	UNIT_PRICE,
+	COST_SUM,
+	FINAL_UNIT_PRICE,
+	REG_EMP,
+	REG_DATE
+)
+SELECT
+	#{BASE_YYYY_NEW},
+	VENDOR_CODE,
+	WORKTYPE_CODE,
+	UNIT_PRICE,
+	COST_SUM,
+	FINAL_UNIT_PRICE,
+	#{s_emp_code},
+	SYSDATE
+FROM TBL_WORKING_ENT_UNIT_PRICE A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</insert>
+
+<select id="ref_tbl_working_ent_unit_price_dt_cnt" resultType="int">
+/* oracle.yp_zwc_ctr.ref_tbl_working_ent_unit_price_dt_cnt */
+SELECT COUNT(*) AS CNT
+FROM TBL_WORKING_ENT_UNIT_PRICE_DT A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY_NEW}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</select>
+
+<insert id="ref_tbl_working_ent_unit_price_dt_insert">
+/* oracle.yp_zwc_ctr.ref_tbl_working_ent_unit_price_dt_insert */
+INSERT INTO TBL_WORKING_ENT_UNIT_PRICE_DT
+(
+	BASE_YYYY,
+	VENDOR_CODE,
+	WORKTYPE_CODE,
+	COST_CODE,
+	VALUE,
+	ITEM1,
+	ITEM2,
+	ITEM3,
+	ITEM4,
+	REG_EMP,
+	REG_DATE
+)
+SELECT
+	#{BASE_YYYY_NEW},
+	VENDOR_CODE,
+	WORKTYPE_CODE,
+	COST_CODE,
+	VALUE,
+	ITEM1,
+	ITEM2,
+	ITEM3,
+	ITEM4,
+	#{s_emp_code},
+	SYSDATE
+FROM TBL_WORKING_ENT_UNIT_PRICE_DT A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</insert>
+
+<select id="ref_tbl_working_nft_cnt" resultType="int">
+/* oracle.yp_zwc_ctr.ref_tbl_working_nft_cnt */
+SELECT COUNT(*) AS CNT
+FROM TBL_WORKING_NFT A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY_NEW}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</select>
+
+<insert id="ref_tbl_working_nft_insert">
+/* oracle.yp_zwc_ctr.ref_tbl_working_nft_insert */
+INSERT INTO TBL_WORKING_NFT
+(
+	BASE_YYYY,
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	MONTH_AMOUNT,
+	YEAR_AMOUNT,
+	REG_EMP,
+	REG_DATE
+)
+SELECT
+	#{BASE_YYYY_NEW},
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	MONTH_AMOUNT,
+	YEAR_AMOUNT,
+	#{s_emp_code},
+	SYSDATE
+FROM TBL_WORKING_NFT A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</insert>
+
+<select id="ref_tbl_working_nft_dt_cnt" resultType="int">
+/* oracle.yp_zwc_ctr.ref_tbl_working_nft_dt_cnt */
+SELECT COUNT(*) AS CNT
+FROM TBL_WORKING_NFT_DT A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY_NEW}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</select>
+
+<insert id="ref_tbl_working_nft_dt_insert">
+/* oracle.yp_zwc_ctr.ref_tbl_working_nft_dt_insert */
+INSERT INTO TBL_WORKING_NFT_DT
+(
+	BASE_YYYY,
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	NOXIOUS_FACTOR_CODE,
+	CHECK_YN,
+	REG_EMP,
+	REG_DATE
+)
+SELECT
+	#{BASE_YYYY_NEW},
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	NOXIOUS_FACTOR_CODE,
+	CHECK_YN,
+	#{s_emp_code},
+	SYSDATE
+FROM TBL_WORKING_NFT_DT A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</insert>
+
+<select id="ref_tbl_working_ptc_cnt" resultType="int">
+/* oracle.yp_zwc_ctr.ref_tbl_working_ptc_cnt */
+SELECT COUNT(*) AS CNT
+FROM TBL_WORKING_PTC A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY_NEW}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</select>
+
+<insert id="ref_tbl_working_ptc_insert">
+/* oracle.yp_zwc_ctr.ref_tbl_working_ptc_insert */
+INSERT INTO TBL_WORKING_PTC
+(
+	BASE_YYYY,
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	MONTH_AMOUNT,
+	YEAR_AMOUNT,
+	REG_EMP,
+	REG_DATE
+)
+SELECT
+	#{BASE_YYYY_NEW},
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	MONTH_AMOUNT,
+	YEAR_AMOUNT,
+	#{s_emp_code},
+	SYSDATE
+FROM TBL_WORKING_PTC A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</insert>
+
+<select id="ref_tbl_working_ptc_dt_cnt" resultType="int">
+/* oracle.yp_zwc_ctr.ref_tbl_working_ptc_dt_cnt */
+SELECT COUNT(*) AS CNT
+FROM TBL_WORKING_PTC_DT A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY_NEW}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</select>
+
+<insert id="ref_tbl_working_ptc_dt_insert">
+/* oracle.yp_zwc_ctr.ref_tbl_working_ptc_dt_insert */
+INSERT INTO TBL_WORKING_PTC_DT
+(
+	BASE_YYYY,
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	PROTECTOR_CODE,
+	UNIT_PRICE,
+	QTY,
+	REG_EMP,
+	REG_DATE
+)
+SELECT
+	#{BASE_YYYY_NEW},
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	PROTECTOR_CODE,
+	UNIT_PRICE,
+	QTY,
+	#{s_emp_code},
+	SYSDATE
+FROM TBL_WORKING_PTC_DT A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</insert>
+
+<select id="ref_tbl_working_subc_cnt" resultType="int">
+/* oracle.yp_zwc_ctr.ref_tbl_working_subc_cnt */
+SELECT COUNT(*) AS CNT
+FROM TBL_WORKING_SUBC A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY_NEW}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</select>
+
+<insert id="ref_tbl_working_subc_insert">
+/* oracle.yp_zwc_ctr.ref_tbl_working_subc_insert */
+INSERT INTO TBL_WORKING_SUBC
+(
+	BASE_YYYY,
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	CONTRACT_NAME,
+	START_YYYYMM,
+	END_YYYYMM,
+	DEPT_CODE,
+	DEPT_NAME,
+	COST_CODE,
+	COST_NAME,
+	GUBUN_CODE,
+	UNIT_CODE,
+	RETROACT_START_DATE,
+	RETROACT_END_DATE,
+	EXTENSION_YN,
+	END_YN,
+	REG_EMP,
+	REG_DATE
+)
+SELECT
+	#{BASE_YYYY_NEW},
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	CONTRACT_NAME,
+	#{BASE_YYYY_NEW} || SUBSTR(START_YYYYMM, -2) AS START_YYYYMM,
+	#{BASE_YYYY_NEW} || SUBSTR(END_YYYYMM, -2) AS END_YYYYMM,
+	DEPT_CODE,
+	DEPT_NAME,
+	COST_CODE,
+	COST_NAME,
+	GUBUN_CODE,
+	UNIT_CODE,
+	NULL AS RETROACT_START_DATE,
+	NULL AS RETROACT_END_DATE,
+	'N' AS EXTENSION_YN,
+	'N' AS END_YN,
+	#{s_emp_code},
+	SYSDATE
+FROM TBL_WORKING_SUBC A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</insert>
+
+<select id="ref_tbl_working_subc_ctn_cnt" resultType="int">
+/* oracle.yp_zwc_ctr.ref_tbl_working_subc_ctn_cnt */
+SELECT COUNT(*) AS CNT
+FROM TBL_WORKING_SUBC_CTN A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY_NEW}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</select>
+
+<insert id="ref_tbl_working_subc_ctn_insert">
+/* oracle.yp_zwc_ctr.ref_tbl_working_subc_ctn_insert */
+INSERT INTO TBL_WORKING_SUBC_CTN
+(
+	BASE_YYYY,
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	MONTH_STANDARD_AMOUNT,
+	OVERTIME_NIGHT,
+	OVERTIME_EXTENSION,
+	OVERTIME_SATURDAY,
+	OVERTIME_HOLIDAY,
+	EXTRA_PAY,
+	UNIT_PRICE,
+	REG_EMP,
+	REG_DATE
+)
+SELECT
+	#{BASE_YYYY_NEW},
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	MONTH_STANDARD_AMOUNT,
+	OVERTIME_NIGHT,
+	OVERTIME_EXTENSION,
+	OVERTIME_SATURDAY,
+	OVERTIME_HOLIDAY,
+	EXTRA_PAY,
+	UNIT_PRICE,
+	#{s_emp_code},
+	SYSDATE
+FROM TBL_WORKING_SUBC_CTN A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</insert>
+
+<select id="ref_tbl_working_subc_ctn_dt_cnt" resultType="int">
+/* oracle.yp_zwc_ctr.ref_tbl_working_subc_ctn_dt_cnt */
+SELECT COUNT(*) AS CNT
+FROM TBL_WORKING_SUBC_CTN_DT A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY_NEW}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</select>
+
+<insert id="ref_tbl_working_subc_ctn_dt_insert">
+/* oracle.yp_zwc_ctr.ref_tbl_working_subc_ctn_dt_insert */
+INSERT INTO TBL_WORKING_SUBC_CTN_DT
+(
+	BASE_YYYY,
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	WORKTYPE_CODE,
+	MAN_QTY,
+	REG_EMP,
+	REG_DATE
+)
+SELECT
+	#{BASE_YYYY_NEW},
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	WORKTYPE_CODE,
+	MAN_QTY,
+	#{s_emp_code},
+	SYSDATE
+FROM TBL_WORKING_SUBC_CTN_DT A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</insert>
+
+<!-- 도급계약 내용 등록 -->
+<select id="select_zwc_ctr_detail_create_cnt" resultType="double">
+/* oracle.yp_zwc_ctr.select_zwc_ctr_detail_create_cnt */
+SELECT COUNT(*) AS CNT
+FROM TBL_WORKING_SUBC A
+WHERE 1=1
+<if test='BASE_YYYY != null'>
+AND A.BASE_YYYY = #{BASE_YYYY}
+</if>
+<if test='VENDOR_CODE != null'>
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_NAME != null'>
+AND A.CONTRACT_NAME LIKE '%' || #{CONTRACT_NAME} || '%'
+</if>
+<if test='DEPT_CODE != null'>
+AND A.DEPT_CODE = #{DEPT_CODE}
+</if>
+<if test='DEPT_NAME != null'>
+AND A.DEPT_NAME LIKE '%' || #{DEPT_NAME} || '%'
+</if>
+<if test='GUBUN_CODE != null'>
+AND A.GUBUN_CODE = #{GUBUN_CODE}
+</if>
+<if test='UNIT_CODE != null'>
+AND A.UNIT_CODE = #{UNIT_CODE}
+</if>
+</select>
+
+<resultMap type="java.util.LinkedHashMap" id="result_zwc_ctr_detail_create"></resultMap>
+
+<select id="select_zwc_ctr_detail_create" statementType="CALLABLE" parameterType="Map">
+/* oracle.yp_zwc_ctr.select_zwc_ctr_detail_create_unit_price */
+{
+	call PC_SELECT_ZWC_CTR_DTL_CRT (
+		#{BASE_YYYY,	mode=IN, jdbcType=VARCHAR},
+		#{VENDOR_CODE,	mode=IN, jdbcType=VARCHAR},
+		#{CONTRACT_NAME, mode=IN, jdbcType=VARCHAR},
+		#{DEPT_CODE, mode=IN, jdbcType=VARCHAR},
+		#{DEPT_NAME, mode=IN, jdbcType=VARCHAR},
+		#{GUBUN_CODE, mode=IN, jdbcType=VARCHAR},
+		#{UNIT_CODE, mode=IN, jdbcType=VARCHAR},
+		#{RESULT, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=result_zwc_ctr_detail_create}
+	)
+}
+</select>
+
+<select id="select_zwc_ctr_detail_create_final_unit_price" resultType="HashMap">
+/* oracle.yp_zwc_ctr.select_zwc_ctr_detail_create_final_unit_price */
+SELECT
+	A.WORKTYPE_CODE,
+	A.FINAL_UNIT_PRICE
+FROM TBL_WORKING_ENT_UNIT_PRICE A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+ORDER BY A.BASE_YYYY, TO_NUMBER(REGEXP_REPLACE(A.WORKTYPE_CODE, '[^0-9]'))
+</select>
+
+<select id="select_zwc_ctr_detail_create_month_amount_ptc" resultType="float">
+/* oracle.yp_zwc_ctr.select_zwc_ctr_detail_create_month_amount_ptc */
+SELECT
+	A.MONTH_AMOUNT
+FROM TBL_WORKING_PTC A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</select>
+
+<select id="select_zwc_ctr_detail_create_month_amount_nft" resultType="float">
+/* oracle.yp_zwc_ctr.select_zwc_ctr_detail_create_month_amount_nft */
+SELECT
+	A.MONTH_AMOUNT
+FROM TBL_WORKING_NFT A
+WHERE 1=1
+AND A.BASE_YYYY = #{BASE_YYYY}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</select>
+
+<select id="select_overtime_pay" resultType="HashMap">
+/* oracle.yp_zwc_ctr.select_overtime_pay */
+SELECT
+	M.BASE_YYYY,
+	M.WORKTYPE_CODE,
+	NVL(X.SUM_WAGES + X.SUM_EXPENSE, 0) AS OVERTIME_NIGHT, -- 야간수당
+	NVL((X.SUM_WAGES + X.SUM_EXPENSE) * 3, 0) AS OVERTIME_EXTENSION, -- 연장수당
+	NVL((X.SUM_WAGES + X.SUM_EXPENSE) * 3 * 8, 0) AS OVERTIME_SATURDAY, -- 토요수당
+	NVL((X.SUM_WAGES + X.SUM_EXPENSE) * 3 * 8, 0) AS OVERTIME_HOLIDAY -- 휴일수당
+FROM (
+	SELECT #{BASE_YYYY} AS BASE_YYYY, #{WORKTYPE_CODE} AS WORKTYPE_CODE FROM DUAL
+) M
+LEFT OUTER JOIN (
+	SELECT
+		A.BASE_YYYY,
+		A.WORKTYPE_CODE,
+		ROUND(A.BASE_PAY_HOUR * 0.5, 0) AS SUM_WAGES, -- ① 임금 합계
+		ROUND(
+			ROUND(A.BASE_PAY_HOUR * 0.5, 0) / B.RETIREMENT_GRANTS /* 퇴직금 */ + 
+			ROUND(A.BASE_PAY_HOUR * 0.5, 0) * B.SAFETY_INSURANCE / 100 /* 산재보험 */ + 
+			ROUND(A.BASE_PAY_HOUR * 0.5, 0) * B.NATIONAL_PENSION / 100 /* 국민연금 */ + 
+			ROUND(A.BASE_PAY_HOUR * 0.5, 0) * B.HEALTH_INSURANCE / 100 /* 건강보험 */ + 
+			ROUND(A.BASE_PAY_HOUR * 0.5, 0) * B.HEALTH_INSURANCE / 100 * B.LONGTERM_INSURANCE / 100 /* 장기요양보험 */ + 
+			ROUND(A.BASE_PAY_HOUR * 0.5, 0) * B.EMPLOYMENT_INSURANCE / 100 /* 고용보험 */ + 
+			ROUND(A.BASE_PAY_HOUR * 0.5, 0) * B.GENERAL_INCOME_TAX / 100 /* 종합소득세 */ + 
+			ROUND(A.BASE_PAY_HOUR * 0.5, 0) * B.TAX_AFFAIRS_REPORT / 100 /* 세무성실신고 */
+		, 0) AS SUM_EXPENSE -- ② 경비 합계, 2020-10-21 jamerl - 조용래 : 각 항목 소수점으로 합계후 반올림 요청
+	FROM TBL_WORKING_UNIT_PRICE A
+	INNER JOIN TBL_WORKING_COMBINED_COST B
+		ON A.BASE_YYYY = B.BASE_YYYY
+	WHERE 1=1
+	AND A.BASE_YYYY = #{BASE_YYYY}
+	AND A.WORKTYPE_CODE = #{WORKTYPE_CODE}
+) X
+	ON M.BASE_YYYY = X.BASE_YYYY
+	AND M.WORKTYPE_CODE = X.WORKTYPE_CODE
+WHERE 1=1
+</select>
+
+<update id="merge_zwc_ctr_subc_ctn">
+/* oracle.yp_zwc_ctr.merge_zwc_ctr_subc_ctn */
+MERGE INTO TBL_WORKING_SUBC_CTN A
+USING (
+	SELECT
+		#{BASE_YYYY} AS BASE_YYYY,
+		#{VENDOR_CODE} VENDOR_CODE,
+		#{CONTRACT_CODE} CONTRACT_CODE,
+		REPLACE(#{MONTH_STANDARD_AMOUNT}, ',', '') AS MONTH_STANDARD_AMOUNT,
+		REPLACE(#{OVERTIME_NIGHT}, ',', '') AS OVERTIME_NIGHT,
+		REPLACE(#{OVERTIME_EXTENSION}, ',', '') AS OVERTIME_EXTENSION,
+		REPLACE(#{OVERTIME_SATURDAY}, ',', '') AS OVERTIME_SATURDAY,
+		REPLACE(#{OVERTIME_HOLIDAY}, ',', '') AS OVERTIME_HOLIDAY,
+		REPLACE(#{EXTRA_PAY}, ',', '') AS EXTRA_PAY,
+		REPLACE(#{UNIT_PRICE}, ',', '') AS UNIT_PRICE,
+		#{s_emp_code} AS REG_EMP,
+		SYSDATE AS REG_DATE,
+		#{s_emp_code} AS UPD_EMP,
+		SYSDATE AS UPD_DATE
+	FROM DUAL
+) B
+ON (
+		A.BASE_YYYY = B.BASE_YYYY
+	AND A.CONTRACT_CODE = B.CONTRACT_CODE
+	AND A.VENDOR_CODE = B.VENDOR_CODE
+)
+WHEN NOT MATCHED THEN
+INSERT (
+	BASE_YYYY,
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	MONTH_STANDARD_AMOUNT,
+	OVERTIME_NIGHT,
+	OVERTIME_EXTENSION,
+	OVERTIME_SATURDAY,
+	OVERTIME_HOLIDAY,
+	EXTRA_PAY,
+	UNIT_PRICE,
+	REG_EMP,
+	REG_DATE
+) VALUES (
+	B.BASE_YYYY,
+	B.CONTRACT_CODE,
+	B.VENDOR_CODE,
+	B.MONTH_STANDARD_AMOUNT,
+	B.OVERTIME_NIGHT,
+	B.OVERTIME_EXTENSION,
+	B.OVERTIME_SATURDAY,
+	B.OVERTIME_HOLIDAY,
+	B.EXTRA_PAY,
+	B.UNIT_PRICE,
+	B.REG_EMP,
+	B.REG_DATE
+)
+WHEN MATCHED THEN
+UPDATE SET
+	MONTH_STANDARD_AMOUNT = B.MONTH_STANDARD_AMOUNT,
+	OVERTIME_NIGHT = B.OVERTIME_NIGHT,
+	OVERTIME_EXTENSION = B.OVERTIME_EXTENSION,
+	OVERTIME_SATURDAY = B.OVERTIME_SATURDAY,
+	OVERTIME_HOLIDAY = B.OVERTIME_HOLIDAY,
+	EXTRA_PAY = B.EXTRA_PAY,
+	UNIT_PRICE = B.UNIT_PRICE,
+	UPD_EMP = B.UPD_EMP,
+	UPD_DATE = B.UPD_DATE
+</update>
+
+<update id="merge_zwc_ctr_subc_ctn_dt">
+/* oracle.yp_zwc_ctr.merge_zwc_ctr_subc_ctn_dt */
+MERGE INTO TBL_WORKING_SUBC_CTN_DT A
+USING (
+	SELECT
+		#{BASE_YYYY} AS BASE_YYYY,
+		#{VENDOR_CODE} VENDOR_CODE,
+		#{CONTRACT_CODE} CONTRACT_CODE,
+		#{WORKTYPE_CODE} AS WORKTYPE_CODE,
+		REPLACE(#{MAN_QTY}, ',', '') AS MAN_QTY,
+		#{s_emp_code} AS REG_EMP,
+		SYSDATE AS REG_DATE,
+		#{s_emp_code} AS UPD_EMP,
+		SYSDATE AS UPD_DATE
+	FROM DUAL
+) B
+ON (
+		A.BASE_YYYY = B.BASE_YYYY
+	AND A.CONTRACT_CODE = B.CONTRACT_CODE
+	AND A.VENDOR_CODE = B.VENDOR_CODE
+	AND A.WORKTYPE_CODE = B.WORKTYPE_CODE
+)
+WHEN NOT MATCHED THEN
+INSERT (
+	BASE_YYYY,
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	WORKTYPE_CODE,
+	MAN_QTY,
+	REG_EMP,
+	REG_DATE
+) VALUES (
+	B.BASE_YYYY,
+	B.CONTRACT_CODE,
+	B.VENDOR_CODE,
+	B.WORKTYPE_CODE,
+	B.MAN_QTY,
+	B.REG_EMP,
+	B.REG_DATE
+)
+WHEN MATCHED THEN
+UPDATE SET
+	MAN_QTY = B.MAN_QTY,
+	UPD_EMP = B.UPD_EMP,
+	UPD_DATE = B.UPD_DATE
+</update>
+
+
+<select id="select_zwc_ctr_worker_mapping_cnt" resultType="Double">
+/* oracle.yp_zwc_ctr.select_zwc_ctr_worker_mapping_cnt */
+SELECT COUNT(*) AS CNT
+FROM (	
+	SELECT	
+		BASE_YYYY, 
+        CONTRACT_CODE, 
+        VENDOR_CODE
+		,MAX(VENDOR_NAME) AS VENDOR_NAME
+		,ENT_CODE
+		,MAX(CONTRACT_NAME) AS CONTRACT_NAME
+		,LISTAGG(SUBC_CODE1,',') WITHIN GROUP(ORDER BY REG_DATE1 DESC)	AS SUBC_CODE1
+		,LISTAGG(SUBC_NAME1,',') WITHIN GROUP(ORDER BY REG_DATE1 DESC)	AS SUBC_NAME1
+        ,LISTAGG(SUBC_CODE2,',') WITHIN GROUP(ORDER BY REG_DATE2 DESC)	AS SUBC_CODE2
+		,LISTAGG(SUBC_NAME2,',') WITHIN GROUP(ORDER BY REG_DATE2 DESC)	AS SUBC_NAME2
+		,LISTAGG(SUBC_CODE3,',') WITHIN GROUP(ORDER BY REG_DATE3 DESC)	AS SUBC_CODE3
+		,LISTAGG(SUBC_NAME3,',') WITHIN GROUP(ORDER BY REG_DATE3 DESC)	AS SUBC_NAME3
+		,(SELECT SUM(MAN_QTY) AS MAN_QTY FROM TBL_WORKING_SUBC_CTN_DT WHERE BASE_YYYY = TB.BASE_YYYY AND CONTRACT_CODE = TB.CONTRACT_CODE AND VENDOR_CODE = TB.VENDOR_CODE) AS MAN_QTY
+		,COUNT(SUBC_CODE1)  AS SUBC_CODE1_CNT
+      	,COUNT(SUBC_CODE2)  AS SUBC_CODE2_CNT
+      	,COUNT(SUBC_CODE3)  AS SUBC_CODE2_CNT
+      	,MAX(GUBUN_CODE)    AS GUBUN_CODE
+        ,MAX(WORKING_GUBUN) AS WORKING_GUBUN
+        ,CASE 
+             WHEN MAX(WORKING_GUBUN)  = 'Y' AND MAX(GUBUN_CODE)  = '3' THEN '수시/저장품'
+             WHEN MAX(WORKING_GUBUN)  = 'Y' THEN '수시작업'
+             WHEN MAX(WORKING_GUBUN) != 'Y' AND MAX(GUBUN_CODE)  = '3' THEN '저장품'
+             WHEN MAX(WORKING_GUBUN) != 'Y' AND MAX(GUBUN_CODE) != '3' THEN '일반'
+             ELSE '' 
+         END AS GUBUN_NAME
+	FROM 
+	(
+		/* 근무형태 : 상갑반 */
+		SELECT
+			 A.BASE_YYYY
+			,A.CONTRACT_CODE
+			,A.VENDOR_CODE
+			,(SELECT CODE_NAME FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS VENDOR_NAME
+			,(SELECT SAP_CODE FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS ENT_CODE
+			,A.CONTRACT_NAME
+      
+			,B.SUBC_CODE AS SUBC_CODE1
+			,(SELECT SUBC_NAME FROM TBL_ENTERPRISE_ACCESS_CONTROL WHERE SUBC_CODE = B.SUBC_CODE) AS SUBC_NAME1
+      		,TO_CHAR(B.REG_DATE, 'YYYY-MM-DD HH24:MI:SS') AS REG_DATE1
+      		,'' AS SUBC_CODE2
+      		,'' AS SUBC_NAME2
+      		,'' AS REG_DATE2
+      		,'' AS SUBC_CODE3
+      		,'' AS SUBC_NAME3
+      		,'' AS REG_DATE3
+      		,A.GUBUN_CODE
+            ,A.WORKING_GUBUN
+		FROM TBL_WORKING_SUBC A
+		LEFT OUTER JOIN TBL_WORKING_SUBCWORKER_MAP B
+	    ON  A.BASE_YYYY     = B.BASE_YYYY
+		AND A.CONTRACT_CODE = B.CONTRACT_CODE
+		AND A.VENDOR_CODE   = B.VENDOR_CODE
+   		AND B.WORKTYPE_CODE = 'W1'
+		WHERE 1=1
+   		UNION ALL
+   		/* 근무형태 : 교대(갑반+을반+병반) */
+    	SELECT
+			 A.BASE_YYYY
+			,A.CONTRACT_CODE
+			,A.VENDOR_CODE
+			,(SELECT CODE_NAME FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS VENDOR_NAME
+			,(SELECT SAP_CODE FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS ENT_CODE
+			,A.CONTRACT_NAME
+      		,'' AS SUBC_CODE1
+      		,'' AS SUBC_NAME1
+     		,'' AS REG_DATE1
+			,B.SUBC_CODE AS SUBC_CODE2
+			,(SELECT SUBC_NAME FROM TBL_ENTERPRISE_ACCESS_CONTROL WHERE SUBC_CODE = B.SUBC_CODE) AS SUBC_NAME2
+      		,TO_CHAR(B.REG_DATE, 'YYYY-MM-DD HH24:MI:SS') AS REG_DATE2
+      		,'' AS SUBC_CODE3
+      		,'' AS SUBC_NAME3
+      		,'' AS REG_DATE3
+      		,A.GUBUN_CODE
+            ,A.WORKING_GUBUN
+		FROM TBL_WORKING_SUBC A
+		LEFT OUTER JOIN TBL_WORKING_SUBCWORKER_MAP B
+	    ON  A.BASE_YYYY     = B.BASE_YYYY
+		AND A.CONTRACT_CODE = B.CONTRACT_CODE
+		AND A.VENDOR_CODE   = B.VENDOR_CODE
+    	AND B.WORKTYPE_CODE = 'W99'
+		WHERE 1=1
+		UNION ALL
+   		/* 근무형태 : 수시/저장품 */
+    	SELECT
+			 A.BASE_YYYY
+			,A.CONTRACT_CODE
+			,A.VENDOR_CODE
+			,(SELECT CODE_NAME FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS VENDOR_NAME
+			,(SELECT SAP_CODE FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS ENT_CODE
+			,A.CONTRACT_NAME
+      		,'' AS SUBC_CODE1
+      		,'' AS SUBC_NAME1
+     		,'' AS REG_DATE1
+     		,'' AS SUBC_CODE2
+      		,'' AS SUBC_NAME2
+     		,'' AS REG_DATE2
+			,B.SUBC_CODE AS SUBC_CODE3
+			,(SELECT SUBC_NAME FROM TBL_ENTERPRISE_ACCESS_CONTROL WHERE SUBC_CODE = B.SUBC_CODE) AS SUBC_NAME3
+      		,TO_CHAR(B.REG_DATE, 'YYYY-MM-DD HH24:MI:SS') AS REG_DATE3
+      		,A.GUBUN_CODE
+            ,A.WORKING_GUBUN
+		FROM TBL_WORKING_SUBC A
+		LEFT OUTER JOIN TBL_WORKING_SUBCWORKER_MAP B
+	    ON  A.BASE_YYYY     = B.BASE_YYYY
+		AND A.CONTRACT_CODE = B.CONTRACT_CODE
+		AND A.VENDOR_CODE   = B.VENDOR_CODE
+    	AND B.WORKTYPE_CODE = 'W98'
+    	WHERE 1=1
+	) TB
+	WHERE 1 = 1
+	AND TB.BASE_YYYY = #{BASE_YYYY}
+	<if test='VENDOR_CODE != null'>
+	AND TB.VENDOR_CODE = #{VENDOR_CODE}
+	</if>
+	<if test='CONTRACT_CODE != null'>
+	AND TB.CONTRACT_CODE = #{CONTRACT_CODE}
+	</if>
+	GROUP BY BASE_YYYY, CONTRACT_CODE, VENDOR_CODE, ENT_CODE
+)	
+</select>
+
+<select id="select_zwc_ctr_worker_mapping" resultType="HashMap">
+/* oracle.yp_zwc_ctr.select_zwc_ctr_worker_mapping */
+	SELECT BASE_YYYY, CONTRACT_CODE, VENDOR_CODE, VENDOR_NAME, ENT_CODE, CONTRACT_NAME,
+	       SUBC_CODE1, SUBC_NAME1, SUBC_CODE2, SUBC_NAME2, SUBC_CODE3, SUBC_NAME3,
+	       MAN_QTY, SUBC_CODE1_CNT, SUBC_CODE2_CNT, SUBC_CODE3_CNT, GUBUN_CODE, WORKING_GUBUN, GUBUN_NAME, GUBUN_SORT
+	FROM (
+	
+	    SELECT	TB.BASE_YYYY
+	          ,TB.CONTRACT_CODE 
+	          ,TB.VENDOR_CODE
+	      ,MAX(TB.VENDOR_NAME) AS VENDOR_NAME
+	      ,TB.ENT_CODE
+	      ,MAX(TB.CONTRACT_NAME) AS CONTRACT_NAME
+	      ,LISTAGG(TB.SUBC_CODE1,',') WITHIN GROUP(ORDER BY TB.REG_DATE1 DESC, TB.SUBC_CODE1)	AS SUBC_CODE1
+	      ,LISTAGG(TB.SUBC_NAME1,',') WITHIN GROUP(ORDER BY TB.REG_DATE1 DESC, TB.SUBC_CODE1)	AS SUBC_NAME1
+	      ,LISTAGG(TB.SUBC_CODE2,',') WITHIN GROUP(ORDER BY TB.REG_DATE2 DESC, TB.SUBC_CODE2)	AS SUBC_CODE2
+	      ,LISTAGG(TB.SUBC_NAME2,',') WITHIN GROUP(ORDER BY TB.REG_DATE2 DESC, TB.SUBC_CODE2)	AS SUBC_NAME2
+	      ,''	AS SUBC_CODE3
+	      ,''	AS SUBC_NAME3
+	      ,(SELECT SUM(MAN_QTY) AS MAN_QTY FROM TBL_WORKING_SUBC_CTN_DT WHERE BASE_YYYY = TB.BASE_YYYY AND CONTRACT_CODE = TB.CONTRACT_CODE AND VENDOR_CODE = TB.VENDOR_CODE) AS MAN_QTY
+	      ,COUNT(TB.SUBC_CODE1)  AS SUBC_CODE1_CNT
+	      ,COUNT(TB.SUBC_CODE2)  AS SUBC_CODE2_CNT
+	      ,COUNT(TB.SUBC_CODE3)  AS SUBC_CODE3_CNT
+	      ,MAX(TB.GUBUN_CODE)    AS GUBUN_CODE
+	      ,MAX(TB.WORKING_GUBUN) AS WORKING_GUBUN
+	      ,'일반' AS GUBUN_NAME
+	      ,1 AS GUBUN_SORT
+	    FROM 
+	    (
+	      /* 근무형태 : 상갑반 */
+	      SELECT
+	         A.BASE_YYYY
+	        ,A.CONTRACT_CODE
+	        ,A.VENDOR_CODE
+	        ,(SELECT CODE_NAME FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS VENDOR_NAME
+	        ,(SELECT SAP_CODE FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS ENT_CODE
+	        ,A.CONTRACT_NAME
+	        
+	        ,B.SUBC_CODE AS SUBC_CODE1
+	        ,(SELECT SUBC_NAME FROM TBL_ENTERPRISE_ACCESS_CONTROL WHERE SUBC_CODE = B.SUBC_CODE) AS SUBC_NAME1
+	            ,TO_CHAR(B.REG_DATE, 'YYYY-MM-DD HH24:MI:SS') AS REG_DATE1
+	            ,'' AS SUBC_CODE2
+	            ,'' AS SUBC_NAME2
+	            ,'' AS REG_DATE2
+	            ,'' AS SUBC_CODE3
+	            ,'' AS SUBC_NAME3
+	            ,'' AS REG_DATE3
+	            ,A.GUBUN_CODE
+	              ,A.WORKING_GUBUN
+	      FROM TBL_WORKING_SUBC A
+	      LEFT OUTER JOIN TBL_WORKING_SUBCWORKER_MAP B
+	        ON  A.BASE_YYYY   = B.BASE_YYYY
+	      AND A.CONTRACT_CODE = B.CONTRACT_CODE
+	      AND A.VENDOR_CODE   = B.VENDOR_CODE
+	      AND B.WORKTYPE_CODE = 'W1'
+	      WHERE 1=1
+	      -- 2020-10-21 jamerl - 조업계약 및 저장품 계약은 인원을 입력하지 않음. 조회대상에서 제외
+	      AND A.GUBUN_CODE   != '3'
+	      AND A.WORKING_GUBUN = 'N'
+	        UNION ALL
+	        /* 근무형태 : 교대(갑반+을반+병반) */
+	        SELECT
+	         A.BASE_YYYY
+	        ,A.CONTRACT_CODE
+	        ,A.VENDOR_CODE
+	        ,(SELECT CODE_NAME FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS VENDOR_NAME
+	        ,(SELECT SAP_CODE FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS ENT_CODE
+	        ,A.CONTRACT_NAME
+	        ,'' AS SUBC_CODE1
+	        ,'' AS SUBC_NAME1
+	        ,'' AS REG_DATE1
+	        ,B.SUBC_CODE AS SUBC_CODE2
+	        ,(SELECT SUBC_NAME FROM TBL_ENTERPRISE_ACCESS_CONTROL WHERE SUBC_CODE = B.SUBC_CODE) AS SUBC_NAME2
+	            ,TO_CHAR(B.REG_DATE, 'YYYY-MM-DD HH24:MI:SS') AS REG_DATE2
+	            ,'' AS SUBC_CODE3
+	            ,'' AS SUBC_NAME3
+	            ,'' AS REG_DATE3
+	            ,A.GUBUN_CODE
+	              ,A.WORKING_GUBUN
+	      FROM TBL_WORKING_SUBC A
+	      LEFT OUTER JOIN TBL_WORKING_SUBCWORKER_MAP B
+	        ON  A.BASE_YYYY     = B.BASE_YYYY
+	      AND A.CONTRACT_CODE   = B.CONTRACT_CODE
+	      AND A.VENDOR_CODE     = B.VENDOR_CODE
+	        AND B.WORKTYPE_CODE = 'W99'
+	      WHERE 1=1
+	      -- 2020-10-21 jamerl - 조업계약 및 저장품 계약은 인원을 입력하지 않음. 조회대상에서 제외
+	      AND A.GUBUN_CODE   != '3'
+	      AND A.WORKING_GUBUN = 'N'
+	  
+	    ) TB
+	    WHERE 1 = 1
+	    AND TB.BASE_YYYY = #{BASE_YYYY}
+	    <if test='VENDOR_CODE != null'>
+		AND TB.VENDOR_CODE = #{VENDOR_CODE}
+		</if>
+		<if test='CONTRACT_CODE != null'>
+		AND TB.CONTRACT_CODE = #{CONTRACT_CODE}
+		</if>
+	    GROUP BY TB.BASE_YYYY, TB.CONTRACT_CODE, TB.VENDOR_CODE, TB.ENT_CODE
+	    
+	    UNION ALL
+	    
+	   /* 수시/저장품 작업 ROW 추가 - 계약코드는 임의로 생성함(BASE_YYYY + VENDOR_CODE) */
+	    SELECT	
+	          TB.BASE_YYYY, 
+	          TB.CONTRACT_CODE, 
+	          TB.VENDOR_CODE
+	          ,MAX(TB.VENDOR_NAME) AS VENDOR_NAME
+	          ,TB.ENT_CODE
+	          ,MAX(TB.CONTRACT_NAME) AS CONTRACT_NAME
+	          ,''	AS SUBC_CODE1
+	          ,''	AS SUBC_NAME1
+	          ,''	AS SUBC_CODE2
+	          ,''	AS SUBC_NAME2
+	          ,LISTAGG(TB.SUBC_CODE3,',') WITHIN GROUP(ORDER BY TB.REG_DATE3 DESC, TB.SUBC_CODE3)	AS SUBC_CODE3
+	          ,LISTAGG(TB.SUBC_NAME3,',') WITHIN GROUP(ORDER BY TB.REG_DATE3 DESC, TB.SUBC_CODE3)	AS SUBC_NAME3
+	          ,0 AS MAN_QTY
+	          ,COUNT(TB.SUBC_CODE1)  AS SUBC_CODE1_CNT
+	          ,COUNT(TB.SUBC_CODE2)  AS SUBC_CODE2_CNT
+	          ,COUNT(TB.SUBC_CODE3)  AS SUBC_CODE2_CNT
+	          ,MAX(TB.GUBUN_CODE)    AS GUBUN_CODE
+	          ,MAX(TB.WORKING_GUBUN) AS WORKING_GUBUN
+	          ,'수시/저장품' AS GUBUN_NAME
+	          ,2 AS GUBUN_SORT
+	    FROM 
+	    (
+	      /* 근무형태 : 수시/저장품 */
+	      SELECT A.BASE_YYYY, 
+	             '' AS CONTRACT_CODE, 
+	             A.VENDOR_CODE, 
+	            (SELECT CODE_NAME FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS VENDOR_NAME,
+	            (SELECT SAP_CODE FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS ENT_CODE,
+	             '' AS CONTRACT_NAME,
+	             '' AS SUBC_CODE1,
+	             '' AS SUBC_NAME1,
+	             '' AS REG_DATE1,
+	             '' AS SUBC_CODE2,
+	             '' AS SUBC_NAME2,
+	             '' AS REG_DATE2,
+	             
+	             B.SUBC_CODE AS SUBC_CODE3,
+	            (SELECT SUBC_NAME FROM TBL_ENTERPRISE_ACCESS_CONTROL WHERE SUBC_CODE = B.SUBC_CODE) AS SUBC_NAME3,
+	            TO_CHAR(MAX(B.REG_DATE), 'YYYY-MM-DD HH24:MI:SS') AS REG_DATE3,
+	             
+	             MAX(A.GUBUN_CODE) AS GUBUN_CODE,
+	             MAX(A.WORKING_GUBUN) AS WORKING_GUBUN
+	      FROM TBL_WORKING_SUBC A
+	      LEFT OUTER JOIN (SELECT BASE_YYYY, VENDOR_CODE, CONTRACT_CODE, SUBC_CODE, WORKTYPE_CODE, REG_DATE FROM TBL_WORKING_SUBCWORKER_MAP WHERE WORKTYPE_CODE = 'W98') B
+	      ON  A.BASE_YYYY                = B.BASE_YYYY
+	      AND A.BASE_YYYY||A.VENDOR_CODE = B.CONTRACT_CODE
+	      AND A.VENDOR_CODE              = B.VENDOR_CODE
+	      WHERE A.BASE_YYYY              = #{BASE_YYYY}
+	      GROUP BY A.BASE_YYYY, A.VENDOR_CODE, B.SUBC_CODE
+	    ) TB
+	    WHERE 1 = 1
+	    AND TB.BASE_YYYY = #{BASE_YYYY}
+	    <if test='VENDOR_CODE != null'>
+		AND TB.VENDOR_CODE = #{VENDOR_CODE}
+		</if>
+		<if test='CONTRACT_CODE != null'>
+		AND TB.CONTRACT_CODE = #{CONTRACT_NAME}
+		</if>
+	    GROUP BY BASE_YYYY, CONTRACT_CODE, VENDOR_CODE, ENT_CODE
+	
+	 ) GRID
+	 WHERE 1=1
+	 ORDER BY VENDOR_NAME, GUBUN_SORT
+</select>
+
+<select id="select_zwc_ctr_worker_mapping_cnt_NEW" resultType="Double">
+/* oracle.yp_zwc_ctr.select_zwc_ctr_worker_mapping_cnt_NEW */
+SELECT COUNT(*) AS CNT
+FROM (	
+	SELECT	
+		BASE_YYYY, 
+        CONTRACT_CODE, 
+        VENDOR_CODE
+		,MAX(VENDOR_NAME) AS VENDOR_NAME
+		,ENT_CODE
+		,MAX(CONTRACT_NAME) AS CONTRACT_NAME
+		,LISTAGG(SUBC_CODE1,',') WITHIN GROUP(ORDER BY REG_DATE1 DESC)	AS SUBC_CODE1
+		,LISTAGG(SUBC_NAME1,',') WITHIN GROUP(ORDER BY REG_DATE1 DESC)	AS SUBC_NAME1
+        ,LISTAGG(SUBC_CODE2,',') WITHIN GROUP(ORDER BY REG_DATE2 DESC)	AS SUBC_CODE2
+		,LISTAGG(SUBC_NAME2,',') WITHIN GROUP(ORDER BY REG_DATE2 DESC)	AS SUBC_NAME2
+		,LISTAGG(SUBC_CODE3,',') WITHIN GROUP(ORDER BY REG_DATE3 DESC)	AS SUBC_CODE3
+		,LISTAGG(SUBC_NAME3,',') WITHIN GROUP(ORDER BY REG_DATE3 DESC)	AS SUBC_NAME3
+		,(SELECT SUM(MAN_QTY) AS MAN_QTY FROM TBL_WORKING_SUBC_CTN_DT WHERE BASE_YYYY = TB.BASE_YYYY AND CONTRACT_CODE = TB.CONTRACT_CODE AND VENDOR_CODE = TB.VENDOR_CODE) AS MAN_QTY
+		,COUNT(SUBC_CODE1)  AS SUBC_CODE1_CNT
+      	,COUNT(SUBC_CODE2)  AS SUBC_CODE2_CNT
+      	,COUNT(SUBC_CODE3)  AS SUBC_CODE2_CNT
+      	,MAX(GUBUN_CODE)    AS GUBUN_CODE
+        ,MAX(WORKING_GUBUN) AS WORKING_GUBUN
+        ,CASE 
+             WHEN MAX(WORKING_GUBUN)  = 'Y' AND MAX(GUBUN_CODE)  = '3' THEN '수시/저장품'
+             WHEN MAX(WORKING_GUBUN)  = 'Y' THEN '수시작업'
+             WHEN MAX(WORKING_GUBUN) != 'Y' AND MAX(GUBUN_CODE)  = '3' THEN '저장품'
+             WHEN MAX(WORKING_GUBUN) != 'Y' AND MAX(GUBUN_CODE) != '3' THEN '일반'
+             ELSE '' 
+         END AS GUBUN_NAME
+	FROM 
+	(
+		/* 근무형태 : 상갑반 */
+		SELECT
+			 A.BASE_YYYY
+			,A.CONTRACT_CODE
+			,A.VENDOR_CODE
+			,(SELECT CODE_NAME FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS VENDOR_NAME
+			,(SELECT SAP_CODE FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS ENT_CODE
+			,A.CONTRACT_NAME
+      
+			,B.SUBC_CODE AS SUBC_CODE1
+			,(SELECT SUBC_NAME FROM TBL_ENTERPRISE_ACCESS_CONTROL WHERE SUBC_CODE = B.SUBC_CODE) AS SUBC_NAME1
+      		,TO_CHAR(B.REG_DATE, 'YYYY-MM-DD HH24:MI:SS') AS REG_DATE1
+      		,'' AS SUBC_CODE2
+      		,'' AS SUBC_NAME2
+      		,'' AS REG_DATE2
+      		,'' AS SUBC_CODE3
+      		,'' AS SUBC_NAME3
+      		,'' AS REG_DATE3
+      		,A.GUBUN_CODE
+            ,A.WORKING_GUBUN
+		FROM TBL_WORKING_SUBC A
+		LEFT OUTER JOIN TBL_WORKING_SUBCWORKER_MAP B
+	    ON  A.BASE_YYYY     = B.BASE_YYYY
+		AND A.CONTRACT_CODE = B.CONTRACT_CODE
+		AND A.VENDOR_CODE   = B.VENDOR_CODE
+   		AND B.WORKTYPE_CODE = 'W1'
+		WHERE 1=1
+   		UNION ALL
+   		/* 근무형태 : 교대(갑반+을반+병반) */
+    	SELECT
+			 A.BASE_YYYY
+			,A.CONTRACT_CODE
+			,A.VENDOR_CODE
+			,(SELECT CODE_NAME FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS VENDOR_NAME
+			,(SELECT SAP_CODE FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS ENT_CODE
+			,A.CONTRACT_NAME
+      		,'' AS SUBC_CODE1
+      		,'' AS SUBC_NAME1
+     		,'' AS REG_DATE1
+			,B.SUBC_CODE AS SUBC_CODE2
+			,(SELECT SUBC_NAME FROM TBL_ENTERPRISE_ACCESS_CONTROL WHERE SUBC_CODE = B.SUBC_CODE) AS SUBC_NAME2
+      		,TO_CHAR(B.REG_DATE, 'YYYY-MM-DD HH24:MI:SS') AS REG_DATE2
+      		,'' AS SUBC_CODE3
+      		,'' AS SUBC_NAME3
+      		,'' AS REG_DATE3
+      		,A.GUBUN_CODE
+            ,A.WORKING_GUBUN
+		FROM TBL_WORKING_SUBC A
+		LEFT OUTER JOIN TBL_WORKING_SUBCWORKER_MAP B
+	    ON  A.BASE_YYYY     = B.BASE_YYYY
+		AND A.CONTRACT_CODE = B.CONTRACT_CODE
+		AND A.VENDOR_CODE   = B.VENDOR_CODE
+    	AND B.WORKTYPE_CODE = 'W99'
+		WHERE 1=1
+		UNION ALL
+   		/* 근무형태 : 수시/저장품 */
+    	SELECT
+			 A.BASE_YYYY
+			,A.CONTRACT_CODE
+			,A.VENDOR_CODE
+			,(SELECT CODE_NAME FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS VENDOR_NAME
+			,(SELECT SAP_CODE FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS ENT_CODE
+			,A.CONTRACT_NAME
+      		,'' AS SUBC_CODE1
+      		,'' AS SUBC_NAME1
+     		,'' AS REG_DATE1
+     		,'' AS SUBC_CODE2
+      		,'' AS SUBC_NAME2
+     		,'' AS REG_DATE2
+			,B.SUBC_CODE AS SUBC_CODE3
+			,(SELECT SUBC_NAME FROM TBL_ENTERPRISE_ACCESS_CONTROL WHERE SUBC_CODE = B.SUBC_CODE) AS SUBC_NAME3
+      		,TO_CHAR(B.REG_DATE, 'YYYY-MM-DD HH24:MI:SS') AS REG_DATE3
+      		,A.GUBUN_CODE
+            ,A.WORKING_GUBUN
+		FROM TBL_WORKING_SUBC A
+		LEFT OUTER JOIN TBL_WORKING_SUBCWORKER_MAP B
+	    ON  A.BASE_YYYY     = B.BASE_YYYY
+		AND A.CONTRACT_CODE = B.CONTRACT_CODE
+		AND A.VENDOR_CODE   = B.VENDOR_CODE
+    	AND B.WORKTYPE_CODE = 'W98'
+    	WHERE 1=1
+	) TB
+	WHERE 1 = 1
+	AND TB.BASE_YYYY = #{BASE_YYYY}
+	<if test='VENDOR_CODE != null'>
+	AND TB.VENDOR_CODE = #{VENDOR_CODE}
+	</if>
+	<if test='CONTRACT_CODE != null'>
+	AND TB.CONTRACT_CODE = #{CONTRACT_CODE}
+	</if>
+	GROUP BY BASE_YYYY, CONTRACT_CODE, VENDOR_CODE, ENT_CODE
+)	
+</select>
+
+<select id="select_zwc_ctr_worker_mapping_NEW" resultType="HashMap">
+/* oracle.yp_zwc_ctr.select_zwc_ctr_worker_mapping_NEW */
+SELECT BASE_YYYY, CONTRACT_CODE, VENDOR_CODE, VENDOR_NAME, ENT_CODE, CONTRACT_NAME,
+		 SUBC_CODE1, SUBC_NAME1, SUBC_CODE2, SUBC_NAME2, SUBC_CODE3, SUBC_NAME3,
+		 MAN_QTY, SUBC_CODE1_CNT, SUBC_CODE2_CNT, SUBC_CODE3_CNT, GUBUN_CODE, WORKING_GUBUN, GUBUN_NAME, GUBUN_SORT
+FROM (
+	SELECT	
+		 TB.BASE_YYYY
+		,TB.CONTRACT_CODE 
+		,TB.VENDOR_CODE
+		,MAX(TB.VENDOR_NAME) AS VENDOR_NAME
+		,TB.ENT_CODE
+		,MAX(TB.CONTRACT_NAME) AS CONTRACT_NAME
+		,LISTAGG(TB.SUBC_CODE1,',') WITHIN GROUP(ORDER BY TB.REG_DATE1 DESC, TB.SUBC_CODE1)	AS SUBC_CODE1
+		,LISTAGG(TB.SUBC_NAME1,',') WITHIN GROUP(ORDER BY TB.REG_DATE1 DESC, TB.SUBC_CODE1)	AS SUBC_NAME1
+		,LISTAGG(TB.SUBC_CODE2,',') WITHIN GROUP(ORDER BY TB.REG_DATE2 DESC, TB.SUBC_CODE2)	AS SUBC_CODE2
+		,LISTAGG(TB.SUBC_NAME2,',') WITHIN GROUP(ORDER BY TB.REG_DATE2 DESC, TB.SUBC_CODE2)	AS SUBC_NAME2
+		,LISTAGG(TB.SUBC_CODE3,',') WITHIN GROUP(ORDER BY TB.REG_DATE3 DESC, TB.SUBC_CODE3)	AS SUBC_CODE3
+		,LISTAGG(TB.SUBC_NAME3,',') WITHIN GROUP(ORDER BY TB.REG_DATE3 DESC, TB.SUBC_CODE3)	AS SUBC_NAME3
+		,(SELECT SUM(MAN_QTY) AS MAN_QTY FROM TBL_WORKING_SUBC_CTN_DT WHERE BASE_YYYY = TB.BASE_YYYY AND CONTRACT_CODE = TB.CONTRACT_CODE AND VENDOR_CODE = TB.VENDOR_CODE) AS MAN_QTY
+		,COUNT(TB.SUBC_CODE1)  AS SUBC_CODE1_CNT
+		,COUNT(TB.SUBC_CODE2)  AS SUBC_CODE2_CNT
+		,COUNT(TB.SUBC_CODE3)  AS SUBC_CODE3_CNT
+		,MAX(TB.GUBUN_CODE)	 AS GUBUN_CODE
+		,MAX(TB.WORKING_GUBUN) AS WORKING_GUBUN
+		,CASE
+			WHEN MAX(TB.GUBUN_CODE) = '3' AND MAX(TB.WORKING_GUBUN) = 'Y' THEN '수시/저장품'
+			WHEN MAX(TB.GUBUN_CODE) = '3' THEN '저장품'
+			WHEN MAX(TB.WORKING_GUBUN) = 'Y' THEN '수시'
+			ELSE '일반'
+		END AS GUBUN_NAME
+		,CASE
+			WHEN MAX(TB.GUBUN_CODE) = '3' THEN 2
+			WHEN MAX(TB.WORKING_GUBUN) = 'Y' THEN 2
+			ELSE 1
+		END AS GUBUN_SORT
+	FROM 
+	(
+		/* 근무형태 : 상갑반 */
+		SELECT
+			 A.BASE_YYYY
+			,A.CONTRACT_CODE
+			,A.VENDOR_CODE
+			,(SELECT CODE_NAME FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS VENDOR_NAME
+			,(SELECT SAP_CODE FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS ENT_CODE
+			,A.CONTRACT_NAME
+			,B.SUBC_CODE AS SUBC_CODE1
+			,(SELECT SUBC_NAME FROM TBL_ENTERPRISE_ACCESS_CONTROL WHERE SUBC_CODE = B.SUBC_CODE) AS SUBC_NAME1
+			,TO_CHAR(B.REG_DATE, 'YYYY-MM-DD HH24:MI:SS') AS REG_DATE1
+			,'' AS SUBC_CODE2
+			,'' AS SUBC_NAME2
+			,'' AS REG_DATE2
+			,'' AS SUBC_CODE3
+			,'' AS SUBC_NAME3
+			,'' AS REG_DATE3
+			,A.GUBUN_CODE
+			,A.WORKING_GUBUN
+		FROM TBL_WORKING_SUBC A
+		LEFT OUTER JOIN TBL_WORKING_SUBCWORKER_MAP B
+		ON  A.BASE_YYYY	= B.BASE_YYYY
+		AND A.CONTRACT_CODE = B.CONTRACT_CODE
+		AND A.VENDOR_CODE	= B.VENDOR_CODE
+		AND B.WORKTYPE_CODE = 'W1'
+		WHERE 1=1
+			UNION ALL
+		/* 근무형태 : 교대(갑반+을반+병반) */
+		SELECT
+			 A.BASE_YYYY
+			,A.CONTRACT_CODE
+			,A.VENDOR_CODE
+			,(SELECT CODE_NAME FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS VENDOR_NAME
+			,(SELECT SAP_CODE FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS ENT_CODE
+			,A.CONTRACT_NAME
+			,'' AS SUBC_CODE1
+			,'' AS SUBC_NAME1
+			,'' AS REG_DATE1
+			,B.SUBC_CODE AS SUBC_CODE2
+			,(SELECT SUBC_NAME FROM TBL_ENTERPRISE_ACCESS_CONTROL WHERE SUBC_CODE = B.SUBC_CODE) AS SUBC_NAME2
+			,TO_CHAR(B.REG_DATE, 'YYYY-MM-DD HH24:MI:SS') AS REG_DATE2
+			,'' AS SUBC_CODE3
+			,'' AS SUBC_NAME3
+			,'' AS REG_DATE3
+			,A.GUBUN_CODE
+			,A.WORKING_GUBUN
+		FROM TBL_WORKING_SUBC A
+		LEFT OUTER JOIN TBL_WORKING_SUBCWORKER_MAP B
+		ON  A.BASE_YYYY	  = B.BASE_YYYY
+		AND A.CONTRACT_CODE	= B.CONTRACT_CODE
+		AND A.VENDOR_CODE	  = B.VENDOR_CODE
+		AND B.WORKTYPE_CODE = 'W99'
+		WHERE 1=1
+			UNION ALL
+		/* 근무형태 : 수시/저장품 */
+		SELECT
+			A.BASE_YYYY ,
+			A.CONTRACT_CODE,
+			A.VENDOR_CODE, 
+			(SELECT CODE_NAME FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS VENDOR_NAME,
+			(SELECT SAP_CODE FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'V' AND CODE = A.VENDOR_CODE) AS ENT_CODE,
+			A.CONTRACT_NAME,
+			'' AS SUBC_CODE1,
+			'' AS SUBC_NAME1,
+			'' AS REG_DATE1,
+			'' AS SUBC_CODE2,
+			'' AS SUBC_NAME2,
+			'' AS REG_DATE2,
+			B.SUBC_CODE AS SUBC_CODE3,
+			(SELECT SUBC_NAME FROM TBL_ENTERPRISE_ACCESS_CONTROL WHERE SUBC_CODE = B.SUBC_CODE) AS SUBC_NAME3,
+			TO_CHAR(B.REG_DATE, 'YYYY-MM-DD HH24:MI:SS') AS REG_DATE3,
+			A.GUBUN_CODE AS GUBUN_CODE,
+			A.WORKING_GUBUN AS WORKING_GUBUN
+		FROM TBL_WORKING_SUBC A
+		LEFT OUTER JOIN (
+			SELECT 
+				BASE_YYYY, VENDOR_CODE, CONTRACT_CODE, SUBC_CODE, WORKTYPE_CODE, REG_DATE 
+			FROM TBL_WORKING_SUBCWORKER_MAP 
+			WHERE WORKTYPE_CODE = 'W98'
+		) B
+		ON  A.BASE_YYYY = B.BASE_YYYY
+		AND A.BASE_YYYY||A.VENDOR_CODE = B.CONTRACT_CODE
+		AND A.VENDOR_CODE = B.VENDOR_CODE
+		WHERE A.BASE_YYYY = '2021'
+	) TB
+	WHERE 1 = 1
+	AND TB.BASE_YYYY = #{BASE_YYYY}
+<if test='VENDOR_CODE != null'>
+	AND TB.VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_CODE != null'>
+	AND TB.CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+	GROUP BY TB.BASE_YYYY, TB.CONTRACT_CODE, TB.VENDOR_CODE, TB.ENT_CODE
+) GRID
+WHERE 1=1
+ORDER BY VENDOR_NAME, GUBUN_SORT
+</select>
+
+<select id="select_zwc_ctr_worker_list_cnt" resultType="Double">
+/* oracle.yp_zwc_ctr.select_zwc_ctr_worker_list_cnt */
+	SELECT COUNT(*) AS CNT
+	FROM TBL_ENTERPRISE A
+	INNER JOIN TBL_ENTERPRISE_ACCESS_CONTROL B
+	ON A.ENT_CODE = B.ENT_CODE
+	WHERE 1=1
+	AND A.ENT_CODE = #{ENT_CODE}
+	AND B.SUBC_CODE NOT IN (SELECT SUBC_CODE FROM TBL_WORKING_SUBCWORKER_MAP WHERE BASE_YYYY = #{BASE_YYYY} AND VENDOR_CODE = #{VENDOR_CODE})	/* 조회년도에 이미 매핑된 작업자는 리스트에서 빠짐 */ 
+</select>
+
+<select id="select_zwc_ctr_worker_list" resultType="HashMap">
+/* oracle.yp_zwc_ctr.select_zwc_ctr_worker_list */
+SELECT	TB.BASE_YYYY, 
+		TB.VENDOR_CODE, 
+		TB.CONTRACT_CODE, 
+		TB.ENT_CODE, 
+		TB.ENT_NAME, 
+		TB.SUBC_CODE, 
+		TB.SUBC_NAME,
+		TB.WORKTYPE_CODE
+FROM(
+	SELECT #{BASE_YYYY} AS BASE_YYYY
+			,#{VENDOR_CODE} AS VENDOR_CODE
+			,#{CONTRACT_CODE} AS CONTRACT_CODE
+		,A.ENT_CODE
+		,A.ENT_NAME
+		,B.SUBC_CODE
+		,B.SUBC_NAME
+		,#{WORKTYPE_CODE} AS WORKTYPE_CODE
+	FROM TBL_ENTERPRISE A
+	INNER JOIN TBL_ENTERPRISE_ACCESS_CONTROL B
+	ON A.ENT_CODE = B.ENT_CODE
+	WHERE 1=1
+	AND A.ENT_CODE = #{ENT_CODE}
+	AND B.SUBC_CODE NOT IN (SELECT SUBC_CODE FROM TBL_WORKING_SUBCWORKER_MAP WHERE BASE_YYYY = #{BASE_YYYY} AND VENDOR_CODE = #{VENDOR_CODE})	/* 조회년도에 이미 매핑된 작업자는 리스트에서 빠짐 */ 
+	AND B.STATUS IN ('W','A')	/* 출입신청,출입승인 상태만 작업자 목록 출력*/
+	ORDER BY B.SUBC_NAME ASC
+) TB	
+</select>
+
+<select id="select_zwc_ctr_worktype_list" resultType="HashMap">
+/* oracle.yp_zwc_ctr.select_zwc_ctr_worktype_list */
+SELECT *
+FROM (
+	SELECT A.WORKTYPE_CODE AS code_id
+			,(SELECT CODE_NAME FROM TBL_WORKING_MASTER WHERE SUBSTR(CODE, 1, 1) = 'W' AND CODE = A.WORKTYPE_CODE AND REFERENCE_CODE IS NULL) AS code_name
+	FROM TBL_WORKING_SUBC_CTN_DT A
+	LEFT OUTER JOIN (
+		SELECT BASE_YYYY, VENDOR_CODE, CONTRACT_CODE, WORKTYPE_CODE, COUNT(WORKTYPE_CODE) AS W_M_CNT
+		FROM TBL_WORKING_SUBCWORKER_MAP
+		WHERE BASE_YYYY	 = #{BASE_YYYY}
+		AND CONTRACT_CODE	= #{CONTRACT_CODE}
+		AND VENDOR_CODE	 = #{VENDOR_CODE}
+		GROUP BY BASE_YYYY, VENDOR_CODE, CONTRACT_CODE, WORKTYPE_CODE
+	) B
+	ON	A.BASE_YYYY	 = B.BASE_YYYY
+	AND	A.VENDOR_CODE	= B.VENDOR_CODE
+	AND	A.CONTRACT_CODE = B.CONTRACT_CODE
+	AND	A.WORKTYPE_CODE = B.WORKTYPE_CODE
+	WHERE A.BASE_YYYY	 = #{BASE_YYYY}
+	AND	A.CONTRACT_CODE = #{CONTRACT_CODE}
+	AND	A.VENDOR_CODE	= #{VENDOR_CODE}
+	AND	A.MAN_QTY <![CDATA[>]]> 0
+	AND	A.MAN_QTY - NVL(B.W_M_CNT,0) <![CDATA[>]]> 0
+	UNION ALL
+	SELECT 'W99' AS code_id, '교대' AS code_name FROM DUAL
+)TB
+WHERE 1=1
+AND CODE_NAME IS NOT NULL
+ORDER BY LPAD(TB.CODE_ID, 3, '0') ASC
+</select>
+
+<select id="zwc_ctr_worker_mapping_validation" resultType="HashMap">
+/* oracle.yp_zwc_ctr.zwc_ctr_worker_mapping_validation */	
+	SELECT A.WORKTYPE_CODE, 										--근무형태
+		 A.MAN_QTY AS TOTAL_CNT,								--근무형태별 계약 인력 총 수
+		 COUNT(B.WORKTYPE_CODE) AS MAPPING_CNT,					--근무형태별 맵팽 된 작업자 수
+		 A.MAN_QTY - COUNT(B.WORKTYPE_CODE) AS REG_POSSIBLE_CNT	--근무형태별 맵핑 가능한 작업자 수
+	FROM TBL_WORKING_SUBC_CTN_DT A
+	LEFT OUTER JOIN TBL_WORKING_SUBCWORKER_MAP B
+	ON	A.BASE_YYYY	 = B.BASE_YYYY
+	AND	A.VENDOR_CODE	= B.VENDOR_CODE
+	AND	A.CONTRACT_CODE = B.CONTRACT_CODE
+	AND	A.WORKTYPE_CODE = B.WORKTYPE_CODE
+	LEFT OUTER JOIN TBL_WORKING_MASTER C
+	ON A.WORKTYPE_CODE	= C.CODE
+	WHERE A.BASE_YYYY	 = #{BASE_YYYY}
+	AND	A.VENDOR_CODE	= #{VENDOR_CODE}
+	AND	A.CONTRACT_CODE = #{CONTRACT_CODE}
+	AND	C.REFERENCE_CODE IS NULL
+	GROUP BY A.WORKTYPE_CODE, A.MAN_QTY
+	UNION ALL
+	/* W99(교대 = 갑반 + 을반 + 병반) */
+	SELECT TTB.WORKTYPE_CODE,
+		 TTB.TOTAL_CNT,
+		 (SELECT COUNT(WORKTYPE_CODE) FROM TBL_WORKING_SUBCWORKER_MAP WHERE BASE_YYYY = #{BASE_YYYY} AND VENDOR_CODE = #{VENDOR_CODE} AND CONTRACT_CODE = #{CONTRACT_CODE} AND WORKTYPE_CODE = 'W99') AS MAPPING_CNT,
+		 TTB.TOTAL_CNT - (SELECT COUNT(WORKTYPE_CODE) FROM TBL_WORKING_SUBCWORKER_MAP WHERE BASE_YYYY = #{BASE_YYYY}	AND VENDOR_CODE = #{VENDOR_CODE} AND CONTRACT_CODE = #{CONTRACT_CODE} AND WORKTYPE_CODE = 'W99') AS REG_POSSIBLE_CNT
+	FROM (
+	SELECT WORKTYPE_CODE,
+			SUM(TOTAL_CNT) AS TOTAL_CNT
+	FROM(		
+		SELECT 'W99' AS WORKTYPE_CODE,
+			 A.MAN_QTY AS TOTAL_CNT,
+			 A.MAN_QTY
+		FROM TBL_WORKING_SUBC_CTN_DT A
+		LEFT OUTER JOIN TBL_WORKING_MASTER C
+		ON A.WORKTYPE_CODE   = C.CODE
+		WHERE A.BASE_YYYY    = #{BASE_YYYY}
+		AND	A.VENDOR_CODE	 = #{VENDOR_CODE}
+		AND	A.CONTRACT_CODE	 = #{CONTRACT_CODE}
+		AND	C.REFERENCE_CODE = 'W99'
+		GROUP BY A.WORKTYPE_CODE, A.MAN_QTY
+		ORDER BY LPAD(A.WORKTYPE_CODE, 3, '0') ASC
+	)TB
+	GROUP BY TB.WORKTYPE_CODE
+	) TTB
+</select>
+
+<delete id="zwc_ctr_worker_delete">
+/* oracle.yp_zwc_ctr.zwc_ctr_worker_delete */
+	DELETE TBL_WORKING_SUBCWORKER_MAP
+	WHERE BASE_YYYY	 = #{BASE_YYYY}
+	AND	VENDOR_CODE	= #{VENDOR_CODE}
+	<if test='CONTRACT_CODE != null'>
+	AND	CONTRACT_CODE = #{CONTRACT_CODE}
+	</if>
+	<if test='CONTRACT_CODE == null'>
+	/* 수시작업자는 계약코드가 별도로 없어서 검수년월+벤더코드로 구성되어 있다 */
+	AND	CONTRACT_CODE = '${BASE_YYYY}${VENDOR_CODE}'
+	</if>
+	AND	SUBC_CODE	 = #{SUBC_CODE}
+</delete>
+
+<insert id="zwc_ctr_worker_create">
+/* oracle.yp_zwc_ctr.zwc_ctr_worker_create */
+	INSERT INTO TBL_WORKING_SUBCWORKER_MAP
+	VALUES(
+		#{BASE_YYYY}, #{VENDOR_CODE}, #{CONTRACT_CODE}, #{SUBC_CODE}, #{WORKTYPE_CODE}, #{emp_code}, '', sysdate, ''
+	)
+</insert>
+
+</mapper>

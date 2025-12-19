@@ -1,0 +1,249 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="IE=edge,chrome=1"> 
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">
+    <title>영풍</title>
+	<link rel="stylesheet" href="css/style.css">
+    <script language="JavaScript">
+     
+     function viewLayer(){ 
+        document.getElementById("gnb").style.visibility = "visible"
+        document.getElementById("gnb_nav").style.visibility = "hidden"
+        document.getElementById("closeNav").style.marginLeft = "140px"
+     }
+     
+     function hideLayer(){
+         document.getElementById("gnb").style.visibility = "hidden"
+         document.getElementById("gnb_nav").style.visibility = "visible"
+         document.getElementById("closeNav").style.marginLeft = "350px"
+         
+     }
+     </script>
+</head>
+<body class="bg_gray">
+	<div id="wrapper">
+       <div class="header">
+            <div class="logo"><a href="main.html"><img src="images/logo_sub.png"> 도급관리 웹포탈 시스템</a></div>
+            <div class="top_ic">
+                <ul>
+                    <li>ypAdminUser <a href="#"><img src="images/topic_logout.png"></a>
+                        <div class="topnav_my">
+                            <ul>
+                                <li><a href="#">정보수정</a></li>
+                                <li><a href="#">로그아웃</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="content_body">
+            <!-- gnb S -->
+            <div id="gnb">
+                <ul>
+                    <li><a href="#" onclick="hideLayer('gnb')" ><img src="images/gnb_ic_menu.png"><p>전체메뉴</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_money.png"><p>재무관리</p></a> </li>
+                    <li><a href="#"><img src="images/gnb_ic_buy.png"><p>구매관리</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_person.png"><p>인사관리</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_report.png"><p>준공보고서</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_work.png"><p>조업 도급관리</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_factory.png"><p>공사 도급관리</p></a></li>
+                </ul>
+            </div>
+            <div id="gnb_nav">
+                <div class="mn_container">
+                    <div class="mn_icon"><a href="#" onclick="viewLayer('gnb')" ><img src="images/gnb_ic_menu.png"></a>
+                    </div>
+                    <div class="mn_item">
+                        <input id="ac-1" name="gnb" type="radio" /> <label for="ac-1">재무관리</label> 
+                        <article class="mn_sub">
+                            <ul>
+                                <li><a href="#">전표관리</a> </li>
+                                <ul class="gnb_3lv">
+                                    <li><a href="#">회계전표 목록</a></li>
+                                    <li><a href="#">회계전표 등록</a></li>
+                                </ul>
+
+                                <li><a href="#">예산관리</a> </li>
+                                <ul class="gnb_3lv">
+                                    <li><a href="#">예산조회</a></li>
+                                    <li><a href="#">예산신청</a></li>
+                                    <li><a href="#">예산 결재상신</a></li>
+                                    <li><a href="#">투보수 예산현황 조회</a></li>
+                                    <li><a href="#">일이삼사오육칠팔구십일이삼사오육칠팔구십</a></li>
+                                </ul>
+                            </ul>
+                        </article>
+                    </div>
+                    <div class="mn_item">
+                        <input id="ac-2" name="gnb" type="radio" /> <label for="ac-2">메뉴명 20자</label> 
+                        
+                        <article class="mn_sub">
+                            <ul>
+                                <li><a href="#">일이삼사오육칠팔구십일이삼사오육칠팔구십</a> </li>
+                                <li><a href="#">일이삼사오육칠팔구십일이삼사오육칠팔구십</a> </li>
+                            </ul>
+                        </article>
+                    </div>
+                    <div class="mn_item">
+                        <input id="ac-3" name="gnb" type="radio" checked /> <label for="ac-3">화면템플릿</label> 
+                        <article class="mn_sub">
+                            <ul>
+                                <li><a href="template_01.html">계약등록</a></li>
+                                <li><a href="template_02.html">회계전표 목록</a></li>
+                                <li><a href="template_03.html">회계전표 등록</a></li>
+                                <li><a href="#" onclick="window.open('template_pop02.html','','width=500,height=500')">업체검색</a></li>
+                                <li><a href="template_04.html">투보수 예산현황 조회</a></li>
+                                <li><a href="template_05.html">투보수 예산상세 조회</a></li>
+                                <li><a href="template_06.html">입항스케쥴 조회</a></li>
+                                <li><a href="template_07.html">개인 출퇴근 현황</a></li>
+                                <li><a href="template_08.html">도시락 신청/조회</a></li>
+                                <li><a href="template_09.html">식당관리</a></li>
+                            </ul>
+                        </article>
+                    </div>
+                </div>
+                  
+            </div>
+            <!-- gnb S -->
+            <!-- contents box S -->
+            <div class="sub_contents_box" id="closeNav">
+                <div class="sub_contents">
+                    <h2>회계전표 목록
+                        <ul class="loc">
+                            <li><a href="#"><img src="images/ic_loc_home.png"></a></li>
+                            <li><a href="#">공사도급관리</a></li>
+                            <li><a href="#">계약관리</a></li>
+                            <li>계약등록</li>
+                        </ul>   
+                    </h2>
+                    <section>
+                        <div class="tbl_box">
+                            <table cellspacing="0" cellpadding="0">
+                                <colgroup>
+                                    <col width="12%" />
+                                    <col />
+                                    <col width="12%" />
+                                    <col />
+                                </colgroup>
+                                <tr>
+                                    <th>전기일</th>
+                                    <td><input type="text" class="calendar"> ~ <input type="text" class="calendar"></td><th>전표헤더 텍스트</th>
+                                    <td><input type="text"></td>
+                                </tr>
+                                <tr>
+                                    <th>증빙일</th>
+                                    <td><input type="text" class="calendar"> ~ <input type="text" class="calendar"></td><th>전표번호</th>
+                                    <td><input type="text"></td>
+                                </tr>
+                                <tr>
+                                    <th>입력일</th>
+                                    <td><input type="text" class="calendar"> ~ <input type="text" class="calendar"></td><th>작성자</th>
+                                    <td><input type="text"></td>
+                                </tr>
+                            </table>
+                            <div class="btn_wrap">
+                                <button class="btn btn_search" type="">조회</button> <button class="btn btn_excel" type="">엑셀다운로드</button>
+                            </div>
+                        </div>
+                    </section>
+                    <div class="float_wrap">
+                        <div class="fl"><div class="stitle">전표목록</div></div>
+                        <div class="fr">
+                            <div class="btn_wrap">
+                                <button class="btn_g" type="">선택삭제</button> 
+                                <button class="btn_g" type="">선택 빠른전표</button> 
+                                <button class="btn_g" type="">회계전표</button> 
+                                <button class="btn_g" type="">지출품의</button> 
+                            </div>
+                        </div>
+                    </div>
+                    <section>
+                    <div class="lst">
+                        <table cellspacing="0" cellpadding="0">
+                            <colgroup>
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                            </colgroup>
+                            <tr>
+                                <th><input type="checkbox" /></th>
+                                <th>상태</th>
+                                <th>승인여부</th>
+                                <th>전자결재</th>
+                                <th>전표번호</th>
+                                <th>연도</th>
+                                <th>원화금액</th>
+                                <th>외화금액</th>
+                                <th>통화</th>
+                                <th>전표헤더텍스트</th>
+                                <th>참조</th>
+                                <th>거래처</th>
+                                <th>거래처명</th>
+                                <th>전기일</th>
+                                <th>입력일</th>
+                                <th>사원이름</th>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" /></td>
+                                <td>임시</td>
+                                <td>미승인</td>
+                                <td><button class="btn_s" type="" onclick="window.open('template_pop01.html','','width=500,height=500')">상신</button></td>
+                                <td><a href="#">10000000080</a></td>
+                                <td>2020</td>
+                                <td>10</td>
+                                <td>0</td>
+                                <td>KRW</td>
+                                <td>Test</td>
+                                <td>1100110510</td>
+                                <td>59999</td>
+                                <td>기타거래처</td>
+                                <td>2020-06-09</td>
+                                <td>2020-06-10</td>
+                                <td>홍길동</td>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox" /></td>
+                                <td>임시</td>
+                                <td>미승인</td>
+                                <td><button class="btn_s" type="">상신</button></td>
+                                <td><a href="#">10000000080</a></td>
+                                <td>2020</td>
+                                <td>10</td>
+                                <td>0</td>
+                                <td>KRW</td>
+                                <td>Test</td>
+                                <td>1100110510</td>
+                                <td>59999</td>
+                                <td>기타거래처</td>
+                                <td>2020-06-09</td>
+                                <td>2020-06-10</td>
+                                <td>홍길동</td>
+                            </tr>
+                        </table>
+                    </div>
+                </section>
+                </div>
+            </div>
+            <!-- contents box E -->
+
+          
+        </div>
+    </div>
+</body>
+</html>

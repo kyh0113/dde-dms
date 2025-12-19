@@ -1,0 +1,84 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_zwc_cct">
+
+<select id="select_zwc_cct_combined_cost" resultType="java.util.LinkedHashMap">
+/* oracle.yp_zwc_cct.select_zwc_cct_combined_cost */
+SELECT 
+    RETIREMENT_GRANTS,
+    SAFETY_INSURANCE,
+    NATIONAL_PENSION,
+    HEALTH_INSURANCE,
+    LONGTERM_INSURANCE,
+    EMPLOYMENT_INSURANCE,
+    GENERAL_INCOME_TAX,
+    TAX_AFFAIRS_REPORT,
+    PROFIT
+FROM TBL_WORKING_COMBINED_COST
+WHERE 1=1
+<if test="BASE_YYYY != null">and BASE_YYYY = #{BASE_YYYY}</if>
+</select>
+
+<select id="select_zwc_cct_combined_cost_cnt" resultType="int">
+/* oracle.yp_zwc_cct.select_zwc_cct_combined_cost_cnt */
+SELECT 
+	count(*) as cnt 
+FROM TBL_WORKING_COMBINED_COST
+WHERE 1=1
+<if test="BASE_YYYY != null">and BASE_YYYY = #{BASE_YYYY}</if>
+</select>
+
+<update id="update_zwc_cct_combined_cost">
+/* oracle.yp_zwc_cct.update_zwc_cct_combined_cost */
+UPDATE TBL_WORKING_COMBINED_COST SET
+    RETIREMENT_GRANTS = #{RETIREMENT_GRANTS},
+    SAFETY_INSURANCE = #{SAFETY_INSURANCE},
+    NATIONAL_PENSION = #{NATIONAL_PENSION},
+    HEALTH_INSURANCE = #{HEALTH_INSURANCE},
+    LONGTERM_INSURANCE = #{LONGTERM_INSURANCE},
+    EMPLOYMENT_INSURANCE = #{EMPLOYMENT_INSURANCE},
+    GENERAL_INCOME_TAX = #{GENERAL_INCOME_TAX},
+    TAX_AFFAIRS_REPORT = #{TAX_AFFAIRS_REPORT},
+    PROFIT = #{PROFIT},
+    UPD_EMP = #{emp_cd},
+    UPD_DATE = systimestamp
+WHERE 1=1
+and BASE_YYYY = #{BASE_YYYY}
+</update>
+
+<insert id="insert_zwc_cct_combined_cost">
+/* oracle.yp_zwc_cct.insert_zwc_cct_combined_cost */
+INSERT INTO TBL_WORKING_COMBINED_COST (
+	BASE_YYYY, 
+	RETIREMENT_GRANTS, 
+	SAFETY_INSURANCE, 
+	NATIONAL_PENSION, 
+	HEALTH_INSURANCE, 
+	LONGTERM_INSURANCE, 
+	EMPLOYMENT_INSURANCE, 
+	GENERAL_INCOME_TAX, 
+	TAX_AFFAIRS_REPORT, 
+	PROFIT, 
+	REG_EMP, 
+	UPD_EMP, 
+	REG_DATE, 
+	UPD_DATE
+)VALUES(
+	#{BASE_YYYY}, 
+	#{RETIREMENT_GRANTS}, 
+	#{SAFETY_INSURANCE}, 
+	#{NATIONAL_PENSION}, 
+	#{HEALTH_INSURANCE}, 
+	#{LONGTERM_INSURANCE},
+	#{EMPLOYMENT_INSURANCE},
+	#{GENERAL_INCOME_TAX}, 
+	#{TAX_AFFAIRS_REPORT}, 
+	#{PROFIT}, 
+	#{emp_cd}, 
+	#{emp_cd}, 
+	systimestamp, 
+	systimestamp
+)
+</insert>
+
+</mapper>

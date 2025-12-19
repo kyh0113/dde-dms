@@ -1,0 +1,278 @@
+/* Wrapper style 
+ * Wrapper = #wrapper 
+ * Sidebar = #side-wrapper
+ */
+#wrapper {
+    position: absolute;
+    width: 100%;
+    min-height: 100%;
+}
+
+.animating, .animating #side-wrapper {
+    -webkit-transition: all .1s ease-in-out;
+    -moz-transition: all .1s ease-in-out;
+    transition: all .1s ease-in-out;
+}
+
+#wrapper, #wrapper.minimized.animating {
+    padding-left: 210px;
+}
+
+#side-wrapper, #wrapper.minimized.animating #side-wrapper {
+    padding-left: 0;
+    left: 0;
+}
+
+#wrapper.minimized #side-wrapper, #wrapper.animating #side-wrapper {
+    padding-left: 210px;
+    left: -210px;
+}
+
+#wrapper.minimized, #wrapper.animating {
+    padding-left: 0;
+}
+
+#side-wrapper {
+    position: absolute;
+    width: 210px;
+    height: 100%;
+    color: #e6e6e6;
+    white-space: nowrap;
+    overflow-x: hidden;
+    background: #31486a;
+}
+
+/* Sidebar Toggle style */
+.navbar-brand[data-toggle="sidebar"] {
+	background-image:url(../img/glyphicon.png); background-position:0 0; background-repeat:no-repeat;
+	position:absolute; top:7px; left:-4px;
+	width:38px;
+	height:38px;
+}
+.navbar-brand[data-toggle="sidebar"]:focus, .navbar-brand[data-toggle="sidebar"]:hover {
+    background-image:url(../img/glyphicon_on.png); background-position:0 0; background-repeat:no-repeat;
+}
+
+/* Sidebar Header style */
+
+#side-wrapper > .media .media-object {
+    max-height: 42px;
+}
+
+.minimized #side-wrapper > .media {
+    padding: 4px 6px;
+}
+
+.minimized #side-wrapper > .media .media-object {
+    border-radius: 50%;
+}
+
+/* Sidebar Nav style */
+#side-wrapper > .nav-stacked > li + li {
+    margin-top: 0;
+    margin-left: 0;
+}
+
+#side-wrapper > .nav.nav-pills > li > a {
+    color: #fff;
+    border-radius: 0;
+	font-size:13px;
+	
+}
+
+#side-wrapper > .nav.nav-pills > li > a:focus, #side-wrapper > .nav.nav-pills > li > a:hover, #side-wrapper > .nav .open > a, #side-wrapper > .nav .open > a:focus, #side-wrapper > .nav .open > a:hover {
+    color: #8cccff;
+    background-color: #253340;
+	
+}
+
+/* 蹂�寃쏀븳 �깭洹몄뿉 css �쟻�슜 �쐞�빐 �꽑�깮�옄 蹂�寃�   20180906_�븯�깭�쁽  */
+#side-wrapper a .caret { /* #side-wrapper > .nav.nav-pills > li.dropdown > a > .caret  湲곗〈 */ 
+    position: absolute;
+    top: 18px;
+    right: 22px;
+    transform: rotate(90deg);
+}
+
+#side-wrapper > .nav.nav-pills > li.dropdown.open {
+
+}
+
+#side-wrapper > .nav.nav-pills > li.dropdown.open > a > .caret {
+    transform: rotate(0);
+}
+
+#side-wrapper > .nav.nav-pills > li > .dropdown-menu {
+    margin: 0;
+    padding: 10px 0;
+    position: relative;
+    float: none;
+    background-color: #263a58;
+    border: none;
+    border-radius: 0;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+}
+
+#side-wrapper > .nav.nav-pills > li > .dropdown-menu > li:before {
+    content: " ";
+    margin-left: 20px;
+    display: inline-block;
+    width: 3px;
+    height: 3px;
+    vertical-align: middle;
+    background-color: #2F4050;
+    border-radius: 50%;
+}
+
+/* leftmenu_1 ~~~ _7 源뚯� css �쟻�슜�쐞�빐 �꽑�깮�옄 蹂�寃� 20180906_�븯�깭�쁽  - �떆�옉 -  */
+#side-wrapper .nav.nav-pills li a.leftmenu_1 {
+    color: #fff;
+    border-radius: 0;
+	font-size:13px;
+	background-image:url(../img/menu_icon01_off.png); background-position:12px 12px; background-repeat:no-repeat; padding-left:40px;
+}
+
+#side-wrapper .nav.nav-pills li a.leftmenu_1:focus, #side-wrapper .nav.nav-pills li a.leftmenu_1:hover, #side-wrapper .nav .open a.leftmenu_1, #side-wrapper .nav .open a.leftmenu_1:focus, #side-wrapper .nav .open a.leftmenu_1:hover {
+    color: #8cccff;
+    background-color: #253340;
+	background-image:url(../img/menu_icon01_on.png); background-position:12px 12px; background-repeat:no-repeat;
+}
+
+#side-wrapper .nav.nav-pills li a.leftmenu_2 {
+    color: #fff;
+    border-radius: 0;
+	font-size:13px;
+	background-image:url(../img/menu_icon02_off.png); background-position:12px 12px; background-repeat:no-repeat; padding-left:40px;
+}
+
+#side-wrapper .nav.nav-pills li a.leftmenu_2:focus, #side-wrapper .nav.nav-pills li a.leftmenu_2:hover, #side-wrapper .nav .open a.leftmenu_2, #side-wrapper .nav .open a.leftmenu_2:focus, #side-wrapper .nav .open a.leftmenu_2:hover {
+    color: #8cccff;
+    background-color: #253340;
+	background-image:url(../img/menu_icon02_on.png); background-position:12px 12px; background-repeat:no-repeat;
+}
+
+#side-wrapper .nav.nav-pills li a.leftmenu_3 {
+    color: #fff;
+    border-radius: 0;
+	font-size:13px;
+	background-image:url(../img/menu_icon03_off.png); background-position:12px 12px; background-repeat:no-repeat; padding-left:40px;
+}
+
+#side-wrapper .nav.nav-pills li a.leftmenu_3:focus, #side-wrapper .nav.nav-pills li a.leftmenu_3:hover, #side-wrapper .nav .open a.leftmenu_3, #side-wrapper .nav .open a.leftmenu_3:focus, #side-wrapper .nav .open a.leftmenu_3:hover {
+    color: #8cccff;
+    background-color: #253340;
+	background-image:url(../img/menu_icon03_on.png); background-position:12px 12px; background-repeat:no-repeat;
+}
+#side-wrapper .nav.nav-pills li a.leftmenu_4 {
+    color: #fff;
+    border-radius: 0;
+	font-size:13px;
+	background-image:url(../img/menu_icon04_off.png); background-position:12px 12px; background-repeat:no-repeat; padding-left:40px;
+}
+
+#side-wrapper .nav.nav-pills li a.leftmenu_4:focus, #side-wrapper .nav.nav-pills li a.leftmenu_4:hover, #side-wrapper .nav .open a.leftmenu_4, #side-wrapper .nav .open a.leftmenu_4:focus, #side-wrapper .nav .open a.leftmenu_4:hover {
+    color: #8cccff;
+    background-color: #253340;
+	background-image:url(../img/menu_icon04_on.png); background-position:12px 12px; background-repeat:no-repeat;
+}
+#side-wrapper .nav.nav-pills li a.leftmenu_5 {
+    color: #fff;
+    border-radius: 0;
+	font-size:13px;
+	background-image:url(../img/menu_icon05_off.png); background-position:12px 12px; background-repeat:no-repeat; padding-left:40px;
+}
+
+#side-wrapper .nav.nav-pills li a.leftmenu_5:focus, #side-wrapper .nav.nav-pills li a.leftmenu_5:hover, #side-wrapper .nav .open a.leftmenu_5, #side-wrapper .nav .open a.leftmenu_5:focus, #side-wrapper .nav .open a.leftmenu_5:hover {
+    color: #8cccff;
+    background-color: #253340;
+	background-image:url(../img/menu_icon05_on.png); background-position:12px 12px; background-repeat:no-repeat;
+}
+
+#side-wrapper .nav.nav-pills li a.leftmenu_6 {
+    color: #fff;
+    border-radius: 0;
+	font-size:13px;
+	background-image:url(../img/menu_icon06_off.png); background-position:12px 12px; background-repeat:no-repeat; padding-left:40px;
+}
+
+#side-wrapper .nav.nav-pills li a.leftmenu_6:focus, #side-wrapper .nav.nav-pills li a.leftmenu_6:hover, #side-wrapper .nav .open a.leftmenu_6, #side-wrapper .nav .open a.leftmenu_6:focus, #side-wrapper .nav .open a.leftmenu_6:hover {
+    color: #8cccff;
+    background-color: #253340;
+	background-image:url(../img/menu_icon06_on.png); background-position:12px 12px; background-repeat:no-repeat;
+}
+#side-wrapper .nav.nav-pills li a.leftmenu_7 {
+    color: #fff;
+    border-radius: 0;
+	font-size:13px;
+	background-image:url(../img/menu_icon07_off.png); background-position:12px 12px; background-repeat:no-repeat; padding-left:40px;
+}
+
+#side-wrapper .nav.nav-pills li a.leftmenu_7:focus, #side-wrapper .nav.nav-pills li a.leftmenu_7:hover, #side-wrapper .nav .open a.leftmenu_7, #side-wrapper .nav .open a.leftmenu_7:focus, #side-wrapper .nav .open a.leftmenu_7:hover {
+    color: #8cccff;
+    background-color: #253340;
+	background-image:url(../img/menu_icon07_on.png); background-position:12px 12px; background-repeat:no-repeat;
+}
+/* leftmenu_1 ~~~ _7 源뚯� css �쟻�슜�쐞�빐 �꽑�깮�옄 蹂�寃� 20180906_�븯�깭�쁽  - �걹 -  */
+
+
+/*  1. 2depth 硫붾돱 
+	2. �깭洹몃�寃쎌쑝濡� �씤�븳 �꽑�깮�옄 蹂�寃� 20180906_�븯�깭�쁽
+	3. �뵒�옄�씤異붽� : 2dept硫붾돱 �솕�궡�몴
+*/
+#side-wrapper .accordion li > a { /* 湲곗〈 #side-wrapper > .nav.nav-pills > li > .dropdown-menu > li > a  */
+	line-height : 1em;
+    color: #e6e6e6;
+	border-left:3px solid #0f213d;
+	border-bottom : 0;
+}
+
+#side-wrapper .accordion li > a:focus, #side-wrapper .accordion li > a:hover, #side-wrapper .accordion .active > a {
+	/* 湲곗〈 #side-wrapper > .nav.nav-pills > li > .dropdown-menu > li > a:focus, #side-wrapper > .nav.nav-pills > li > .dropdown-menu > li > a:hover  */
+    color: #8cccff;
+    background-color: transparent;
+	border-left:3px solid #2380c7;
+}
+#side-wrapper .accordion li > a .caret {
+	top : 12px;
+}
+
+/*3depth 硫붾돱 */
+#side-wrapper > .nav.nav-pills > li > .dropdown-menu > li > .dropdown-menu1 {
+    margin-left:21px;
+    padding: 10px 0;
+    position: relative;
+    float: none;
+    background-color: #263a58;
+    border: none;
+    border-radius: 0;
+    -webkit-box-shadow: none;
+    box-shadow: none;
+	border-left:3px solid #0f213d;
+}
+
+#side-wrapper > .nav.nav-pills > li > .dropdown-menu > li > .dropdown-menu1 li:before {
+    content: " ";
+    margin-left: 0;
+    display: inline-block;
+    width: 3px;
+    height: 3px;
+    vertical-align: middle;
+    background-color: #2F4050;
+    border-radius: 50%;
+}
+
+#side-wrapper > .nav.nav-pills > li > .dropdown-menu > li >  .dropdown-menu1 > li > a {
+    margin-left:20px;
+    display: inline-block;
+    color: #e6e6e6;
+	line-height:20px;
+	background-image:url(../img/3deth_icon.png); background-position:0 8px; background-repeat:no-repeat;
+	padding-left:10px;
+}
+
+#side-wrapper > .nav.nav-pills > li > .dropdown-menu > li  .dropdown-menu1 > li > a:focus, #side-wrapper > .nav.nav-pills > li > .dropdown-menu > li  .dropdown-menu1 > li > a:hover {
+    color: #8cccff;
+    background-color: transparent;
+	background-image:url(../img/3deth_icon_on.png); background-position:0 8px; background-repeat:no-repeat;
+}

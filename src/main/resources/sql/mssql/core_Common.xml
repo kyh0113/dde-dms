@@ -1,0 +1,116 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mssql.Common">
+	
+	<insert id="insertSysLog_Login">
+	/* mssql.Common.insertSysLog_Login ICM */
+	INSERT INTO COM_LOGINLOG
+	VALUES
+	(
+	#{s_emp_code},
+	CONVERT(VARCHAR(19),GETDATE(),120),
+	null,
+	#{s_emp_name},
+	#{ip},
+	#{s_dept_code},
+	#{s_dept_name}
+	)
+	</insert>
+	
+	<update id="insertSysLog_Logout">
+	/* mssql.Common.insertSysLog_Logout ICM*/
+	UPDATE COM_LOGINLOG 
+	SET logout_datetime = CONVERT(VARCHAR(19), GETDATE(), 120)
+	FROM COM_LOGINLOG
+	WHERE login_id = #{s_emp_code} 
+	AND login_datetime = (SELECT MAX(login_datetime) FROM COM_LOGINLOG WHERE login_id = #{s_emp_code})
+	</update>
+	
+	<update id="updateLogout_datetime">
+	/* mssql.Common.updateLogout_datetime */
+	UPDATE COM_USER
+	SET   LOGOUT_DATETIME = CONVERT(VARCHAR(19), GETDATE(), 120)
+	WHERE EMP_CODE = #{s_emp_code}
+	</update>
+	
+	<update id="Scheduler_UserStatus_N">
+	/* mssql.Common.Scheduler_UserStatus_N ICM*/
+		UPDATE COM_USER
+		SET STATUS = 'D'
+		where emp_code in
+		 (
+				select login_id
+				from(
+				select  ROW_NUMBER() OVER(PARTITION BY LOGIN_ID ORDER BY login_datetime desc) RNUM,
+						login_id,
+						substring(replace(LOGIN_DATETIME,'-',''),1,8) as login_date,
+						convert(varchar(8), getdate(), 112) as today_date,
+						login_ip,
+						DATEDIFF(day, convert(datetime, LOGIN_DATETIME, 120), getdate()) as diff_day
+				from COM_LOGINLOG
+				) t
+				where t.RNUM = '1'
+				and   t.diff_day <![CDATA[>=]]> 60
+		)
+		and authogrp_code != '00'
+	</update>
+	
+	<select id="selectCntSysLog_Login" resultType="int">
+	/* mssql.Common.selectSysLog_Login */	
+	SELECT count(*) FROM COM_LOGINLOG
+	WHERE LOGIN_ID = #{s_emp_code}
+	</select>
+	
+	<select id="selectSysLog_Login_Last" resultType="HashMap">
+	/* mssql.Common.selectSysLog_Login_Last */	
+		SELECT * FROM(
+		SELECT 
+			ROW_NUMBER() OVER(ORDER BY login_datetime DESC) AS row_num,
+			login_id,
+			login_datetime,
+			logout_datetime,
+			login_name,
+			login_ip,
+			dept_code,
+			dept_name
+			FROM COM_LOGINLOG
+			WHERE LOGIN_ID = #{s_emp_code}
+		)AS T
+		WHERE T.row_num ='2'
+	</select>
+	
+	<select id="getActionKey" resultType="String">
+	/* mssql.Common.getActionKey */	
+	SELECT replace(convert(varchar(8), GETDATE(), 112) + convert(varchar(12), GETDATE(), 114), ':','') 
+	</select>
+	
+	<insert id="initActionLog">
+		/* mssql.Common.initActionLog */
+		INSERT INTO COM_ACTION_LOG 
+                 ( ID
+                  ,URL
+                  ,IP
+                  ,START_PROC
+                  ,USER_ID
+                  ,REG_DT
+                  ,ERROR_YN
+				)
+         VALUES ( #{id}
+                 ,#{url}
+                 ,#{ip}
+                 ,(SELECT replace(convert(varchar(8), GETDATE(), 112) + convert(varchar(12), GETDATE(), 114), ':','')) 
+                 ,#{user_id}
+                 ,getdate()
+                 ,'I'
+                 )
+	</insert>
+	
+	<update id="finishActionLog">
+	/* mssql.Common.CommonDAO.finishActionLog */
+         UPDATE COM_ACTION_LOG SET  
+         	 FINISH_PROC = (SELECT replace(convert(varchar(8), GETDATE(), 112) + convert(varchar(12), GETDATE(), 114), ':','')) 
+            ,ERROR_YN    = #{error_yn}
+         WHERE ID        = #{id}           
+	</update>
+	
+</mapper>

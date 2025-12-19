@@ -1,0 +1,311 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_zwc_ent2">
+
+<select id="grid_zwc_ent2_data_search_cnt" resultType="double">
+/* oracle.yp_zwc_ent2.grid_zwc_ent2_data_search_cnt */
+SELECT COUNT(*)
+FROM (
+	SELECT
+		  a.DT
+		, a.SABUN
+		, MAX( a.USER_NAME ) AS SUBC_NAME
+		, MAX( a.A_START_DATE ) AS A_START_DATE
+		, CASE
+			WHEN TO_CHAR( MAX( a.A_START_DATE ), 'YYYYMMDDHH24MISS' ) <![CDATA[<]]> TO_CHAR( MIN( a.A_END_DATE ), 'YYYYMMDDHH24MISS' ) THEN MIN( a.A_END_DATE )
+			WHEN TO_CHAR( MAX( a.A_START_DATE ), 'YYYYMMDDHH24MISS' ) > TO_CHAR( MIN( a.A_END_DATE ), 'YYYYMMDDHH24MISS' ) THEN MAX( a.A_END_DATE )
+			ELSE NULL
+		END AS A_END_DATE
+		, MAX( a.DEVICE_ID ) AS DEVICE_ID
+	FROM (
+		SELECT
+			  a.ACCESS_STATUS AS access_status
+			, TO_CHAR( TO_DATE( #{A_START_DATE}, 'YYYY/MM/DD'), 'YYYYMMDD' ) AS dt
+			, a.COMPANY_ID AS company_id
+			, a.SABUN AS sabun
+			, a.USER_NAME AS user_name
+			, a.CARD_NO AS CARD_NO
+			, a.A_START_DATE AS a_start_date
+			, a.A_END_DATE AS a_end_date
+			, a.REG_DATE AS reg_date
+			, a.DEVICE_ID AS DEVICE_ID
+		FROM TBL_ACCESS a -- 출근 정보
+		WHERE 1=1
+		AND TO_CHAR( a.REG_DATE, 'YYYY/MM/DD' ) BETWEEN  TO_CHAR( TO_DATE( #{A_START_DATE}, 'YYYY/MM/DD'), 'YYYY/MM/DD' ) AND to_char( TO_DATE( #{A_START_DATE}, 'YYYY/MM/DD') + 1, 'YYYY/MM/DD' )
+		AND (
+			TO_CHAR( a.A_START_DATE, 'YYYY/MM/DD' ) = #{A_START_DATE} OR
+			TO_CHAR( a.A_END_DATE, 'YYYY/MM/DD' ) = #{A_START_DATE} OR
+			( TO_CHAR( a.A_END_DATE, 'YYYY/MM/DD' ) = TO_CHAR( TO_DATE( #{A_START_DATE}, 'YYYY/MM/DD') + 1, 'YYYY/MM/DD' ) )
+		)
+	) a
+	WHERE 1=1
+	GROUP BY a.DT, a.COMPANY_ID, a.SABUN
+) a
+INNER JOIN TBL_ENTERPRISE_ACCESS_CONTROL b -- 작업자 정보
+	ON a.SABUN = b.SUBC_CODE
+INNER JOIN TBL_WORKING_SUBCWORKER_MAP c -- 계약-작업자 매핑
+	ON b.SUBC_CODE = c.SUBC_CODE
+INNER JOIN TBL_WORKING_SUBC d -- 계약
+	ON c.BASE_YYYY = d.BASE_YYYY
+	AND c.VENDOR_CODE = d.VENDOR_CODE
+	AND c.CONTRACT_CODE = d.CONTRACT_CODE
+	AND d.VENDOR_CODE = #{VENDOR_CODE}
+<if test="BASE_YYYY != null">
+	AND d.BASE_YYYY = #{BASE_YYYY}
+</if>
+<if test="CONTRACT_CODE != null">
+	AND d.CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<!--
+LEFT OUTER JOIN (
+	SELECT e.SABUN, f.KTEXT
+	FROM TBL_WK_ACCESS e
+	LEFT OUTER JOIN (
+		SELECT
+			  f.AUFNR
+			, MAX(f.KTEXT) AS KTEXT
+		FROM TBL_WK f
+		WHERE 1=1
+		GROUP BY f.AUFNR
+	) f
+		ON e.AUFNR = f.AUFNR
+	WHERE 1=1
+	AND TO_CHAR( e.W_START_DATE, 'YYYYMMDD' ) = REPLACE( #{A_START_DATE}, '/', '' )
+	GROUP BY e.SABUN, f.KTEXT
+) e
+	ON a.SABUN = e.SABUN
+	AND e.KTEXT IS NOT NULL
+-->
+/* 2022-01-21 jamerl - 최승빈대리 : TBL_PARTNER_DEVICE테이블 COMPANY_NAME컬럼으로 변경, 조인조건 DEVICE_ID */
+LEFT OUTER JOIN TBL_PARTNER_DEVICE e
+	ON a.DEVICE_ID = e.DEVICE_ID
+WHERE 1=1
+AND a.A_START_DATE IS NOT NULL
+AND a.A_END_DATE IS NOT NULL
+AND TO_CHAR( a.A_START_DATE, 'YYYYMMDD' ) = REPLACE( #{A_START_DATE}, '/', '' )
+<if test="SUBC_CODE != null">
+AND a.SABUN = #{SUBC_CODE}
+</if>
+</select>
+
+<select id="grid_zwc_ent2_data_search" resultType="HashMap">
+/* oracle.yp_zwc_ent2.grid_zwc_ent2_data_search */
+SELECT
+	  TO_CHAR( TO_DATE( a.DT, 'YYYY/MM/DD'), 'YYYY/MM/DD' ) AS DT
+	, a.SABUN AS SUBC_CODE
+	, a.USER_NAME AS SUBC_NAME
+	, d.CONTRACT_CODE
+	, d.CONTRACT_NAME
+	, TO_CHAR( a.A_START_DATE, 'YYYY-MM-DD HH24:MI:SS' ) AS A_START_DATE
+	, TO_CHAR( a.A_END_DATE, 'YYYY-MM-DD HH24:MI:SS' ) AS A_END_DATE
+	/* , e.KTEXT */
+	, e.COMPANY_NAME /* 2022-01-21 jamerl - 최승빈대리 : TBL_PARTNER_DEVICE테이블 COMPANY_NAME컬럼으로 변경, 조인조건 DEVICE_ID */
+FROM (
+	SELECT
+		  a.DT
+		, a.SABUN
+		, MAX( a.USER_NAME ) AS USER_NAME
+		, MAX( a.A_START_DATE ) AS A_START_DATE
+		, CASE
+			WHEN TO_CHAR( MAX( a.A_START_DATE ), 'YYYYMMDDHH24MISS' ) <![CDATA[<]]> TO_CHAR( MIN( a.A_END_DATE ), 'YYYYMMDDHH24MISS' ) THEN MIN( a.A_END_DATE )
+			WHEN TO_CHAR( MAX( a.A_START_DATE ), 'YYYYMMDDHH24MISS' ) > TO_CHAR( MIN( a.A_END_DATE ), 'YYYYMMDDHH24MISS' ) THEN MAX( a.A_END_DATE )
+			ELSE NULL
+		END AS A_END_DATE
+		, MAX( a.DEVICE_ID ) AS DEVICE_ID
+	FROM (
+		SELECT
+			  a.ACCESS_STATUS AS access_status
+			, TO_CHAR( TO_DATE( #{A_START_DATE}, 'YYYY/MM/DD'), 'YYYYMMDD' ) AS dt
+			, a.COMPANY_ID AS company_id
+			, a.SABUN AS sabun
+			, a.USER_NAME AS user_name
+			, a.CARD_NO AS CARD_NO
+			, a.A_START_DATE AS a_start_date
+			, a.A_END_DATE AS a_end_date
+			, a.REG_DATE AS reg_date
+			, a.DEVICE_ID AS DEVICE_ID
+		FROM TBL_ACCESS a -- 출근 정보
+		WHERE 1=1
+		AND TO_CHAR( a.REG_DATE, 'YYYY/MM/DD' ) BETWEEN  TO_CHAR( TO_DATE( #{A_START_DATE}, 'YYYY/MM/DD'), 'YYYY/MM/DD' ) AND to_char( TO_DATE( #{A_START_DATE}, 'YYYY/MM/DD') + 1, 'YYYY/MM/DD' )
+		AND (
+			TO_CHAR( a.A_START_DATE, 'YYYY/MM/DD' ) = #{A_START_DATE} OR
+			TO_CHAR( a.A_END_DATE, 'YYYY/MM/DD' ) = #{A_START_DATE} OR
+			( TO_CHAR( a.A_END_DATE, 'YYYY/MM/DD' ) = TO_CHAR( TO_DATE( #{A_START_DATE}, 'YYYY/MM/DD') + 1, 'YYYY/MM/DD' ) )
+		)
+	) a
+	WHERE 1=1
+	GROUP BY a.DT, a.COMPANY_ID, a.SABUN
+) a
+INNER JOIN TBL_ENTERPRISE_ACCESS_CONTROL b -- 작업자 정보
+	ON a.SABUN = b.SUBC_CODE
+INNER JOIN TBL_WORKING_SUBCWORKER_MAP c -- 계약-작업자 매핑
+	ON b.SUBC_CODE = c.SUBC_CODE
+INNER JOIN TBL_WORKING_SUBC d -- 계약
+	ON c.BASE_YYYY = d.BASE_YYYY
+	AND c.VENDOR_CODE = d.VENDOR_CODE
+	AND c.CONTRACT_CODE = d.CONTRACT_CODE
+	AND d.VENDOR_CODE = #{VENDOR_CODE}
+<if test="BASE_YYYY != null">
+	AND d.BASE_YYYY = #{BASE_YYYY}
+</if>
+<if test="CONTRACT_CODE != null">
+	AND d.CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<!--
+LEFT OUTER JOIN (
+	SELECT e.SABUN, f.KTEXT
+	FROM TBL_WK_ACCESS e
+	LEFT OUTER JOIN (
+		SELECT
+			  f.AUFNR
+			, MAX(f.KTEXT) AS KTEXT
+		FROM TBL_WK f
+		WHERE 1=1
+		GROUP BY f.AUFNR
+	) f
+		ON e.AUFNR = f.AUFNR
+	WHERE 1=1
+	AND TO_CHAR( e.W_START_DATE, 'YYYYMMDD' ) = REPLACE( #{A_START_DATE}, '/', '' )
+	GROUP BY e.SABUN, f.KTEXT
+) e
+	ON a.SABUN = e.SABUN
+	AND e.KTEXT IS NOT NULL
+-->
+/* 2022-01-21 jamerl - 최승빈대리 : TBL_PARTNER_DEVICE테이블 COMPANY_NAME컬럼으로 변경, 조인조건 DEVICE_ID */
+LEFT OUTER JOIN TBL_PARTNER_DEVICE e
+	ON a.DEVICE_ID = e.DEVICE_ID
+WHERE 1=1
+AND a.A_START_DATE IS NOT NULL
+AND a.A_END_DATE IS NOT NULL
+AND TO_CHAR( a.A_START_DATE, 'YYYYMMDD' ) = REPLACE( #{A_START_DATE}, '/', '' )
+<if test="SUBC_CODE != null">
+AND a.SABUN = #{SUBC_CODE}
+</if>
+ORDER BY d.CONTRACT_CODE, a.SABUN, a.A_START_DATE DESC
+</select>
+
+<select id="xls_zwc_ent2_data_search" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+/* oracle.yp_zwc_ent2.xls_zwc_ent2_data_search */
+SELECT
+	  TO_CHAR( TO_DATE( a.DT, 'YYYY/MM/DD'), 'YYYY/MM/DD' ) AS DT
+	, a.SABUN AS SUBC_CODE
+	, a.USER_NAME AS SUBC_NAME
+	, d.CONTRACT_CODE
+	, d.CONTRACT_NAME
+	, TO_CHAR( a.A_START_DATE, 'YYYY-MM-DD HH24:MI:SS' ) AS A_START_DATE
+	, TO_CHAR( a.A_END_DATE, 'YYYY-MM-DD HH24:MI:SS' ) AS A_END_DATE
+	, NVL( e.KTEXT, ' ') AS KTEXT
+FROM (
+	SELECT
+		  a.DT
+		, a.SABUN
+		, MAX( a.USER_NAME ) AS USER_NAME
+		, MAX( a.A_START_DATE ) AS A_START_DATE
+		, CASE
+			WHEN TO_CHAR( MAX( a.A_START_DATE ), 'YYYYMMDDHH24MISS' ) <![CDATA[<]]> TO_CHAR( MIN( a.A_END_DATE ), 'YYYYMMDDHH24MISS' ) THEN MIN( a.A_END_DATE )
+			WHEN TO_CHAR( MAX( a.A_START_DATE ), 'YYYYMMDDHH24MISS' ) > TO_CHAR( MIN( a.A_END_DATE ), 'YYYYMMDDHH24MISS' ) THEN MAX( a.A_END_DATE )
+			ELSE NULL
+		END AS A_END_DATE
+	FROM (
+		SELECT
+			  a.ACCESS_STATUS AS access_status
+			, TO_CHAR( TO_DATE( #{A_START_DATE}, 'YYYY/MM/DD'), 'YYYYMMDD' ) AS dt
+			, a.COMPANY_ID AS company_id
+			, a.SABUN AS sabun
+			, a.USER_NAME AS user_name
+			, a.CARD_NO AS CARD_NO
+			, a.A_START_DATE AS a_start_date
+			, a.A_END_DATE AS a_end_date
+			, a.REG_DATE AS reg_date
+		FROM TBL_ACCESS a -- 출근 정보
+		WHERE 1=1
+		AND TO_CHAR( a.REG_DATE, 'YYYY/MM/DD' ) BETWEEN  TO_CHAR( TO_DATE( #{A_START_DATE}, 'YYYY/MM/DD'), 'YYYY/MM/DD' ) AND to_char( TO_DATE( #{A_START_DATE}, 'YYYY/MM/DD') + 1, 'YYYY/MM/DD' )
+		AND (
+			TO_CHAR( a.A_START_DATE, 'YYYY/MM/DD' ) = #{A_START_DATE} OR
+			TO_CHAR( a.A_END_DATE, 'YYYY/MM/DD' ) = #{A_START_DATE} OR
+			( TO_CHAR( a.A_END_DATE, 'YYYY/MM/DD' ) = TO_CHAR( TO_DATE( #{A_START_DATE}, 'YYYY/MM/DD') + 1, 'YYYY/MM/DD' ) )
+		)
+	) a
+	WHERE 1=1
+	GROUP BY a.DT, a.COMPANY_ID, a.SABUN
+) a
+INNER JOIN TBL_ENTERPRISE_ACCESS_CONTROL b -- 작업자 정보
+	ON a.SABUN = b.SUBC_CODE
+INNER JOIN TBL_WORKING_SUBCWORKER_MAP c -- 계약-작업자 매핑
+	ON b.SUBC_CODE = c.SUBC_CODE
+INNER JOIN TBL_WORKING_SUBC d -- 계약
+	ON c.BASE_YYYY = d.BASE_YYYY
+	AND c.VENDOR_CODE = d.VENDOR_CODE
+	AND c.CONTRACT_CODE = d.CONTRACT_CODE
+	AND d.VENDOR_CODE = #{VENDOR_CODE}
+<if test="BASE_YYYY != null">
+	AND d.BASE_YYYY = #{BASE_YYYY}
+</if>
+<if test="CONTRACT_CODE != null">
+	AND d.CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+LEFT OUTER JOIN (
+	SELECT e.SABUN, f.KTEXT
+	FROM TBL_WK_ACCESS e
+	LEFT OUTER JOIN (
+		SELECT
+			  f.AUFNR
+			, MAX(f.KTEXT) AS KTEXT
+		FROM TBL_WK f
+		WHERE 1=1
+		GROUP BY f.AUFNR
+	) f
+		ON e.AUFNR = f.AUFNR
+	WHERE 1=1
+	AND TO_CHAR( e.W_START_DATE, 'YYYYMMDD' ) = REPLACE( #{A_START_DATE}, '/', '' )
+	GROUP BY e.SABUN, f.KTEXT
+) e
+	ON a.SABUN = e.SABUN
+	AND e.KTEXT IS NOT NULL
+WHERE 1=1
+AND a.A_START_DATE IS NOT NULL
+AND a.A_END_DATE IS NOT NULL
+AND TO_CHAR( a.A_START_DATE, 'YYYYMMDD' ) = REPLACE( #{A_START_DATE}, '/', '' )
+<if test="SUBC_CODE != null">
+AND a.SABUN = #{SUBC_CODE}
+</if>
+ORDER BY d.CONTRACT_CODE, a.SABUN, a.A_START_DATE DESC
+</select>
+
+<select id="select_zwc_ent2_data_search_worker_popup_list" resultType="HashMap">
+/* oracle.yp_zwc_ent2.select_zwc_ent2_data_search_worker_popup_list */
+SELECT
+	  a.SUBC_CODE
+	, b.SUBC_NAME
+	, a.WORKTYPE_CODE
+	, CASE a.WORKTYPE_CODE WHEN 'W1' THEN '상갑반' ELSE '교대근무' END AS WORKTYPE_NAME
+FROM TBL_WORKING_SUBCWORKER_MAP a
+INNER JOIN TBL_ENTERPRISE_ACCESS_CONTROL b
+	ON a.SUBC_CODE = b.SUBC_CODE
+WHERE 1=1
+AND a.VENDOR_CODE = #{VENDOR_CODE}
+<if test="BASE_YYYY != null">
+AND a.BASE_YYYY = #{BASE_YYYY}
+</if>
+<if test="CONTRACT_CODE != null">
+AND a.CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+</select>
+
+<select id="select_zwc_ent2_data_search_worker_popup_list_cnt" resultType="double">
+/* oracle.yp_zwc_ent2.select_zwc_ent2_data_search_worker_popup_list_cnt */
+SELECT COUNT(*)
+FROM TBL_WORKING_SUBCWORKER_MAP a
+INNER JOIN TBL_ENTERPRISE_ACCESS_CONTROL b
+	ON a.SUBC_CODE = b.SUBC_CODE
+WHERE 1=1
+AND a.VENDOR_CODE = #{VENDOR_CODE}
+<if test="BASE_YYYY != null">
+AND a.BASE_YYYY = #{BASE_YYYY}
+</if>
+<if test="CONTRACT_CODE != null">
+AND a.CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+</select>
+
+</mapper>

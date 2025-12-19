@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.biz_validation">
+
+
+<select id="LoginLockYNCheck" resultType="integer">
+/* oracle.biz_validation.LoginLockYNCheck */
+SELECT COUNT(*) AS CNT
+FROM COM_USER
+WHERE 1 = 1
+AND   EMP_CODE  = #{uid}
+AND   PWERR_CNT <![CDATA[>]]> 4
+</select>
+
+</mapper>

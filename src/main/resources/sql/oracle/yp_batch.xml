@@ -1,0 +1,246 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_batch">
+	<!-- HR -->
+	<select id="retrieveOvertimePlanAndRegList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    	select * from tbl_overtime_plan
+    	where 1=1
+    		and status != 'X'
+    		<if test="ser_status != ''">and status = #{ser_status}</if>
+    		<choose>
+  				<when test="auth eq 'SA'"></when>
+  				<when test="ofc_name eq '팀장'">
+  					and team_name = #{user_dept}
+  					<if test="ser_class != '' and ser_class != null">and work_group like '%'||#{ser_class}||'%'</if>
+  					<if test="ser_shift != '' and ser_shift != null">and work_shift like '%'||#{ser_shift}||'%'</if>
+  				</when>
+  				<when test="auth eq 'MA'">
+  					<if test="ser_teamname == '' || ser_teamname == null"></if>
+  					<if test="ser_teamname != ''">and team_name = #{ser_teamname}</if>
+  				</when>
+  				<when test="userPosCd != '' and userPosCd lt 0043">
+  					and team_name = #{user_dept}
+  				</when>
+  				<otherwise>and (emp_code = #{emp_code} or reg_worker = #{emp_code})</otherwise>
+  			</choose>
+  			<if test="sdate != '' and sdate != null">and work_startdate between #{sdate} and #{edate}</if>
+<!--   			<if test="ser_teamname != '' and ser_teamname != null">and team_name = #{ser_teamname}</if> -->
+  			<if test="ser_name != '' and ser_name != null">and emp_name = #{ser_name}</if>
+  		order by work_startdate desc, team_code asc
+    </select>
+    
+    
+    <!-- BATCH -->
+    <select id="retrieveEmpWorkGroup" resultType="java.util.HashMap">
+  		select * from TBL_COMMON_EMP_WORK
+  	</select>
+  	
+  	<select id="retrieveDailyReport" resultType="java.util.HashMap">
+  		SELECT * FROM TBL_DAILY_REPORT
+  		WHERE REPORT_DATE = #{WORK_STARTDATE} 
+  			AND PERNR = #{EMP_CODE}
+  	</select>
+  	
+  	<select id="retrieveSeokpoSoneData" resultType="java.util.HashMap">
+  		SELECT TO_CHAR(Z01_KUNMU_DT,'YYYYMMDD') as Z01_KUNMU_DT
+			,Z01_SERIAL_NUM
+			,Z01_SABUN
+			,Z01_KUNMU_TYPE
+			,Z01_KUNMU_TIME
+			,Z01_YOIL
+			,Z01_CARD_ID
+			,Z01_READER_NUM
+			,Z01_READER_INDEX
+		FROM ZHRT0120
+  		WHERE Z01_KUNMU_DT = #{day}
+<!--   			AND ROWNUM <![CDATA[<]]> 11 -->
+  	</select>
+
+  	<select id="retrieveBonsaCapsData" resultType="java.util.HashMap">
+  		SELECT E_DATE <!-- 기록날짜-->
+			  ,SUBSTR(e_uptime, 1,8) || LPAD(ROW_NUMBER() OVER(PARTITION BY E_DATE ORDER BY e_uptime), 4, '0') as NUM <!-- 순번 -->
+			  ,E_IDNO <!-- 사번 -->
+			  ,'0'||e_mode as E_MODE <!-- 출퇴근구분 -->
+			  ,SUBSTR(e_time,1,4) as E_TIME <!-- 출퇴근시간 -->
+			  ,E_CARD <!-- 카드번호 -->
+			  ,G_ID <!-- 단말기ID-->
+			  ,SUBSTR(e_uptime, 1,8) as CREATE_DATE <!-- 데이터 생성일 -->
+			  ,SUBSTR(e_uptime, 9,14) as CREATE_TIME <!-- 데이터 생성시간 -->
+		FROM ZHRT0110
+  		WHERE E_DATE = #{day}
+  		AND E_GROUP = '02' 							<!-- 본사코드:02 -->
+  		AND E_MODE in ('1','2')						<!-- 1:출근,2:퇴근 -->
+  		
+<!--   			AND ROWNUM <![CDATA[<]]> 11 -->
+  	</select>
+
+  	<select id="retrieveAnsanCapsData" resultType="java.util.HashMap">
+  		SELECT E_DATE <!-- 기록날짜-->
+			  ,SUBSTR(e_uptime, 1,8) || LPAD(ROW_NUMBER() OVER(PARTITION BY E_DATE ORDER BY e_uptime), 4, '0') as NUM <!-- 순번 -->
+			  ,E_IDNO <!-- 사번 -->
+			  ,'0'||e_mode as E_MODE <!-- 출퇴근구분 -->
+			  ,SUBSTR(e_time,1,4) as E_TIME <!-- 출퇴근시간 -->
+			  ,E_CARD <!-- 카드번호 -->
+			  ,G_ID <!-- 단말기ID-->
+			  ,SUBSTR(e_uptime, 1,8) as CREATE_DATE <!-- 데이터 생성일 -->
+			  ,SUBSTR(e_uptime, 9,14) as CREATE_TIME <!-- 데이터 생성시간 -->
+		FROM ZHRT0110
+  		WHERE E_DATE = #{day}
+  		AND E_GROUP = '03' 							<!-- 안산코드:03 -->
+  		AND E_MODE in ('1','2')						<!-- 1:출근,2:퇴근 -->
+<!--   			AND ROWNUM <![CDATA[<]]> 11 -->
+  	</select>
+
+  	<select id="retrieveWorkingBIData" resultType="java.util.HashMap">
+  		SELECT * FROM PMDIT006@BIDB
+		WHERE IYYYYMM = '${yyyy}${mm}'
+<!-- 		AND MPOINT = #{mpoint} -->
+			and mpoint in ('023877','022471','401510','022392','022393','401332','401335','401348','401338','024253','020569','023428','022699','021871')
+			order by mpoint
+	</select>
+  	
+  	<update id="updateEmpWorkGroup" parameterType="java.util.HashMap">
+  		UPDATE TBL_COMMON_EMP_WORK
+  		SET ORGEH = #{ORGEH,jdbcType=VARCHAR}
+  			,ORGTX = #{ORGTX,jdbcType=VARCHAR}
+  			,ZCLSS = #{ZCLSS,jdbcType=VARCHAR}
+  			,ZCLST = #{ZCLST,jdbcType=VARCHAR}
+  			,SCHKZ = #{SCHKZ,jdbcType=VARCHAR}
+  			,JO_NAME = #{JO_NAME,jdbcType=VARCHAR}
+  			,UPD_DATE = sysdate
+  		WHERE PERNR = #{PERNR}
+  	</update>
+  	
+  	<update id="updateOvertimePlanTimecard" parameterType="java.util.HashMap">
+  		UPDATE TBL_OVERTIME_PLAN
+  		SET TIME_CARD1 = #{IN_TIME1,jdbcType=VARCHAR}
+  			,TIME_CARD2 = #{OUT_TIME1,jdbcType=VARCHAR}
+  			,TRUE_WORK_STARTTIME = #{TRUE_START,jdbcType=VARCHAR}
+  			,TRUE_WORK_ENDTIME = #{TRUE_END,jdbcType=VARCHAR}
+			,TRUE_OVERTIME = #{TRUE_OT}
+  		WHERE WORK_STARTDATE = #{REPORT_DATE}
+  			AND EMP_CODE = #{PERNR}
+  	</update>
+  	
+  	<update id="createEmpWorkGroup" parameterType="java.util.HashMap">
+  		INSERT INTO TBL_COMMON_EMP_WORK
+  			(PERNR ,ORGEH ,ORGTX ,ZCLSS ,ZCLST ,SCHKZ ,JO_NAME ,REG_DATE)
+  		VALUES
+  			(#{PERNR} ,#{ORGEH} ,#{ORGTX} ,#{ZCLSS} ,#{ZCLST} ,#{SCHKZ} ,#{JO_NAME} ,sysdate)
+  	</update>
+  	
+  	<update id="createTimecard" parameterType="java.util.HashMap">
+  		INSERT INTO TBL_DAILY_REPORT
+  			(REPORT_DATE
+				,ORGEH,ORGEH_T  	<!-- 부서 -->
+				,CLASS,CLASS_T		<!-- 반 -->
+				,SCHKZ,SCHKZ_T		<!-- 근무조 -->
+				,TPROG,ZCDTX		<!-- 원근무 -->
+				,PERNR,ENAME		<!-- 사번,이름 -->
+				,IN_TIME1,OUT_TIME1	<!-- 출퇴근1 -->
+				,IN_TIME2,OUT_TIME2	<!-- 출퇴근2 -->
+				,IN_TIME3,OUT_TIME3	<!-- 출퇴근3 -->
+				,AWART,ATEXT		<!-- 정상외 유형 -->
+				,ZOPER1,OT_TIMES1	<!-- 근무유형,시간1 -->
+				,ZOPER2,OT_TIMES2	<!-- 근무유형,시간2 -->
+				,ZOPER3,OT_TIMES3	<!-- 근무유형,시간3 -->
+				,BIGO
+				,NOMBEG,NOMEND		<!-- 정상근무시간 -->
+				,NOMTIME			<!-- 정상근무시수 -->
+  			)values(
+  				#{DATE,jdbcType=VARCHAR}
+  				,#{ORGEH,jdbcType=VARCHAR},#{ORGEH_T,jdbcType=VARCHAR}
+  				,#{CLASS,jdbcType=VARCHAR},#{CLASS_T,jdbcType=VARCHAR}
+  				,#{SCHKZ,jdbcType=VARCHAR},#{SCHKZ_T,jdbcType=VARCHAR}
+  				,#{TPROG,jdbcType=VARCHAR},#{ZCDTX,jdbcType=VARCHAR}
+  				,#{PERNR,jdbcType=VARCHAR},#{ENAME,jdbcType=VARCHAR}
+  				,#{IN_TIME1,jdbcType=VARCHAR},#{OUT_TIME1,jdbcType=VARCHAR}
+  				,#{IN_TIME2,jdbcType=VARCHAR},#{OUT_TIME2,jdbcType=VARCHAR}
+  				,#{IN_TIME3,jdbcType=VARCHAR},#{OUT_TIME3,jdbcType=VARCHAR}
+  				,#{AWART,jdbcType=VARCHAR},#{ATEXT,jdbcType=VARCHAR}
+  				,#{ZOPER1,jdbcType=VARCHAR},#{OT_TIMES1,jdbcType=VARCHAR}
+  				,#{ZOPER2,jdbcType=VARCHAR},#{OT_TIMES2,jdbcType=VARCHAR}
+  				,#{ZOPER3,jdbcType=VARCHAR},#{OT_TIMES3,jdbcType=VARCHAR}
+  				,#{BIGO,jdbcType=VARCHARm }
+  				,#{NOMBEG,jdbcType=VARCHAR},#{NOMEND,jdbcType=VARCHAR}
+  				,NVL(#{NOMTIME,jdbcType=VARCHAR},'0')
+  			)
+  	</update>
+    
+	<update id="createWorkingBIData" parameterType="java.util.List">
+		<foreach collection="list" item="data" separator="" open="INSERT ALL" close="SELECT * FROM DUAL">
+			INTO TBL_WORKING_DAILY_REPORT
+			(	BASE_YYYY
+				,CONTRACT_CODE
+				,VENDOR_CODE
+				,BASE_YYYYMMDD
+				,WORKLOAD
+				,REG_EMP
+				,REG_DATE
+			)VALUES(
+				#{data.yyyy,jdbcType=VARCHAR}
+				,#{data.contract_code,jdbcType=VARCHAR}
+				,#{data.vendor_code,jdbcType=VARCHAR}
+				,#{data.date,jdbcType=VARCHAR}
+				,#{data.workload,jdbcType=VARCHAR}
+				,'BATCH'
+				,sysdate
+			)
+		</foreach>
+	</update>
+	
+	<select id="sapTransferEmoInfo" resultType="java.util.HashMap">
+		SELECT *
+		FROM   ORG_EMPLOYEE@GWDB
+		WHERE  EMP_STATUS ='W'
+	</select>
+	
+	<!--
+		YPWEBPOTAL-27 ENT_CODE 코드 앞의 0삭제 건
+		배치 > TBL_WEIGHT_DATA 의 ENT_CODE 필드의 코드 변경
+		10자리일경우에 6자리로 변경하는데 앞에 0이 포함되어있을경우에만 해당한다.
+	 -->
+	<update id="updateWeightTableEntCodeFieldData" parameterType="java.util.HashMap">
+		UPDATE
+		    TBL_WEIGHT_DATA A
+		SET
+		    ENT_CODE = (
+		        SELECT
+		            to_number(B.ENT_CODE) AS ENT_CODE
+		        FROM TBL_WEIGHT_DATA B
+		        WHERE
+		            1=1
+		            AND A.SEQ = B.SEQ
+		            AND INSTR(B.ENT_CODE, '0000') > 0
+		            AND CALC_CODE IS NULL
+		    )
+		WHERE
+		    A.SEQ IN (SELECT B.SEQ FROM TBL_WEIGHT_DATA B)
+		    AND INSTR(ENT_CODE, '0000') > 0
+		    AND CALC_CODE IS NULL
+	</update>
+	
+	
+	<select id="selectMssqlTest" resultType="java.util.HashMap">
+		/* oralce(mssql).yp_zmm_aw.zmm_weight_p_name_cas */
+		<!--
+		SELECT FINAL_WEIGHT,CAR_NUM, PRODUCT_NAME
+		FROM WDATA
+		WHERE SERVER_SEND_DATE BETWEEN CONVERT(DATETIME, '2022-10-24' + ' 00:00:00.000')
+        AND CONVERT(DATETIME, '2022-10-24' + ' 23:59:59.997')
+		order by SERVER_SEND_DATE desc -->
+		
+		SELECT TOP 2 FINAL_WEIGHT,CAR_NUM, PRODUCT_NAME
+		FROM WDATA
+		order by SERVER_SEND_DATE desc
+
+	</select>
+	
+	<!-- 
+		cozmt005에 3일 후 데이터를 넣어주는 배치 추가  2023.03.13 kjy -->
+	<insert id="insertNewDate" parameterType="java.util.HashMap">
+	insert into cozmt005
+	VALUES (#{BASE_DT} ,#{YYYY} ,#{MM} ,#{QUARTER} ,#{WW} ,#{HALF} ,#{CREATE_DATE})
+	</insert>
+	
+</mapper>

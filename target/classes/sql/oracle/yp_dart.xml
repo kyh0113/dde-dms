@@ -1,0 +1,163 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper
+  PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+  "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+ 
+<mapper namespace="oracle.yp_dart">
+  	
+  	<!-- select -->
+  	<select id="retrieveDartData" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+  		SELECT * FROM TBL_DART_DATA
+  		WHERE YEAR_QUARTER = #{YEAR_QUARTER}
+  			AND CORP_CODE = #{CORP_CODE}
+  			AND TABLE_TYPE = #{TABLE_TYPE}
+  	</select>
+  	
+  	<select id="retrieveInitDartData" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+  		SELECT 1 FROM DUAL
+  	</select>
+  	
+  	<select id="retrieveDARTCheck" parameterType="java.util.HashMap" resultType="Integer">
+  		select count(*) from TBL_DART_DATA
+  		where YEAR_QUARTER = #{YEAR_QUARTER}
+  				and CORP_CODE = #{CORP_CODE}
+  				and TABLE_TYPE = #{TABLE_TYPE}
+  	</select>
+  	
+  	<select id="retrieveAffiliatesCode" parameterType="String" resultType="java.util.HashMap">
+  		SELECT * FROM TBL_CODE
+  		WHERE TYPE = 'affiliate'
+<!--   			<if test="value != null and value != ''">AND CODE != #{value}</if> -->
+  	</select>
+  	
+  	<select id="retrieveAffiliates" parameterType="String" resultType="java.util.HashMap">
+  		SELECT * FROM TBL_AFFILIATE
+  		WHERE 1=1
+  			<if test="value != null and value != ''">AND CORP_CODE = #{value}</if>
+  		order by sort asc
+  	</select>
+  	
+  	<!-- insert -->
+  	<update id="createDART" parameterType="java.util.HashMap">
+  		INSERT INTO TBL_DART_DATA
+  			(YEAR_QUARTER,
+  			CORP_CODE,
+  			TABLE_TYPE,
+  			TABLE_ROW,
+  			REG_DATE,
+  			CORP_NAME,
+  			COLUMN1,
+  			COLUMN2,
+  			COLUMN3,
+  			COLUMN4,
+  			COLUMN5,
+  			COLUMN6,
+  			COLUMN7,
+  			COLUMN8,
+  			COLUMN9,
+  			COLUMN10,
+  			COLUMN11,
+  			COLUMN12,
+  			COLUMN13,
+  			COLUMN14,
+  			COLUMN15,
+  			COLUMN16,
+  			COLUMN17,
+  			COLUMN18,
+  			COLUMN19,
+  			COLUMN20,
+  			COLUMN21,
+  			COLUMN22,
+  			COLUMN23,
+  			COLUMN24,
+  			COLUMN25
+  			)
+  		VALUES
+  		
+  			(#{YEAR_QUARTER},
+  			#{CORP_CODE},
+  			#{TABLE_TYPE},
+  			#{TABLE_ROW},
+  			sysdate,
+  			#{CORP_NAME},
+  			#{COLUMN1},
+  			#{COLUMN2,jdbcType=VARCHAR},
+  			#{COLUMN3,jdbcType=VARCHAR},
+  			#{COLUMN4,jdbcType=VARCHAR},
+  			#{COLUMN5,jdbcType=VARCHAR},
+  			#{COLUMN6,jdbcType=VARCHAR},
+  			#{COLUMN7,jdbcType=VARCHAR},
+  			#{COLUMN8,jdbcType=VARCHAR},
+  			#{COLUMN9,jdbcType=VARCHAR},
+  			#{COLUMN10,jdbcType=VARCHAR},
+  			#{COLUMN11,jdbcType=VARCHAR},
+  			#{COLUMN12,jdbcType=VARCHAR},
+  			#{COLUMN13,jdbcType=VARCHAR},
+  			#{COLUMN14,jdbcType=VARCHAR},
+  			#{COLUMN15,jdbcType=VARCHAR},
+  			#{COLUMN16,jdbcType=VARCHAR},
+  			#{COLUMN17,jdbcType=VARCHAR},
+  			#{COLUMN18,jdbcType=VARCHAR},
+  			#{COLUMN19,jdbcType=VARCHAR},
+  			#{COLUMN20,jdbcType=VARCHAR},
+  			#{COLUMN21,jdbcType=VARCHAR},
+  			#{COLUMN22,jdbcType=VARCHAR},
+  			#{COLUMN23,jdbcType=VARCHAR},
+  			#{COLUMN24,jdbcType=VARCHAR},
+  			#{COLUMN25,jdbcType=VARCHAR}
+  			)
+  		
+  	</update>
+  	
+  	<!-- update -->
+  	<update id="updateDART" parameterType="java.util.HashMap">
+  		UPDATE TBL_DART_DATA
+  		SET MODIFY_DATE = SYSDATE,
+  			COLUMN1 = #{COLUMN1},
+  			COLUMN2 = #{COLUMN2,jdbcType=VARCHAR},
+  			COLUMN3 = #{COLUMN3,jdbcType=VARCHAR},
+  			COLUMN4 = #{COLUMN4,jdbcType=VARCHAR},
+  			COLUMN5 = #{COLUMN5,jdbcType=VARCHAR},
+  			COLUMN6 = #{COLUMN6,jdbcType=VARCHAR},
+  			COLUMN7 = #{COLUMN7,jdbcType=VARCHAR},
+  			COLUMN8 = #{COLUMN8,jdbcType=VARCHAR},
+  			COLUMN9 = #{COLUMN9,jdbcType=VARCHAR},
+  			COLUMN10 = #{COLUMN10,jdbcType=VARCHAR},
+  			COLUMN11 = #{COLUMN11,jdbcType=VARCHAR},
+  			COLUMN12 = #{COLUMN12,jdbcType=VARCHAR},
+  			COLUMN13 = #{COLUMN13,jdbcType=VARCHAR},
+  			COLUMN14 = #{COLUMN14,jdbcType=VARCHAR},
+  			COLUMN15 = #{COLUMN15,jdbcType=VARCHAR},
+  			COLUMN16 = #{COLUMN16,jdbcType=VARCHAR},
+  			COLUMN17 = #{COLUMN17,jdbcType=VARCHAR},
+  			COLUMN18 = #{COLUMN18,jdbcType=VARCHAR},
+  			COLUMN19 = #{COLUMN19,jdbcType=VARCHAR},
+  			COLUMN20 = #{COLUMN20,jdbcType=VARCHAR},
+  			COLUMN21 = #{COLUMN21,jdbcType=VARCHAR},
+  			COLUMN22 = #{COLUMN22,jdbcType=VARCHAR},
+  			COLUMN23 = #{COLUMN23,jdbcType=VARCHAR},
+  			COLUMN24 = #{COLUMN24,jdbcType=VARCHAR},
+  			COLUMN25 = #{COLUMN25,jdbcType=VARCHAR}
+  		WHERE YEAR_QUARTER = #{YEAR_QUARTER}
+  			AND CORP_CODE = #{CORP_CODE}
+  			AND TABLE_TYPE = #{TABLE_TYPE}
+  			AND TABLE_ROW = #{TABLE_ROW}
+  	</update>
+  	
+  	<!-- delete -->
+  	<delete id="deleteDART">
+  		delete from TBL_DART_DATA
+  		where YEAR_QUARTER = #{YEAR_QUARTER}
+  				and CORP_CODE = #{CORP_CODE}
+  				and TABLE_TYPE = #{TABLE_TYPE}
+  	</delete>
+  	
+  	<delete id="deleteDARTTableRows">
+  		delete from TBL_DART_DATA
+  		where YEAR_QUARTER = #{YEAR_QUARTER}
+  				and CORP_CODE = #{CORP_CODE}
+  				and TABLE_TYPE = #{TABLE_TYPE}
+  				and TABLE_ROW > #{DEL_ROW}
+  	</delete>
+</mapper>
+ 

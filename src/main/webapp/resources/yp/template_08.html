@@ -1,0 +1,209 @@
+<!DOCTYPE HTML>
+<html>
+<head>
+    <meta charset="utf-8">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0, user-scalable=1">
+    <title>영풍</title>
+	<link rel="stylesheet" href="css/style.css">
+    <script language="JavaScript">
+     
+     function viewLayer(){ 
+        document.getElementById("gnb").style.visibility = "visible"
+        document.getElementById("gnb_nav").style.visibility = "hidden"
+        document.getElementById("closeNav").style.marginLeft = "140px"
+     }
+     
+     function hideLayer(){
+         document.getElementById("gnb").style.visibility = "hidden"
+         document.getElementById("gnb_nav").style.visibility = "visible"
+         document.getElementById("closeNav").style.marginLeft = "350px"
+         
+     }
+     </script>
+</head>
+<body class="bg_gray">
+	<div id="wrapper">
+        <div class="header">
+            <div class="logo"><a href="main.html"><img src="images/logo_sub.png"> 도급관리 웹포탈 시스템</a></div>
+            <div class="top_ic">
+                <ul>
+                    <li>ypAdminUser <a href="#"><img src="images/topic_logout.png"></a>
+                        <div class="topnav_my">
+                            <ul>
+                                <li><a href="#">정보수정</a></li>
+                                <li><a href="#">로그아웃</a></li>
+                            </ul>
+                        </div>
+                    </li>
+                </ul>
+            </div>
+        </div>
+        <div class="content_body">
+            <!-- gnb S -->
+            <div id="gnb">
+                <ul>
+                    <li><a href="#" onclick="hideLayer('gnb')" ><img src="images/gnb_ic_menu.png"><p>전체메뉴</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_money.png"><p>재무관리</p></a> </li>
+                    <li><a href="#"><img src="images/gnb_ic_buy.png"><p>구매관리</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_person.png"><p>인사관리</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_report.png"><p>준공보고서</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_work.png"><p>조업 도급관리</p></a></li>
+                    <li><a href="#"><img src="images/gnb_ic_factory.png"><p>공사 도급관리</p></a></li>
+                </ul>
+            </div>
+            <div id="gnb_nav">
+                <div class="mn_container">
+                    <div class="mn_icon"><a href="#" onclick="viewLayer('gnb')" ><img src="images/gnb_ic_menu.png"></a>
+                    </div>
+                    <div class="mn_item">
+                        <input id="ac-1" name="gnb" type="radio" /> <label for="ac-1">재무관리</label> 
+                        <article class="mn_sub">
+                            <ul>
+                                <li><a href="#">전표관리</a> </li>
+                                <ul class="gnb_3lv">
+                                    <li><a href="#">회계전표 목록</a></li>
+                                    <li><a href="#">회계전표 등록</a></li>
+                                </ul>
+
+                                <li><a href="#">예산관리</a> </li>
+                                <ul class="gnb_3lv">
+                                    <li><a href="#">예산조회</a></li>
+                                    <li><a href="#">예산신청</a></li>
+                                    <li><a href="#">예산 결재상신</a></li>
+                                    <li><a href="#">투보수 예산현황 조회</a></li>
+                                    <li><a href="#">일이삼사오육칠팔구십일이삼사오육칠팔구십</a></li>
+                                </ul>
+                            </ul>
+                        </article>
+                    </div>
+                    <div class="mn_item">
+                        <input id="ac-2" name="gnb" type="radio" /> <label for="ac-2">메뉴명 20자</label> 
+                        
+                        <article class="mn_sub">
+                            <ul>
+                                <li><a href="#">일이삼사오육칠팔구십일이삼사오육칠팔구십</a> </li>
+                                <li><a href="#">일이삼사오육칠팔구십일이삼사오육칠팔구십</a> </li>
+                            </ul>
+                        </article>
+                    </div>
+                    <div class="mn_item">
+                        <input id="ac-3" name="gnb" type="radio" checked /> <label for="ac-3">화면템플릿</label> 
+                        <article class="mn_sub">
+                            <ul>
+                                <li><a href="template_01.html">계약등록</a></li>
+                                <li><a href="template_02.html">회계전표 목록</a></li>
+                                <li><a href="template_03.html">회계전표 등록</a></li>
+                                <li><a href="#" onclick="window.open('template_pop02.html','','width=500,height=500')">업체검색</a></li>
+                                <li><a href="template_04.html">투보수 예산현황 조회</a></li>
+                                <li><a href="template_05.html">투보수 예산상세 조회</a></li>
+                                <li><a href="template_06.html">입항스케쥴 조회</a></li>
+                                <li><a href="template_07.html">개인 출퇴근 현황</a></li>
+                                <li><a href="template_08.html">도시락 신청/조회</a></li>
+                                <li><a href="template_09.html">식당관리</a></li>
+                            </ul>
+                        </article>
+                    </div>
+                </div>
+                  
+            </div>
+            <!-- gnb S -->
+            <!--- sub contents S -->
+        
+            <!-- contents box S -->
+            <div class="sub_contents_box" id="closeNav">
+               <div class="sub_contents">
+                   <h2>도시락 신청/조회
+                    <ul class="loc">
+                        <li><a href="#"><img src="images/ic_loc_home.png"></a></li>
+                        <li><a href="#">공사도급관리</a></li>
+                        <li><a href="#">계약관리</a></li>
+                        <li>계약등록</li>
+                    </ul>   
+                </h2>
+                    <div class="stitle">기본정보</div>
+                    <section>
+                        <div class="tbl_box">
+                            <table cellspacing="0" cellpadding="0">
+                                <colgroup>
+                                    <col width="12%" />
+                                    <col width="40%"  />
+                                    <col width="12%" />
+                                    <col />
+                                </colgroup> 
+                                <tr>
+                                    <th>신청일자</th>
+                                    <td><input type="text" class="calendar"> </td>
+                                    <th>식사구분</th>
+                                    <td>
+                                        <select>
+                                            <option>조식</option>
+                                        </select>    
+                                    </td>
+                                </tr>
+                                <tr>
+                                    <th>부서명</th>
+                                    <td><input type="text"></td>
+                                    <th>근무반</th>
+                                    <td><input type="text"></td>
+                                </tr>
+                                <tr>
+                                    <th>근무조</th>
+                                    <td colspan="3"><input type="text"></td>
+                                </tr>
+                            </table>
+                            <div class="btn_wrap">
+                                <button class="btn btn_search" type="">조회</button> 
+                            </div>
+                        </div>
+                    </section>
+
+                    <div class="float_wrap">
+                        <div class="fl"><div class="stitle">신청현황<span class="require">( 총 <b>2</b> 건)</span></div></div>
+                        <div class="fr">
+                            <div class="btn_wrap">
+                                <button class="btn_g" type="" onclick="window.open('template_pop03.html','','width=550,height=250')">부서원추가</button>
+                                <button class="btn_g" type="">신청등록</button> 
+                                <button class="btn_g" type="">신청취소</button> 
+                            </div>
+                        </div>
+                    </div>
+                    <section>
+                    <div class="lst">
+                        <table cellspacing="0" cellpadding="0">
+                            <colgroup>
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                                <col />
+                            </colgroup>
+                            <tr>
+                                <th><input type="checkbox"></th>
+                                <th>사번</th>
+                                <th>성명</th>
+                                <th>부서명</th>
+                                <th>집계여부</th>
+                                <th>신청인</th>
+                            </tr>
+                            <tr>
+                                <td><input type="checkbox"></td>
+                                <td>1234568</td>
+                                <td>홍길동</td>
+                                <td>전산팀</td>
+                                <td>신청</td>
+                                <td>홍길동</td>
+                            </tr>
+                        </table>
+                    </div>
+                    
+                </section>
+                </div>
+            </div>
+            <!-- contents box E -->
+            <!--- sub contents S -->
+        </div>
+    </div>
+</body>
+</html>

@@ -1,0 +1,67 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.File">
+	
+<!-- icm file -->	
+<update id="ICMInsertFileInfo">
+/* oracle.File.ICMInsertFileInfo */
+INSERT INTO COM_ATTACH(
+	ATTACH_NO,
+	SER_NO,
+	SRC_FILE_NAME,
+	SYS_FILE_NAME,
+	FILE_DIR,
+	FILE_SIZE,
+	REG_ID,
+	REG_DATE,
+	MOD_ID,
+	MOD_DATE
+) VALUES (
+	#{attach_no},
+	(SELECT NVL(MAX(SER_NO)+1,0) FROM COM_ATTACH WHERE ATTACH_NO = #{attach_no}),
+	#{src_file_name},
+	#{sys_file_name},
+	#{file_dir},
+	#{file_size},
+	#{s_emp_code},
+	SYSTIMESTAMP,
+	#{s_emp_code},
+	SYSTIMESTAMP
+)
+</update>	
+
+<select id="ICMFileList" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.File.ICMFileList - 파일 리스트 */
+SELECT 
+	 attach_no,
+	 ser_no,
+	 src_file_name,
+	 sys_file_name,
+	 file_dir,
+	 file_size
+FROM COM_ATTACH
+WHERE attach_no = #{attach_no}
+</select>
+
+<delete id="ICMFileDelete">
+/* oracle.File.ICMFileDelete */
+DELETE COM_ATTACH
+WHERE attach_no = #{attach_no}
+AND ser_no = #{ser_no}
+</delete>
+
+<select id="ICMDownloadFile" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.File.ICMDownloadFile - 파일 다운로드 */
+SELECT
+	attach_no,
+	ser_no,
+	src_file_name,
+	sys_file_name,
+	file_dir,
+	file_size
+FROM COM_ATTACH
+WHERE attach_no = #{attach_no}
+AND ser_no = #{ser_no}
+</select>
+	
+</mapper>

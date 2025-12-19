@@ -1,0 +1,1704 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_zcs_cpt">
+
+<select id="select_zcs_cpt_manh_create3" resultType="HashMap">
+/* oracle.yp_zcs_cpt.select_zcs_cpt_manh_create3 - 보고서 Ｏ 작업내역(월보) */
+SELECT
+	ROW_NUMBER() OVER(ORDER BY TO_CHAR( TO_DATE( A.WORK_START_DT, 'YYYY/MM/DD' ), 'YYYY/MM/DD' ) DESC, A.ORDER_NUMBER, A.COST_CODE ) AS RN,
+	A.ORDER_NUMBER AS ORDER_NUMBER, /* 오더번호 */
+	A.WORK_CONTENTS AS WORK_CONTENTS, /* 작업내역 */
+	A.COST_CODE AS COST_CODE, /* 코스트센터 */
+	A.COST_NAME AS COST_NAME, /* 코스트센터명 */
+	TO_CHAR( TO_DATE( A.WORK_START_DT, 'YYYY/MM/DD' ), 'YYYY/MM/DD' ) AS WORK_START_DT, /* 시작일자 */
+	A.WORK_START_TIME AS WORK_START_TIME, /* 시작시간 */
+	TO_CHAR( TO_DATE( A.WORK_END_DT, 'YYYY/MM/DD' ), 'YYYY/MM/DD' ) AS WORK_END_DT, /* 종료일자 */
+	A.WORK_END_TIME AS WORK_END_TIME, /* 종료시간 */
+	A.MANHOUR AS MANHOUR, /* 공수 */
+	A.MANHOUR_CORRECTION AS MANHOUR_CORRECTION, /* 보정 */
+	A.MANHOUR_SUM AS MANHOUR_SUM, /* 공수합계 */
+	A.MEMO AS MEMO /* 비고 */
+FROM TBL_CONSTRUCTION_CHK_RPT_DT2 A
+WHERE 1=1
+AND A.REPORT_CODE = #{REPORT_CODE}
+</select>
+
+<select id="select_zcs_cpt_manh_create3_commute" resultType="HashMap">
+/* oracle.yp_zcs_cpt.select_zcs_cpt_manh_create3_commute - 보고서 Ｏ 작업내역(월보 하단) */
+SELECT
+	A.COMMUTE AS COMMUTE,
+	A.COMMUTE_CORRECTION AS COMMUTE_CORRECTION,
+	A.COMMUTE_SUM AS COMMUTE_SUM,
+	A.SUBTRACTION AS SUBTRACTION
+FROM TBL_CONSTRUCTION_CHK_RPT_DT3 A
+WHERE 1=1
+AND A.REPORT_CODE = #{REPORT_CODE}
+</select>
+
+<select id="select_zcs_cpt_manh_create3_new" resultType="HashMap">
+/* oracle.yp_zcs_cpt.select_zcs_cpt_manh_create3_new - 보고서 Ｘ 작업내역(월보) */
+SELECT
+	ROW_NUMBER() OVER(ORDER BY TO_CHAR( TO_DATE( A.WORK_START_DT, 'YYYY/MM/DD' ), 'YYYY/MM/DD' ) DESC, A.ORDER_NUMBER, A.COST_CODE ) AS RN,
+	'Y' AS DBYN,
+	A.BASE_YYYYMM,
+	A.VENDOR_CODE,
+	A.CONTRACT_CODE,
+	A.SEQ,
+	A.ORDER_NUMBER AS ORDER_NUMBER, /* 오더번호 */
+	A.WORK_CONTENTS AS WORK_CONTENTS, /* 작업내역 */
+	A.COST_CODE AS COST_CODE, /* 코스트센터 */
+	A.COST_NAME AS COST_NAME, /* 코스트센터명 */
+	A.YYYY,
+	A.MM,
+	A.DD,
+	TO_CHAR( TO_DATE( A.WORK_START_DT, 'YYYY/MM/DD' ), 'YYYY/MM/DD' ) AS WORK_START_DT, /* 시작일자 */
+	A.WORK_START_TIME AS WORK_START_TIME, /* 시작시간 */
+	TO_CHAR( TO_DATE( A.WORK_END_DT, 'YYYY/MM/DD' ), 'YYYY/MM/DD' ) AS WORK_END_DT, /* 종료일자 */
+	A.WORK_END_TIME AS WORK_END_TIME, /* 종료시간 */
+	A.MANHOUR AS MANHOUR, /* 공수 */
+	A.MANHOUR_CORRECTION AS MANHOUR_CORRECTION, /* 보정 */
+	A.MANHOUR_SUM AS MANHOUR_SUM, /* 공수합계 */
+	A.MEMO AS MEMO /* 비고 */
+FROM TBL_CONSTRUCTION_MONTHLY_RPT1 A
+WHERE 1=1
+AND A.BASE_YYYYMM = REPLACE( #{BASE_YYYYMM}, '/', '')
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</select>
+
+<select id="select_zcs_cpt_manh_create3_commute_new" resultType="HashMap">
+/* oracle.yp_zcs_cpt.select_zcs_cpt_manh_create3_commute_new - 보고서 Ｘ 작업내역(월보 하단) */
+SELECT
+	A.COMMUTE AS COMMUTE,
+	A.COMMUTE_CORRECTION AS COMMUTE_CORRECTION,
+	A.COMMUTE_SUM AS COMMUTE_SUM,
+	A.SUBTRACTION AS SUBTRACTION
+FROM TBL_CONSTR_MONTHLY_RPT1_CMT A
+WHERE 1=1
+AND A.BASE_YYYYMM = REPLACE( #{BASE_YYYYMM}, '/', '')
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+</select>
+
+<!-- ========================================================== (공수) 시작========================================================== -->
+<select id="select_inspection_manh_list1" resultType="HashMap">
+/* oracle.yp_zcs_cpt.select_inspection_manh_list1 */
+-- 상단
+SELECT 
+	A.CONTRACT_NAME,
+	A.CONTRACT_CODE,
+	A.VENDOR_CODE,
+	A.WBS_CODE1,
+	A.WBS_CODE2,
+	A.WBS_CODE3,
+	A.WBS_CODE4,
+	A.WBS_CODE5,
+	A.WBS_CODE6,
+	WBS_CODE1 || CASE WHEN WBS_CODE2 IS NULL THEN '' ELSE ', ' || WBS_CODE2 END 
+        || CASE WHEN WBS_CODE3 IS NULL THEN '' ELSE ', ' || WBS_CODE3 END
+        || CASE WHEN WBS_CODE4 IS NULL THEN '' ELSE ', ' || WBS_CODE4 END
+        || CASE WHEN WBS_CODE5 IS NULL THEN '' ELSE ', ' || WBS_CODE5 END
+        || CASE WHEN WBS_CODE6 IS NULL THEN '' ELSE ', ' || WBS_CODE6 END as WBS_CODE,
+	B.CODE_NAME AS VENDOR_NAME
+FROM TBL_CONSTRUCTION_SUBC A
+LEFT OUTER JOIN TBL_WORKING_MASTER B
+ON A.VENDOR_CODE = B.CODE
+WHERE 1=1
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</select>
+
+<select id="select_inspection_manh_list2" resultType="HashMap">
+/* oracle.yp_zcs_cpt.select_inspection_manh_list2 */
+--하단
+SELECT 
+	D.BASE_YYYYMM, D.CONTRACT_CODE, D.VENDOR_CODE,
+	D.COST_CODE, D.COST_NAME, D.SEQ, D.WORK_CONTENTS,
+	D.RATE_AMOUNT, D.RATE_AMOUNT2, D.UNIT, D.UNIT2, D.UNIT_PRICE,
+	-- D.MANHOUR, D.AMOUNT,
+	/* 2021-04-07 jamerl - 최승빈 : 수식( 월보의 코스트 센터별 합계 공수 / 월보의 전체공수 * 출퇴근공수 ) 변경 및 소수 둘째자리까지 표시 요청 */
+	CASE D.GUBUN
+		WHEN 1 THEN TRUNC( D.MANHOUR / E.MANHOUR_SUM * F.COMMUTE_SUM, 2 )
+		ELSE D.MANHOUR
+	END AS MANHOUR,
+	D.AMOUNT AS AMOUNT1,
+	CASE D.GUBUN
+		WHEN 1 THEN TRUNC( D.MANHOUR / E.MANHOUR_SUM * F.COMMUTE_SUM, 2 ) * D.UNIT_PRICE
+		ELSE D.AMOUNT
+	END AS AMOUNT,
+	D.CURRENCY
+FROM 
+(
+	SELECT 1 gubun,
+		A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE,
+	    MAX(A.COST_CODE) AS COST_CODE,
+		MAX(A.COST_NAME) AS COST_NAME,
+		0 AS SEQ,
+		MAX(A.WORK_CONTENTS) || ' 등 '  AS WORK_CONTENTS,
+		TO_CHAR(COUNT(*)) || '건' AS RATE_AMOUNT,
+		COUNT(*) AS RATE_AMOUNT2,
+		'공' AS UNIT,
+        '건' AS UNIT2,
+		SUM(A.MANHOUR_SUM) AS MANHOUR,
+		MAX(B.EMPLOYMENT_COSTS) AS UNIT_PRICE,
+		SUM(A.MANHOUR_SUM) * MAX(B.EMPLOYMENT_COSTS) AS AMOUNT,
+		'KRW' AS CURRENCY
+	FROM TBL_CONSTRUCTION_MONTHLY_RPT1 A
+    LEFT OUTER JOIN TBL_CONSTRUCTION_SUBC B
+    ON A.CONTRACT_CODE = B.CONTRACT_CODE 
+	WHERE A.BASE_YYYYMM = #{BASE_YYYYMM}
+	AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+	AND A.VENDOR_CODE = #{VENDOR_CODE}
+	GROUP BY A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.COST_CODE 
+	UNION ALL 
+	SELECT 2 gubun,
+		C.BASE_YYYYMM, C.CONTRACT_CODE, C.VENDOR_CODE,
+		C.COST_CODE, C.COST_NAME, B.SEQ,
+		B.CONTENTS,
+		B.RATE_AMOUNT||B.UNIT AS RATE_AMOUNT,
+		B.RATE_AMOUNT AS RATE_AMOUNT2,
+		B.MARK_UNIT AS UNIT,
+		B.UNIT AS UNIT2,
+		1 AS MANHOUR,
+		ROUND((C.TMP_AMOUNT * B.RATE_AMOUNT)/100,0) AS UNIT_PRICE,
+		ROUND((C.TMP_AMOUNT * B.RATE_AMOUNT)/100,0) AS AMOUNT,
+		'KRW' AS CURRENCY	
+	FROM 
+	(
+		SELECT 
+			A.CONTRACT_CODE, A.SEQ, A.CONTENTS,
+		    A.RATE_AMOUNT, A.UNIT, A.MARK_UNIT
+		FROM TBL_CONSTRUCTION_SUBC_COST A
+		WHERE A.CONTRACT_CODE = #{CONTRACT_CODE}
+	) B
+	LEFT OUTER JOIN 
+	(
+		SELECT 
+			A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE,
+		    MAX(A.COST_CODE) AS COST_CODE,
+			MAX(A.COST_NAME) AS COST_NAME,
+			SUM(A.MANHOUR_SUM) * MAX(B.EMPLOYMENT_COSTS) AS TMP_AMOUNT
+		FROM TBL_CONSTRUCTION_MONTHLY_RPT1 A
+			LEFT OUTER JOIN TBL_CONSTRUCTION_SUBC B
+			ON A.CONTRACT_CODE = B.CONTRACT_CODE 
+		WHERE A.BASE_YYYYMM = #{BASE_YYYYMM}
+		AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+		AND A.VENDOR_CODE = #{VENDOR_CODE}
+		GROUP BY A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.COST_CODE 
+	) C
+	ON B.CONTRACT_CODE = C.CONTRACT_CODE
+) D
+/* 2021-04-07 jamerl - 최승빈 : 수식( 월보의 코스트 센터별 합계 공수 / 월보의 전체공수 * 출퇴근공수 ) 변경 및 소수 둘째자리까지 표시 요청 */
+INNER JOIN (
+	SELECT
+		E.BASE_YYYYMM, E.VENDOR_CODE, E.CONTRACT_CODE, SUM(E.MANHOUR_SUM) AS MANHOUR_SUM
+	FROM TBL_CONSTRUCTION_MONTHLY_RPT1 E
+	WHERE 1=1
+	GROUP BY E.BASE_YYYYMM, E.VENDOR_CODE, E.CONTRACT_CODE
+) E /* 월보의 전체공수 */
+	ON D.BASE_YYYYMM = E.BASE_YYYYMM
+	AND D.VENDOR_CODE = E.VENDOR_CODE
+	AND D.CONTRACT_CODE = E.CONTRACT_CODE
+INNER JOIN TBL_CONSTR_MONTHLY_RPT1_CMT F /* 출퇴근공수 */
+	ON D.BASE_YYYYMM = F.BASE_YYYYMM
+	AND D.VENDOR_CODE = F.VENDOR_CODE
+	AND D.CONTRACT_CODE = F.CONTRACT_CODE
+ORDER BY D.COST_CODE, D.SEQ
+</select>
+
+<resultMap type="java.util.LinkedHashMap" id="result_zwc_cpt_manh_create"></resultMap>
+<select id="select_work_status_list_manh" statementType="CALLABLE" parameterType="Map">
+/* oracle.yp_zcs_cpt.select_work_status_list_manh */
+{
+	call PC_SELECT_ZWS_CPT_1 (
+		#{BASE_YYYYMM,  mode=IN, jdbcType=VARCHAR},
+		#{VENDOR_CODE, mode=IN, jdbcType=VARCHAR},
+		#{CONTRACT_CODE, mode=IN, jdbcType=VARCHAR},
+		#{RESULT, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=result_zwc_cpt_manh_create}
+	)
+}
+</select>
+
+<select id="select_work_status_list_opt" statementType="CALLABLE" parameterType="Map">
+/* oracle.yp_zcs_cpt.select_work_status_list_opt */
+{
+	call PC_SELECT_ZWS_CPT_3 (
+		#{BASE_YYYYMM,  mode=IN, jdbcType=VARCHAR},
+		#{VENDOR_CODE, mode=IN, jdbcType=VARCHAR},
+		#{CONTRACT_CODE, mode=IN, jdbcType=VARCHAR},
+		#{RESULT, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=result_zwc_cpt_manh_create}
+	)
+}
+</select>
+
+<select id="select_work_status_list_using_report_code" statementType="CALLABLE" parameterType="Map">
+/* oracle.yp_zcs_cpt.select_work_status_list_using_report_code */
+{
+	call PC_SELECT_ZWS_CPT_2  (
+		#{REPORT_CODE,  mode=IN, jdbcType=VARCHAR},
+		#{RESULT, mode=OUT, jdbcType=CURSOR, javaType=java.sql.ResultSet, resultMap=result_zwc_cpt_manh_create}
+	)
+}
+</select>
+
+<select id="select_construction_monthly_rpt1_cnt" resultType="Double">
+/* oracle.yp_zcs_cpt.select_construction_monthly_rpt1_cnt */
+SELECT 
+	COUNT(*) as cnt
+FROM TBL_CONSTRUCTION_MONTHLY_RPT1
+WHERE 1=1
+<if test='BASE_YYYYMM != null'>
+AND BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE = #{VENDOR_CODE}
+</if>
+</select>
+
+<select id="select_construction_monthly_rpt1" resultType="HashMap">
+/* oracle.yp_zcs_cpt.select_construction_monthly_rpt1 */
+SELECT 
+    BASE_YYYYMM,
+    CONTRACT_CODE,
+    VENDOR_CODE,
+    SEQ,
+    YYYY,
+    MM,
+    DD,
+    WORK_START_TIME,
+    WORK_END_TIME,
+    COST_CODE,
+    COST_NAME,
+    WORK_CONTENTS,
+    ORDER_NUMBER,
+    MANHOUR
+FROM TBL_CONSTRUCTION_MONTHLY_RPT1
+WHERE 1=1
+<if test='BASE_YYYYMM != null'>
+AND BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE = #{VENDOR_CODE}
+</if>
+ORDER BY SEQ
+</select>
+
+<select id="select_construction_chk_rpt_cnt" resultType="int">
+	/* oracle.yp_zcs_cpt.select_construction_chk_rpt_cnt - 리포트코드 채번(연도별, 업체코드별) */
+	SELECT
+    	-- count(*) as cnt
+    	NVL( TO_NUMBER( SUBSTR( MAX( REPORT_CODE ), -3 ) ), 0) AS cnt2
+	FROM TBL_CONSTRUCTION_CHK_RPT
+	WHERE 1=1
+	-- AND CONTRACT_CODE = '${CONTRACT_CODE}' /* 채번시 업체별로 공수, 작업, 월정액 구분없이 리포트 코드 채번 */
+	AND VENDOR_CODE   = #{VENDOR_CODE}
+	AND SUBSTR(BASE_YYYYMM, 1, 4)   = SUBSTR(#{BASE_YYYYMM}, 1, 4)
+</select>
+
+<update id="merge_construction_chk_rpt">
+/* oracle.yp_zcs_cpt.merge_construction_chk_rpt */
+MERGE INTO TBL_CONSTRUCTION_CHK_RPT A
+USING (
+	SELECT
+		#{REPORT_CODE} AS REPORT_CODE,
+	    #{CONTRACT_CODE} AS CONTRACT_CODE,
+	    #{VENDOR_CODE} AS VENDOR_CODE,
+	    #{BASE_YYYYMM} AS BASE_YYYYMM,
+	    #{WBS_CODE1} AS WBS_CODE1,
+	    #{WBS_CODE2} AS WBS_CODE2,
+	    #{WBS_CODE3} AS WBS_CODE3,
+	    #{WBS_CODE4} AS WBS_CODE4,
+	    #{WBS_CODE5} AS WBS_CODE5,
+	    #{WBS_CODE6} AS WBS_CODE6,
+	    #{CONTRACT_NAME} AS CONTRACT_NAME,
+	    #{VENDOR_NAME} AS VENDOR_NAME,
+	    #{CHECK_BASE_DATE} AS CHECK_BASE_DATE,
+	    #{SUBCONTRACT_AMOUNT} AS SUBCONTRACT_AMOUNT,
+	    #{SUBCONTRACT_START_DATE} AS SUBCONTRACT_START_DATE,
+	    #{SUBCONTRACT_END_DATE} AS SUBCONTRACT_END_DATE,
+	    #{SUPERVISOR} AS SUPERVISOR,
+	    #{INSPECTOR} AS INSPECTOR,
+	    #{s_emp_code} AS REG_EMP,
+	    #{s_emp_code} AS UPD_EMP,
+	    sysdate AS REG_DATE,
+	    sysdate AS UPD_DATE
+	FROM DUAL
+) B
+ON (
+		A.REPORT_CODE = B.REPORT_CODE
+)
+WHEN NOT MATCHED THEN
+INSERT(
+    REPORT_CODE,
+	CONTRACT_CODE,
+	VENDOR_CODE,
+	BASE_YYYYMM,
+	WBS_CODE1,
+	WBS_CODE2,
+	WBS_CODE3,
+	WBS_CODE4,
+	WBS_CODE5,
+	WBS_CODE6,
+	CONTRACT_NAME,
+	VENDOR_NAME,
+	CHECK_BASE_DATE,
+	SUBCONTRACT_AMOUNT,
+	SUBCONTRACT_START_DATE,
+	SUBCONTRACT_END_DATE,
+	SUPERVISOR,
+	INSPECTOR,
+	--STATUS,
+	REG_EMP,
+	UPD_EMP,
+	REG_DATE,
+	UPD_DATE
+) VALUES(
+    B.REPORT_CODE,
+	B.CONTRACT_CODE,
+	B.VENDOR_CODE,
+	B.BASE_YYYYMM,
+	B.WBS_CODE1,
+	B.WBS_CODE2,
+	B.WBS_CODE3,
+	B.WBS_CODE4,
+	B.WBS_CODE5,
+	B.WBS_CODE6,
+	B.CONTRACT_NAME,
+	B.VENDOR_NAME,
+	B.CHECK_BASE_DATE,
+	B.SUBCONTRACT_AMOUNT,
+	B.SUBCONTRACT_START_DATE,
+	B.SUBCONTRACT_END_DATE,
+	B.SUPERVISOR,
+	B.INSPECTOR,
+	--B.STATUS,
+	B.REG_EMP,
+	B.UPD_EMP,
+	B.REG_DATE,
+	B.UPD_DATE
+)
+WHEN MATCHED THEN
+UPDATE SET
+	CONTRACT_CODE = B.CONTRACT_CODE,
+	VENDOR_CODE = B.VENDOR_CODE,
+	BASE_YYYYMM = B.BASE_YYYYMM,
+	WBS_CODE1 = B.WBS_CODE1,
+	WBS_CODE2 = B.WBS_CODE2,
+	WBS_CODE3 = B.WBS_CODE3,
+	WBS_CODE4 = B.WBS_CODE4,
+	WBS_CODE5 = B.WBS_CODE5,
+	WBS_CODE6 = B.WBS_CODE6,
+	CONTRACT_NAME = B.CONTRACT_NAME,
+	VENDOR_NAME = B.VENDOR_NAME,
+	CHECK_BASE_DATE = B.CHECK_BASE_DATE,
+	SUBCONTRACT_AMOUNT = B.SUBCONTRACT_AMOUNT,
+	SUBCONTRACT_START_DATE = B.SUBCONTRACT_START_DATE,
+	SUBCONTRACT_END_DATE = B.SUBCONTRACT_END_DATE,
+	SUPERVISOR = B.SUPERVISOR,
+	INSPECTOR = B.INSPECTOR,
+	--STATUS = B.STATUS,
+	REG_EMP = B.REG_EMP,
+	UPD_EMP = B.UPD_EMP,
+	REG_DATE = B.REG_DATE,
+	UPD_DATE = B.UPD_DATE
+</update>
+
+<update id="insert_construction_chk_rpt_dt_manh">
+/* oracle.yp_zcs_cpt.insert_construction_chk_rpt_dt_manh */
+INSERT INTO TBL_CONSTRUCTION_CHK_RPT_DT(
+    REPORT_CODE,
+    SEQ,
+    CONTENTS,
+    COST_CODE,
+    COST_NAME,
+    RATE_AMOUNT,
+    UNIT,
+    MARK_UNIT,
+    QTY,
+    UNIT_PRICE,
+    AMOUNT,
+    CURRENCY,
+    REG_EMP,
+    UPD_EMP,
+    REG_DATE,
+    UPD_DATE
+)
+SELECT 
+    #{REPORT_CODE} AS REPORT_CODE,
+    TO_NUMBER(ROWNUM + E.START_SEQ) AS SEQ,
+    E.WORK_CONTENTS AS CONTENTS,
+    E.COST_CODE,
+    E.COST_NAME,
+    TO_NUMBER(E.RATE_AMOUNT2) AS RATE_AMOUNT,
+    E.UNIT AS MARK_UNIT,
+    E.UNIT2 AS UNIT,
+    TO_NUMBER(E.MANHOUR) AS QTY,
+    TO_NUMBER(E.UNIT_PRICE) AS UNIT_PRICE,
+    TO_NUMBER(E.AMOUNT) AS AMOUNT ,
+    E.CURRENCY,
+    #{s_emp_code} AS REG_EMP,
+    #{s_emp_code} AS UPD_EMP,
+    sysdate AS REG_DATE,
+    sysdate AS UPD_DATE
+FROM(
+    SELECT 
+        D.BASE_YYYYMM, D.CONTRACT_CODE, D.VENDOR_CODE, 
+        D.SEQ AS TEMP_SEQ,
+        (SELECT NVL(MAX(SEQ),0) FROM TBL_CONSTRUCTION_CHK_RPT_DT WHERE REPORT_CODE = #{REPORT_CODE}) AS START_SEQ,
+        D.COST_CODE, D.COST_NAME, D.WORK_CONTENTS,
+        D.RATE_AMOUNT, D.RATE_AMOUNT2, D.UNIT, D.UNIT2, D.MANHOUR, D.UNIT_PRICE,
+        D.AMOUNT, D.CURRENCY     
+    FROM 
+    (
+        SELECT 
+            A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE,
+            MAX(A.COST_CODE) AS COST_CODE,
+            MAX(A.COST_NAME) AS COST_NAME,
+            0 AS SEQ,
+            MAX(A.WORK_CONTENTS) || ' 등 '  AS WORK_CONTENTS,
+            TO_CHAR(COUNT(*)) || '건' AS RATE_AMOUNT,
+            COUNT(*) AS RATE_AMOUNT2,
+            '공' AS UNIT,
+            '건' AS UNIT2,
+            SUM(A.MANHOUR_SUM) AS MANHOUR, /* 2021-03-29 jamerl - 【신규】공수합으로 변경 */
+            MAX(B.EMPLOYMENT_COSTS) AS UNIT_PRICE,
+            SUM(A.MANHOUR_SUM) * MAX(B.EMPLOYMENT_COSTS) AS AMOUNT, /* 2021-03-29 jamerl - 【신규】공수합으로 변경 */
+            'KRW' AS CURRENCY
+        FROM TBL_CONSTRUCTION_MONTHLY_RPT1 A
+        LEFT OUTER JOIN TBL_CONSTRUCTION_SUBC B
+        ON A.CONTRACT_CODE = B.CONTRACT_CODE 
+        WHERE A.BASE_YYYYMM = #{BASE_YYYYMM}
+        AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+        AND A.VENDOR_CODE = #{VENDOR_CODE}
+        GROUP BY A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.COST_CODE 
+        UNION ALL 
+        SELECT 
+            C.BASE_YYYYMM, C.CONTRACT_CODE, C.VENDOR_CODE,
+            C.COST_CODE, C.COST_NAME,
+            B.SEQ,
+            B.CONTENTS,
+            B.RATE_AMOUNT||B.UNIT AS RATE_AMOUNT,
+            B.RATE_AMOUNT AS RATE_AMOUNT2,
+            B.MARK_UNIT AS UNIT,
+            B.UNIT AS UNIT2,
+            1 AS MANHOUR,
+            ROUND((C.TMP_AMOUNT * B.RATE_AMOUNT)/100,0) AS UNIT_PRICE,
+            ROUND((C.TMP_AMOUNT * B.RATE_AMOUNT)/100,0) AS AMOUNT,
+            'KRW' AS CURRENCY	
+        FROM 
+        (
+            SELECT 
+                A.CONTRACT_CODE, A.CONTENTS, A.SEQ,
+                A.RATE_AMOUNT, A.UNIT, A.MARK_UNIT
+            FROM TBL_CONSTRUCTION_SUBC_COST A
+            WHERE A.CONTRACT_CODE = #{CONTRACT_CODE}
+        ) B
+        LEFT OUTER JOIN 
+        (
+            SELECT 
+                A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE,
+                MAX(A.COST_CODE) AS COST_CODE,
+                MAX(A.COST_NAME) AS COST_NAME,
+                SUM(A.MANHOUR_SUM) * MAX(B.EMPLOYMENT_COSTS) AS TMP_AMOUNT /* 2021-03-29 jamerl - 【신규】공수합으로 변경 */
+            FROM TBL_CONSTRUCTION_MONTHLY_RPT1 A
+                LEFT OUTER JOIN TBL_CONSTRUCTION_SUBC B
+                ON A.CONTRACT_CODE = B.CONTRACT_CODE 
+            WHERE A.BASE_YYYYMM = #{BASE_YYYYMM}
+            AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+            AND A.VENDOR_CODE = #{VENDOR_CODE}
+            GROUP BY A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.COST_CODE 
+        ) C
+        ON B.CONTRACT_CODE = C.CONTRACT_CODE
+    ) D
+    ORDER BY COST_CODE, TEMP_SEQ
+)E
+</update>
+
+<select id="select_pay_code_list" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.yp_zcs_cpt.select_pay_code_list */
+	SELECT
+		A.CODE       as master_code,
+		A.CODE_VALUE as detail_code,
+		A.CODE_NM    as detail_name,
+		A.NOTE       as detail_note,
+		A.USE_YN     as detail_use,
+		A.SORT_NO    as detail_sort,
+		B.CODE_NM    as master_name,
+		B.USE_YN     as master_use,
+		B.SORT_NO    as master_sort     
+    FROM COM_CODE_DETAIL A
+    LEFT OUTER JOIN COM_CODE_MASTER B
+	ON A.CODE = B.CODE
+	WHERE 1=1
+	and A.CODE = 'YP_PAY_GUBUN'
+	ORDER BY DETAIL_CODE asc
+</select>
+
+
+<update id="insert_construction_chk_rpt_dt2_manh">
+/* oracle.yp_zcs_cpt.insert_construction_chk_rpt_dt2_manh */
+INSERT INTO TBL_CONSTRUCTION_CHK_RPT_DT2(
+    REPORT_CODE,
+    SEQ,
+    COST_CODE,
+    COST_NAME,
+    WORK_CONTENTS,
+    YYYY,
+    MM,
+    DD,
+    WORK_START_DT,
+    WORK_END_DT,
+    WORK_START_TIME,
+    WORK_END_TIME,
+    ORDER_NUMBER,
+    MANHOUR,
+    MANHOUR_CORRECTION,
+    MANHOUR_SUM,
+    MEMO,
+    --QTY,
+    REG_EMP,
+    UPD_EMP,
+    REG_DATE,
+    UPD_DATE
+)
+SELECT 
+    REPORT_CODE,
+    (SEQ + START_SEQ) AS SEQ,
+    COST_CODE,
+    COST_NAME,
+    WORK_CONTENTS,
+    YYYY,
+    MM,
+    DD,
+    WORK_START_DT,
+    WORK_END_DT,
+    WORK_START_TIME,
+    WORK_END_TIME,
+    ORDER_NUMBER,
+    MANHOUR,
+    MANHOUR_CORRECTION,
+    MANHOUR_SUM,
+    MEMO,
+    --QTY,
+    #{s_emp_code} AS REG_EMP,
+    #{s_emp_code} AS UPD_EMP,
+    sysdate AS REG_DATE,
+    sysdate AS UPD_DATE
+FROM(
+    SELECT 
+        #{REPORT_CODE} AS REPORT_CODE,
+        BASE_YYYYMM,
+        CONTRACT_CODE,
+        VENDOR_CODE,
+        ROWNUM AS SEQ,
+        (SELECT NVL(MAX(SEQ),0) FROM TBL_CONSTRUCTION_CHK_RPT_DT2 WHERE REPORT_CODE = #{REPORT_CODE}) AS START_SEQ,
+        YYYY,
+        MM,
+        DD,
+        WORK_START_DT,
+        WORK_END_DT,
+        WORK_START_TIME,
+        WORK_END_TIME,
+        COST_CODE,
+        COST_NAME,
+        WORK_CONTENTS,
+        ORDER_NUMBER,
+        MANHOUR,
+	    MANHOUR_CORRECTION,
+	    MANHOUR_SUM,
+	    MEMO
+    FROM TBL_CONSTRUCTION_MONTHLY_RPT1
+    WHERE 1=1
+    AND BASE_YYYYMM = #{BASE_YYYYMM}
+    AND CONTRACT_CODE = #{CONTRACT_CODE}
+    AND VENDOR_CODE = #{VENDOR_CODE}
+)
+ORDER BY SEQ
+</update>
+
+<update id="insert_construction_chk_rpt_dt3_manh">
+/* oracle.yp_zcs_cpt.insert_construction_chk_rpt_dt3_manh */
+INSERT INTO TBL_CONSTRUCTION_CHK_RPT_DT3 (
+	REPORT_CODE,
+	COMMUTE,
+	COMMUTE_CORRECTION,
+	COMMUTE_SUM,
+	SUBTRACTION,
+	REG_EMP,
+	REG_DATE,
+	UPD_EMP,
+	UPD_DATE
+)
+SELECT
+	#{REPORT_CODE} AS REPORT_CODE,
+	A.COMMUTE,
+	A.COMMUTE_CORRECTION,
+	A.COMMUTE_SUM,
+	A.SUBTRACTION,
+	#{s_emp_code} AS REG_EMP,
+	SYSDATE AS REG_DATE,
+	#{s_emp_code} AS UPD_EMP,
+	SYSDATE AS UPD_DATE
+FROM TBL_CONSTR_MONTHLY_RPT1_CMT A
+WHERE 1=1
+AND BASE_YYYYMM = #{BASE_YYYYMM}
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+AND VENDOR_CODE = #{VENDOR_CODE}
+</update>
+
+
+<select id="construction_chk_rpt_count" resultType="int">
+	/* oracle.yp_zcs_cpt.construction_chk_rpt_count - 보고서 건수 확인(존재하면 생성 불가) */
+	SELECT COUNT(*) AS CNT 
+	FROM TBL_CONSTRUCTION_CHK_RPT
+	WHERE 1=1
+	<if test='BASE_YYYYMM != null'>
+	AND BASE_YYYYMM = #{BASE_YYYYMM}
+	</if>
+	<if test='CONTRACT_CODE != null'>
+	AND CONTRACT_CODE = #{CONTRACT_CODE}
+	</if>
+	<if test='VENDOR_CODE != null'>
+	AND VENDOR_CODE = #{VENDOR_CODE}
+	</if>
+</select>
+
+<select id="select_construction_chk_rpt_grid_cnt" resultType="Double">
+	/* oracle.yp_zcs_cpt.select_construction_chk_rpt_grid_cnt */
+	SELECT COUNT(*) AS CNT
+	FROM(	
+	    SELECT
+	        C.PAY_STANDARD, --지급기준
+		    A.REPORT_CODE,
+		    A.CONTRACT_CODE, -- 계약코드
+		    A.VENDOR_CODE,
+		    A.BASE_YYYYMM,
+		    MAX(SUBSTR(A.BASE_YYYYMM, 1, 4)) AS YYYY,
+		    MAX(SUBSTR(A.BASE_YYYYMM, 5, 2)) AS MM,
+		    SUM(B.AMOUNT) AS AMOUNT, -- 금액
+		    MAX(A.CONTRACT_NAME) AS CONTRACT_NAME, -- 계약명
+		    MAX(A.VENDOR_NAME) AS VENDOR_NAME,
+		    MAX(A.STATUS) AS STATUS, -- 상태
+		    MAX(A.REG_EMP) AS REG_EMP -- 등록자
+		FROM TBL_CONSTRUCTION_CHK_RPT A
+		LEFT OUTER JOIN TBL_CONSTRUCTION_CHK_RPT_DT B
+		ON A.REPORT_CODE = B.REPORT_CODE
+		LEFT OUTER JOIN TBL_CONSTRUCTION_SUBC C
+		ON A.CONTRACT_CODE = C.CONTRACT_CODE
+		WHERE 1=1
+		<if test='PAY_STANDARD != null'>
+		AND C.PAY_STANDARD = #{PAY_STANDARD}
+		</if>
+		<if test='BASE_YYYYMM != null'>
+		AND A.BASE_YYYYMM = #{BASE_YYYYMM}
+		</if>
+		<if test='CONTRACT_CODE != null'>
+		AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+		</if>
+		<if test='VENDOR_CODE != null'>
+		AND A.VENDOR_CODE = #{VENDOR_CODE}
+		</if>
+		<if test='REPORT_CODE != null'>
+		AND A.REPORT_CODE = #{REPORT_CODE}
+		</if>
+		GROUP BY C.PAY_STANDARD, A.VENDOR_CODE, A.BASE_YYYYMM, A.REPORT_CODE, A.CONTRACT_CODE 
+	)
+</select>
+
+<select id="select_construction_chk_rpt_grid" resultType="HashMap">
+	/* oracle.yp_zcs_cpt.select_construction_chk_rpt_grid */
+	SELECT
+	    C.PAY_STANDARD, --지급기준
+	    E.CODE_NM as PAY_STANDARD_NAME,
+	    A.REPORT_CODE,
+	    A.CONTRACT_CODE, -- 계약코드
+	    A.VENDOR_CODE,
+	    A.BASE_YYYYMM,
+	    MAX(SUBSTR(A.BASE_YYYYMM, 1, 4)) AS YYYY,
+	    MAX(SUBSTR(A.BASE_YYYYMM, 5, 2)) AS MM,
+	    SUM(B.AMOUNT) AS AMOUNT, -- 금액
+	    MAX(A.CONTRACT_NAME) AS CONTRACT_NAME, -- 계약명
+	    MAX(A.VENDOR_NAME) AS VENDOR_NAME,
+	    MAX(A.STATUS) AS STATUS, -- 상태
+	    F_GETCODENAME('YP_APPR_STATUS', MAX(A.STATUS)) AS STATUS_TXT,
+	    MAX(A.REG_EMP) AS REG_EMP, -- 등록자
+	    MAX(D.USER_NAME) AS REG_EMP_NAME
+	FROM TBL_CONSTRUCTION_CHK_RPT A
+	LEFT OUTER JOIN TBL_CONSTRUCTION_CHK_RPT_DT B
+	ON A.REPORT_CODE = B.REPORT_CODE
+	LEFT OUTER JOIN TBL_CONSTRUCTION_SUBC C
+	ON A.CONTRACT_CODE = C.CONTRACT_CODE
+	LEFT OUTER JOIN COM_USER_V_YP D
+    ON A.REG_EMP = D.EMP_CODE
+    LEFT OUTER JOIN COM_CODE_DETAIL E
+    ON C.PAY_STANDARD = E.CODE_VALUE 
+	AND E.CODE = 'YP_PAY_GUBUN'
+	WHERE 1=1
+	<if test='PAY_STANDARD != null'>
+	AND C.PAY_STANDARD = #{PAY_STANDARD}
+	</if>
+	<if test='BASE_YYYYMM != null'>
+	AND A.BASE_YYYYMM = #{BASE_YYYYMM}
+	</if>
+	<if test='CONTRACT_CODE != null'>
+	AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+	</if>
+	<if test='VENDOR_CODE != null'>
+	AND A.VENDOR_CODE = #{VENDOR_CODE}
+	</if>
+	<if test='REPORT_CODE != null'>
+	AND A.REPORT_CODE = #{REPORT_CODE}
+	</if>
+	GROUP BY C.PAY_STANDARD, A.VENDOR_CODE, A.BASE_YYYYMM, A.REPORT_CODE, A.CONTRACT_CODE, E.CODE_NM
+	ORDER BY C.PAY_STANDARD,  A.REPORT_CODE, A.CONTRACT_CODE, A.VENDOR_CODE, A.BASE_YYYYMM, YYYY, MM
+</select>
+
+<select id="select_construction_chk_rpt" resultType="HashMap">
+	/* oracle.yp_zcs_cpt.select_construction_chk_rpt */
+	SELECT 
+		REPORT_CODE,
+		CONTRACT_CODE,
+		VENDOR_CODE,
+		CONTRACT_NAME,
+		VENDOR_NAME
+	FROM TBL_CONSTRUCTION_CHK_RPT
+	WHERE 1=1
+	<if test='search_type == "REPORT_CODE"'>
+	AND REPORT_CODE LIKE '%' ||  #{search_text} || '%'
+	</if>
+</select>
+
+<update id="delete_construction_chk_rpt">
+/* oracle.yp_zcs_cpt.delete_construction_chk_rpt */
+DELETE FROM TBL_CONSTRUCTION_CHK_RPT
+WHERE 1=1
+AND REPORT_CODE = #{REPORT_CODE}
+</update>
+
+<update id="delete_construction_chk_rpt_dt">
+/* oracle.yp_zcs_cpt.delete_construction_chk_rpt_dt */
+DELETE FROM TBL_CONSTRUCTION_CHK_RPT_DT
+WHERE 1=1
+AND REPORT_CODE = #{REPORT_CODE}
+</update>
+
+<update id="delete_construction_chk_rpt_dt2">
+/* oracle.yp_zcs_cpt.delete_construction_chk_rpt_dt2 */
+DELETE FROM TBL_CONSTRUCTION_CHK_RPT_DT2
+WHERE 1=1
+AND REPORT_CODE = #{REPORT_CODE}
+</update>
+
+<update id="delete_construction_chk_rpt_dt3">
+/* oracle.yp_zcs_cpt.delete_construction_chk_rpt_dt3 */
+DELETE FROM TBL_CONSTRUCTION_CHK_RPT_DT3
+WHERE 1=1
+AND REPORT_CODE = #{REPORT_CODE}
+</update>
+
+<select id="select_construction_chk_rpt_load" resultType="HashMap">
+	/* oracle.yp_zcs_cpt.select_construction_chk_rpt_load */
+<!--SELECT 
+		A.REPORT_CODE,
+		A.CONTRACT_CODE,
+		A.VENDOR_CODE,
+		B.SAP_CODE,
+		A.BASE_YYYYMM,
+		A.CONTRACT_NAME,
+		A.VENDOR_NAME,
+		A.WBS_CODE1,
+		A.WBS_CODE2,
+		A.WBS_CODE3,
+		A.WBS_CODE4,
+		A.WBS_CODE5,
+		A.WBS_CODE6,
+		WBS_CODE1 || CASE WHEN WBS_CODE2 IS NULL THEN '' ELSE ', ' || WBS_CODE2 END 
+        || CASE WHEN WBS_CODE3 IS NULL THEN '' ELSE ', ' || WBS_CODE3 END
+        || CASE WHEN WBS_CODE4 IS NULL THEN '' ELSE ', ' || WBS_CODE4 END
+        || CASE WHEN WBS_CODE5 IS NULL THEN '' ELSE ', ' || WBS_CODE5 END
+        || CASE WHEN WBS_CODE6 IS NULL THEN '' ELSE ', ' || WBS_CODE6 END as WBS_CODE,
+		A.CHECK_BASE_DATE,
+		A.SUBCONTRACT_AMOUNT,
+		A.SUBCONTRACT_START_DATE,
+		A.SUBCONTRACT_END_DATE,
+		A.SUPERVISOR,
+		A.INSPECTOR
+	FROM TBL_CONSTRUCTION_CHK_RPT A
+	LEFT OUTER JOIN TBL_WORKING_MASTER B
+    ON A.VENDOR_CODE = B.CODE
+	WHERE 1=1
+	<if test='REPORT_CODE != null'>
+	AND A.REPORT_CODE = #{REPORT_CODE}
+	</if> -->
+SELECT 
+    A.REPORT_CODE,
+    A.CONTRACT_CODE,
+    A.VENDOR_CODE,
+    C.SAP_CODE,
+    A.BASE_YYYYMM,
+    A.CONTRACT_NAME,
+    A.VENDOR_NAME,
+    A.WBS_CODE1,
+    A.WBS_CODE2,
+    A.WBS_CODE3,
+    A.WBS_CODE4,
+    A.WBS_CODE5,
+    A.WBS_CODE6,
+    WBS_CODE1 || CASE WHEN WBS_CODE2 IS NULL THEN '' ELSE ', ' || WBS_CODE2 END 
+    || CASE WHEN WBS_CODE3 IS NULL THEN '' ELSE ', ' || WBS_CODE3 END
+    || CASE WHEN WBS_CODE4 IS NULL THEN '' ELSE ', ' || WBS_CODE4 END
+    || CASE WHEN WBS_CODE5 IS NULL THEN '' ELSE ', ' || WBS_CODE5 END
+    || CASE WHEN WBS_CODE6 IS NULL THEN '' ELSE ', ' || WBS_CODE6 END as WBS_CODE,
+    A.CHECK_BASE_DATE,
+    A.SUBCONTRACT_AMOUNT,
+    A.SUBCONTRACT_START_DATE,
+    A.SUBCONTRACT_END_DATE,
+    A.SUPERVISOR,
+    A.INSPECTOR,
+	--B.SEQ,
+	B.CONTENTS,
+	CASE WHEN TO_CHAR(B.RATE_AMOUNT) = '0' THEN ' ' ELSE TO_CHAR(B.RATE_AMOUNT) END AS RATE_AMOUNT, 
+	B.COST_CODE,
+	B.COST_NAME,
+	B.UNIT,
+	B.MARK_UNIT,
+	B.QTY,
+    (SELECT EMPLOYMENT_COSTS_MONTH FROM TBL_CONSTRUCTION_SUBC WHERE CONTRACT_CODE = A.CONTRACT_CODE) AS EMPLOYMENT_COSTS_MONTH,
+	B.UNIT_PRICE,
+	--B.AMOUNT,
+	B.CURRENCY
+FROM TBL_CONSTRUCTION_CHK_RPT A
+LEFT OUTER JOIN TBL_CONSTRUCTION_CHK_RPT_DT B
+ON A.REPORT_CODE = B.REPORT_CODE
+LEFT OUTER JOIN TBL_WORKING_MASTER C
+ON A.VENDOR_CODE = C.CODE
+WHERE 1=1
+<if test='REPORT_CODE != null'>
+AND A.REPORT_CODE = #{REPORT_CODE}
+</if>
+</select>
+
+<select id="select_inspection_manh_list2_using_report_code" resultType="HashMap">
+/* oracle.yp_zcs_cpt.select_inspection_manh_list2_using_report_code */
+SELECT 
+	REPORT_CODE,
+	SEQ,
+	CONTENTS AS WORK_CONTENTS,
+	RATE_AMOUNT || MARK_UNIT AS RATE_AMOUNT,
+	COST_CODE,
+	COST_NAME,
+	UNIT,
+	MARK_UNIT,
+	QTY AS MANHOUR,
+	UNIT_PRICE,
+	AMOUNT,
+	CURRENCY
+FROM TBL_CONSTRUCTION_CHK_RPT_DT
+WHERE 1=1
+<if test='REPORT_CODE != null'>
+AND REPORT_CODE = #{REPORT_CODE}
+</if>
+ORDER BY SEQ
+</select>
+<!-- ========================================================== (공수) 끝 =========================================================== -->
+
+
+
+<!-- ========================================================== (작업) 시작========================================================== -->
+<select id="select_inspection_opt_list1" resultType="HashMap">
+/* oracle.yp_zcs_cpt.select_inspection_opt_list1 */
+-- 상단
+SELECT 
+	A.CONTRACT_NAME,
+	A.CONTRACT_CODE,
+	A.VENDOR_CODE,
+	A.WBS_CODE1,
+	A.WBS_CODE2,
+	A.WBS_CODE3,
+	A.WBS_CODE4,
+	A.WBS_CODE5,
+	A.WBS_CODE6,
+	WBS_CODE1 || CASE WHEN WBS_CODE2 IS NULL THEN '' ELSE ', ' || WBS_CODE2 END 
+        || CASE WHEN WBS_CODE3 IS NULL THEN '' ELSE ', ' || WBS_CODE3 END
+        || CASE WHEN WBS_CODE4 IS NULL THEN '' ELSE ', ' || WBS_CODE4 END
+        || CASE WHEN WBS_CODE5 IS NULL THEN '' ELSE ', ' || WBS_CODE5 END
+        || CASE WHEN WBS_CODE6 IS NULL THEN '' ELSE ', ' || WBS_CODE6 END as WBS_CODE,
+	B.CODE_NAME AS VENDOR_NAME
+FROM TBL_CONSTRUCTION_SUBC A
+LEFT OUTER JOIN TBL_WORKING_MASTER B
+ON A.VENDOR_CODE = B.CODE
+WHERE 1=1
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+AND A.VENDOR_CODE = #{VENDOR_CODE}
+</select>
+
+<select id="select_inspection_opt_list2" resultType="HashMap">
+/* oracle.yp_zcs_cpt.select_inspection_opt_list2 */
+--하단
+SELECT 
+	D.BASE_YYYYMM, D.CONTRACT_CODE, D.VENDOR_CODE, 
+    D.COST_CODE, D.COST_NAME, D.SEQ, D.CONTENTS,
+    CASE WHEN INSTR(D.RATE_AMOUNT,'\', 1, 1) > 1 THEN to_char( REPLACE(D.RATE_AMOUNT,'\',''),'999G999G999G999G999G999L' ) ELSE D.RATE_AMOUNT END AS RATE_AMOUNT,
+    D.MARK_UNIT, D.QTY,
+    D.UNIT_PRICE, D.AMOUNT, D.CURRENCY
+FROM 
+(
+	SELECT 
+		D.BASE_YYYYMM, D.CONTRACT_CODE, D.VENDOR_CODE, D.COST_CODE, D.COST_NAME, 
+	    ROW_NUMBER() OVER(PARTITION BY D.COST_CODE ORDER BY D.SEQ ASC) AS SEQ,
+	    D.CONTENTS, '-' AS RATE_AMOUNT, D.MARK_UNIT, NVL(E.QTY,0) AS QTY,
+	    NVL(D.AMOUNT,0) AS UNIT_PRICE, NVL(E.QTY * D.AMOUNT,0) AS AMOUNT,'KRW' AS CURRENCY, '1' AS GUBUN
+	FROM 
+	(
+		SELECT 
+			B.BASE_YYYYMM, B.CONTRACT_CODE, B.VENDOR_CODE, B.COST_CODE, B.COST_NAME,
+			C.SEQ, C.CONTENTS, C.MARK_UNIT, C.AMOUNT, C.UNIT
+		FROM 
+		(
+			SELECT 
+				A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.COST_CODE, MAX(A.COST_NAME) AS COST_NAME
+			FROM TBL_CONSTRUCTION_MONTHLY_RPT2 A
+			WHERE A.BASE_YYYYMM = #{BASE_YYYYMM}
+			AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+			AND A.VENDOR_CODE = #{VENDOR_CODE}
+			GROUP BY A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.COST_CODE
+		) B LEFT OUTER JOIN
+		(
+			SELECT 
+				A.CONTRACT_CODE, A.SEQ, A.CONTENTS, A.MARK_UNIT, A.AMOUNT, A.UNIT
+			FROM TBL_CONSTRUCTION_SUBC_EMP_COST A
+			WHERE A.CONTRACT_CODE = #{CONTRACT_CODE}
+		) C
+		ON B.CONTRACT_CODE = C.CONTRACT_CODE
+	) D
+	LEFT OUTER JOIN 
+	(
+		SELECT 
+			A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.COST_CODE, A.WORK_CONTENTS, SUM(A.QTY) AS QTY
+		FROM TBL_CONSTRUCTION_MONTHLY_RPT2 A
+		WHERE A.BASE_YYYYMM = #{BASE_YYYYMM}
+		AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+		AND A.VENDOR_CODE = #{VENDOR_CODE}
+		GROUP BY A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.COST_CODE, A.WORK_CONTENTS
+	) E
+	ON D.BASE_YYYYMM = E.BASE_YYYYMM
+	AND D.CONTRACT_CODE = E.CONTRACT_CODE
+	AND D.VENDOR_CODE = E.VENDOR_CODE
+	AND D.COST_CODE = E.COST_CODE
+	AND D.CONTENTS = E.WORK_CONTENTS
+	UNION ALL 
+	SELECT 
+		C.BASE_YYYYMM, C.CONTRACT_CODE, C.VENDOR_CODE,
+		C.COST_CODE, C.COST_NAME, B.SEQ,
+		B.CONTENTS,
+		B.RATE_AMOUNT||B.UNIT AS RATE_AMOUNT,
+		B.MARK_UNIT AS UNIT,
+		1 AS QTY,
+		CASE WHEN B.UNIT = '%' THEN ROUND((C.TMP_AMOUNT * B.RATE_AMOUNT)/100,0) ELSE B.RATE_AMOUNT END AS UNIT_PRICE,
+		CASE WHEN B.UNIT = '%' THEN ROUND((C.TMP_AMOUNT * B.RATE_AMOUNT)/100,0) ELSE B.RATE_AMOUNT END AS AMOUNT,
+		'KRW' AS CURRENCY, '2' AS GUBUN	
+	FROM 
+	(
+		SELECT 
+			A.CONTRACT_CODE, A.SEQ, A.CONTENTS,
+		    A.RATE_AMOUNT, A.UNIT, A.MARK_UNIT
+		FROM TBL_CONSTRUCTION_SUBC_COST A
+		WHERE A.CONTRACT_CODE = #{CONTRACT_CODE}
+	) B
+	LEFT OUTER JOIN 
+	(
+		SELECT
+			E.BASE_YYYYMM, E.CONTRACT_CODE, E.VENDOR_CODE, E.COST_CODE, MAX(E.COST_NAME) AS COST_NAME, SUM(E.TMP_AMOUNT) AS TMP_AMOUNT
+		FROM 
+		(
+			SELECT 
+				A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.WORK_CONTENTS,
+			    A.COST_CODE, MAX(A.COST_NAME) AS COST_NAME, SUM(A.QTY) * MAX(B.AMOUNT) AS TMP_AMOUNT
+			FROM TBL_CONSTRUCTION_MONTHLY_RPT2 A
+				LEFT OUTER JOIN TBL_CONSTRUCTION_SUBC_EMP_COST B
+				ON A.CONTRACT_CODE = B.CONTRACT_CODE 
+				AND A.WORK_CONTENTS = B.CONTENTS 
+			WHERE A.BASE_YYYYMM = #{BASE_YYYYMM}
+			AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+			AND A.VENDOR_CODE = #{VENDOR_CODE}
+			GROUP BY A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.COST_CODE, A.WORK_CONTENTS
+		) E
+		GROUP BY E.BASE_YYYYMM, E.CONTRACT_CODE, E.VENDOR_CODE, E.COST_CODE
+	) C
+	ON B.CONTRACT_CODE = C.CONTRACT_CODE
+) D
+WHERE 1=1
+AND D.QTY != 0 /* 2020-11-12 jamerl - 최승빈 : 수량이 0은 제외 요청 */
+ORDER BY D.COST_CODE, D.GUBUN, D.SEQ
+</select>
+
+<update id="insert_construction_chk_rpt_dt_opt">
+/* oracle.yp_zcs_cpt.insert_construction_chk_rpt_dt_opt */
+INSERT INTO TBL_CONSTRUCTION_CHK_RPT_DT(
+    REPORT_CODE,
+    SEQ,
+    CONTENTS,
+    COST_CODE,
+    COST_NAME,
+    RATE_AMOUNT,
+    UNIT,
+    MARK_UNIT,
+    QTY,
+    UNIT_PRICE,
+    AMOUNT,
+    CURRENCY,
+    REG_EMP,
+    UPD_EMP,
+    REG_DATE,
+    UPD_DATE
+)
+SELECT 
+    #{REPORT_CODE} AS REPORT_CODE,
+    TO_NUMBER(ROWNUM + F.START_SEQ) AS SEQ,
+    F.CONTENTS,
+    F.COST_CODE,
+    F.COST_NAME,
+    TO_NUMBER(F.RATE_AMOUNT) AS RATE_AMOUNT,
+    F.MARK_UNIT,
+    F.UNIT,
+    TO_NUMBER(F.QTY) AS QTY,
+    TO_NUMBER(F.UNIT_PRICE) AS UNIT_PRICE,
+    TO_NUMBER(F.AMOUNT) AS AMOUNT ,
+    F.CURRENCY,
+    #{s_emp_code} AS REG_EMP,
+    #{s_emp_code} AS UPD_EMP,
+    sysdate AS REG_DATE,
+    sysdate AS UPD_DATE
+FROM(
+    SELECT 
+        D.BASE_YYYYMM, D.CONTRACT_CODE, D.VENDOR_CODE, 
+        D.COST_CODE, D.COST_NAME, 
+        D.SEQ AS TEMP_SEQ,
+        (SELECT NVL(MAX(SEQ),0) FROM TBL_CONSTRUCTION_CHK_RPT_DT WHERE REPORT_CODE = #{REPORT_CODE}) AS START_SEQ,
+        D.CONTENTS, D.RATE_AMOUNT, D.MARK_UNIT, D.QTY,
+        D.UNIT_PRICE, D.AMOUNT, D.CURRENCY, D.UNIT
+    FROM 
+    (
+        SELECT 
+            D.BASE_YYYYMM, D.CONTRACT_CODE, D.VENDOR_CODE, D.COST_CODE, D.COST_NAME, 
+            ROW_NUMBER() OVER(PARTITION BY D.COST_CODE ORDER BY D.SEQ ASC) AS SEQ,
+            D.CONTENTS, 0 AS RATE_AMOUNT,        
+            '' AS UNIT,
+            D.MARK_UNIT, 
+            NVL(E.QTY,0) AS QTY,
+            NVL(D.AMOUNT,0) AS UNIT_PRICE, NVL(E.QTY * D.AMOUNT,0) AS AMOUNT,'KRW' AS CURRENCY, '1' AS GUBUN  
+        FROM 
+        (
+            SELECT 
+                B.BASE_YYYYMM, B.CONTRACT_CODE, B.VENDOR_CODE, B.COST_CODE, B.COST_NAME,
+                C.SEQ, C.CONTENTS, C.MARK_UNIT, C.AMOUNT, C.UNIT
+            FROM 
+            (
+                SELECT 
+                    A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.COST_CODE, MAX(A.COST_NAME) AS COST_NAME
+                FROM TBL_CONSTRUCTION_MONTHLY_RPT2 A
+                WHERE A.BASE_YYYYMM = #{BASE_YYYYMM}
+                AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+                AND A.VENDOR_CODE = #{VENDOR_CODE}
+                GROUP BY A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.COST_CODE
+            ) B LEFT OUTER JOIN
+            (
+                SELECT 
+                    A.CONTRACT_CODE, A.SEQ, A.CONTENTS, A.MARK_UNIT, A.AMOUNT, A.UNIT
+                FROM TBL_CONSTRUCTION_SUBC_EMP_COST A
+                WHERE A.CONTRACT_CODE = #{CONTRACT_CODE}
+            ) C
+            ON B.CONTRACT_CODE = C.CONTRACT_CODE
+        ) D
+        LEFT OUTER JOIN 
+        (
+            SELECT 
+                A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.COST_CODE, A.WORK_CONTENTS, SUM(A.QTY) AS QTY
+            FROM TBL_CONSTRUCTION_MONTHLY_RPT2 A
+            WHERE A.BASE_YYYYMM = #{BASE_YYYYMM}
+            AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+            AND A.VENDOR_CODE = #{VENDOR_CODE}
+            GROUP BY A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.COST_CODE, A.WORK_CONTENTS
+        ) E
+        ON D.BASE_YYYYMM = E.BASE_YYYYMM
+        AND D.CONTRACT_CODE = E.CONTRACT_CODE
+        AND D.VENDOR_CODE = E.VENDOR_CODE
+        AND D.COST_CODE = E.COST_CODE
+        AND D.CONTENTS = E.WORK_CONTENTS
+        UNION ALL 
+        SELECT 
+            C.BASE_YYYYMM, C.CONTRACT_CODE, C.VENDOR_CODE,
+            C.COST_CODE, C.COST_NAME, B.SEQ,
+            B.CONTENTS,
+            B.RATE_AMOUNT AS RATE_AMOUNT,
+            B.UNIT,
+            B.MARK_UNIT,
+            1 AS QTY,
+            CASE WHEN B.UNIT = '%' THEN ROUND((C.TMP_AMOUNT * B.RATE_AMOUNT)/100,0) ELSE B.RATE_AMOUNT END AS UNIT_PRICE,
+            CASE WHEN B.UNIT = '%' THEN ROUND((C.TMP_AMOUNT * B.RATE_AMOUNT)/100,0) ELSE B.RATE_AMOUNT END AS AMOUNT,
+            'KRW' AS CURRENCY, '2' AS GUBUN	
+        FROM 
+        (
+            SELECT 
+                A.CONTRACT_CODE, A.SEQ, A.CONTENTS,
+                A.RATE_AMOUNT, A.UNIT, A.MARK_UNIT
+            FROM TBL_CONSTRUCTION_SUBC_COST A
+            WHERE A.CONTRACT_CODE = #{CONTRACT_CODE}
+        ) B
+        LEFT OUTER JOIN 
+        (
+            SELECT
+                E.BASE_YYYYMM, E.CONTRACT_CODE, E.VENDOR_CODE, E.COST_CODE, MAX(E.COST_NAME) AS COST_NAME, SUM(E.TMP_AMOUNT) AS TMP_AMOUNT
+            FROM 
+            (
+                SELECT 
+                    A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.WORK_CONTENTS,
+                    A.COST_CODE, MAX(A.COST_NAME) AS COST_NAME, SUM(A.QTY) * MAX(B.AMOUNT) AS TMP_AMOUNT
+                FROM TBL_CONSTRUCTION_MONTHLY_RPT2 A
+                    LEFT OUTER JOIN TBL_CONSTRUCTION_SUBC_EMP_COST B
+                    ON A.CONTRACT_CODE = B.CONTRACT_CODE 
+                    AND A.WORK_CONTENTS = B.CONTENTS 
+                WHERE A.BASE_YYYYMM = #{BASE_YYYYMM}
+                AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+                AND A.VENDOR_CODE = #{VENDOR_CODE}
+                GROUP BY A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.COST_CODE, A.WORK_CONTENTS
+            ) E
+            GROUP BY E.BASE_YYYYMM, E.CONTRACT_CODE, E.VENDOR_CODE, E.COST_CODE
+        ) C
+        ON B.CONTRACT_CODE = C.CONTRACT_CODE
+    ) D
+    ORDER BY D.COST_CODE, D.GUBUN, D.SEQ
+)F
+</update>
+
+<select id="select_construction_chk_rpt_dt2_cnt" resultType="Double">
+/* oracle.yp_zcs_cpt.select_construction_chk_rpt_dt2_cnt */
+SELECT 
+	COUNT(*) AS CNT
+FROM TBL_CONSTRUCTION_CHK_RPT A
+LEFT OUTER JOIN TBL_CONSTRUCTION_CHK_RPT_DT2 B
+ON A.REPORT_CODE = B.REPORT_CODE
+WHERE 1=1
+<if test='REPORT_CODE != null'>
+AND A.REPORT_CODE = #{REPORT_CODE}
+</if>
+</select>
+
+<select id="select_construction_chk_rpt_dt2" resultType="HashMap">
+/* oracle.yp_zcs_cpt.select_construction_chk_rpt_dt2 */
+SELECT 
+	A.REPORT_CODE,
+    A.CONTRACT_CODE,
+    A.VENDOR_CODE,
+    A.BASE_YYYYMM,
+    B.YYYY,
+    B.MM,
+    B.DD,
+    B.WORK_CONTENTS,
+  	B.COST_CODE,
+	B.COST_NAME,
+    B.WORK_START_TIME,
+    B.WORK_END_TIME,
+    B.ORDER_NUMBER,
+    A.CONTRACT_NAME,
+    A.VENDOR_NAME,
+    A.CHECK_BASE_DATE,
+    A.SUBCONTRACT_AMOUNT,
+    A.SUBCONTRACT_START_DATE,
+    A.SUBCONTRACT_END_DATE,
+    A.STATUS,
+    B.MANHOUR
+FROM TBL_CONSTRUCTION_CHK_RPT A
+LEFT OUTER JOIN TBL_CONSTRUCTION_CHK_RPT_DT2 B
+ON A.REPORT_CODE = B.REPORT_CODE
+WHERE 1=1
+<if test='REPORT_CODE != null'>
+AND A.REPORT_CODE = #{REPORT_CODE}
+</if>
+</select>
+
+<update id="insert_construction_chk_rpt_dt2_opt">
+/* oracle.yp_zcs_cpt.insert_construction_chk_rpt_dt2_opt */
+INSERT INTO TBL_CONSTRUCTION_CHK_RPT_DT2(
+    REPORT_CODE,
+    SEQ,
+    COST_CODE,
+    COST_NAME,
+    WORK_CONTENTS,
+    YYYY,
+    MM,
+    DD,
+    WORK_START_TIME,
+    WORK_END_TIME,
+    ORDER_NUMBER,
+    QTY,
+    REG_EMP,
+    UPD_EMP,
+    REG_DATE,
+    UPD_DATE
+)
+SELECT 
+    REPORT_CODE,
+    (SEQ + START_SEQ) AS SEQ,
+    COST_CODE,
+    COST_NAME,
+    WORK_CONTENTS,
+    YYYY,
+    MM,
+    DD,
+    WORK_START_TIME,
+    WORK_END_TIME,
+    ORDER_NUMBER,
+    QTY,
+    #{s_emp_code} AS REG_EMP,
+    #{s_emp_code} AS UPD_EMP,
+    sysdate AS REG_DATE,
+    sysdate AS UPD_DATE
+FROM(
+    SELECT 
+        #{REPORT_CODE} AS REPORT_CODE,
+        BASE_YYYYMM,
+        CONTRACT_CODE,
+        VENDOR_CODE,
+        ROWNUM AS SEQ,
+        (SELECT NVL(MAX(SEQ),0) FROM TBL_CONSTRUCTION_CHK_RPT_DT2 WHERE REPORT_CODE = #{REPORT_CODE}) AS START_SEQ,
+        YYYY,
+        MM,
+        DD,
+        WORK_START_TIME,
+        WORK_END_TIME,
+        COST_CODE,
+        COST_NAME,
+        WORK_CONTENTS,
+        ORDER_NUMBER,
+        QTY
+    FROM TBL_CONSTRUCTION_MONTHLY_RPT2
+    WHERE 1=1
+    AND BASE_YYYYMM = #{BASE_YYYYMM}
+    AND CONTRACT_CODE = #{CONTRACT_CODE}
+    AND VENDOR_CODE = #{VENDOR_CODE}
+)
+ORDER BY SEQ
+</update>
+
+<select id="select_inspection_opt_list2_using_report_code" resultType="HashMap">
+/* oracle.yp_zcs_cpt.select_inspection_opt_list2_using_report_code */
+SELECT 
+	B.REPORT_CODE,
+	B.SEQ,
+	B.CONTENTS,
+	CASE WHEN B.RATE_AMOUNT = '0' THEN ' ' ELSE replace(B.RATE_AMOUNT, '\', '₩') END AS RATE_AMOUNT, 
+	B.COST_CODE,
+	B.COST_NAME,
+	B.UNIT AS MARK_UNIT,
+	B.MARK_UNIT AS UNIT,
+	B.QTY,
+	B.UNIT_PRICE,
+	B.AMOUNT,
+	B.CURRENCY
+FROM(
+	SELECT 
+		A.REPORT_CODE,
+		A.SEQ,
+		A.CONTENTS,
+		A.RATE_AMOUNT || A.MARK_UNIT AS RATE_AMOUNT,
+		A.COST_CODE,
+		A.COST_NAME,
+		A.UNIT,
+		NVL(A.MARK_UNIT,' ') AS MARK_UNIT,
+		A.QTY,
+		A.UNIT_PRICE,
+		A.AMOUNT,
+		A.CURRENCY
+	FROM TBL_CONSTRUCTION_CHK_RPT_DT A
+	WHERE 1=1 
+	<if test='REPORT_CODE != null'>
+	AND REPORT_CODE = #{REPORT_CODE}
+	</if>
+) B
+ORDER BY SEQ 
+</select>
+
+<!-- ========================================================== (작업) 끝========================================================== -->
+
+
+
+
+
+<!-- 검수보고서(월정액) 쿼리 시작-->
+<select id="select_inspection_mon_list1" resultType="HashMap">
+/* oracle.yp_zcs_ctr.select_inspection_mon_list1 */
+-- 상단
+SELECT 
+	A.CONTRACT_NAME,
+	A.CONTRACT_CODE,
+	A.VENDOR_CODE,
+	A.WBS_CODE1,
+	A.WBS_CODE2,
+	A.WBS_CODE3,
+	A.WBS_CODE4,
+	A.WBS_CODE5,
+	A.WBS_CODE6,
+	WBS_CODE1 || CASE WHEN WBS_CODE2 IS NULL THEN '' ELSE ', ' || WBS_CODE2 END 
+        || CASE WHEN WBS_CODE3 IS NULL THEN '' ELSE ', ' || WBS_CODE3 END
+        || CASE WHEN WBS_CODE4 IS NULL THEN '' ELSE ', ' || WBS_CODE4 END
+        || CASE WHEN WBS_CODE5 IS NULL THEN '' ELSE ', ' || WBS_CODE5 END
+        || CASE WHEN WBS_CODE6 IS NULL THEN '' ELSE ', ' || WBS_CODE6 END as WBS_CODE,
+	B.CODE_NAME AS VENDOR_NAME,
+	(SELECT EMPLOYMENT_COSTS_MONTH FROM TBL_CONSTRUCTION_SUBC WHERE CONTRACT_CODE = A.CONTRACT_CODE) AS EMPLOYMENT_COSTS_MONTH
+FROM TBL_CONSTRUCTION_SUBC A
+LEFT OUTER JOIN TBL_WORKING_MASTER B
+ON A.VENDOR_CODE = B.CODE
+WHERE 1=1
+AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+AND A.VENDOR_CODE   = #{VENDOR_CODE}
+</select>
+
+<select id="select_inspection_mon_list2" resultType="HashMap">
+/* oracle.yp_zcs_ctr.select_inspection_mon_list2 */
+--하단
+SELECT 
+	D.BASE_YYYYMM, D.CONTRACT_CODE, D.VENDOR_CODE,
+	D.COST_CODE, D.COST_NAME, D.SEQ, D.WORK_CONTENTS,
+	D.RATE_AMOUNT, D.CNT
+FROM 
+(
+	SELECT 
+		A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE,
+	    MAX(A.COST_CODE) AS COST_CODE,
+		MAX(A.COST_NAME) AS COST_NAME,
+		0 AS SEQ,
+		MAX(A.WORK_CONTENTS) || ' 등 '  AS WORK_CONTENTS,
+		TO_CHAR(COUNT(*)) || '건' AS RATE_AMOUNT,
+		TO_CHAR(COUNT(*)) AS CNT
+	FROM TBL_CONSTRUCTION_MONTHLY_RPT3 A
+	LEFT OUTER JOIN TBL_CONSTRUCTION_SUBC B
+	ON A.CONTRACT_CODE  = B.CONTRACT_CODE 
+	WHERE A.BASE_YYYYMM = #{BASE_YYYYMM}
+	AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+	AND A.VENDOR_CODE   = #{VENDOR_CODE}
+	GROUP BY A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.COST_CODE 
+) D
+ORDER BY D.COST_CODE, D.SEQ
+</select>
+
+<select id="select_construction_monthly_rpt3_cnt" resultType="Double">
+/* oracle.yp_zcs_ctr.select_construction_monthly_rpt3_cnt */
+SELECT 
+	COUNT(*) as cnt
+FROM TBL_CONSTRUCTION_MONTHLY_RPT3
+WHERE 1=1
+<if test='BASE_YYYYMM != null'>
+AND BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE = #{VENDOR_CODE}
+</if>
+</select>
+
+<select id="select_construction_monthly_rpt3" resultType="HashMap">
+/* oracle.yp_zcs_ctr.select_construction_monthly_rpt3 */
+SELECT 
+    BASE_YYYYMM,
+    CONTRACT_CODE,
+    VENDOR_CODE,
+    SEQ,
+    YYYY,
+    MM,
+    DD,
+    WORK_START_TIME,
+    WORK_END_TIME,
+    COST_CODE,
+    COST_NAME,
+    WORK_CONTENTS,
+    ORDER_NUMBER,
+    MANHOUR
+FROM TBL_CONSTRUCTION_MONTHLY_RPT3
+WHERE 1=1
+<if test='BASE_YYYYMM != null'>
+AND BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE = #{VENDOR_CODE}
+</if>
+ORDER BY SEQ
+</select>
+
+<update id="insert_construction_chk_rpt_dt_mon">
+/* oracle.yp_zcs_cpt.insert_construction_chk_rpt_dt_mon */
+INSERT INTO TBL_CONSTRUCTION_CHK_RPT_DT(
+    REPORT_CODE,
+    SEQ,
+    CONTENTS,
+    RATE_AMOUNT,
+    --UNIT,
+    MARK_UNIT,
+    QTY,
+    --UNIT_PRICE,
+    --AMOUNT,
+    CURRENCY,
+    REG_EMP,
+    UPD_EMP,
+    REG_DATE,
+    UPD_DATE,
+    COST_CODE,
+    COST_NAME
+)
+SELECT 
+    #{REPORT_CODE} AS REPORT_CODE,
+    TO_NUMBER(ROWNUM + E.START_SEQ) AS SEQ,
+    E.WORK_CONTENTS AS CONTENTS,
+    TO_NUMBER(E.RATE_AMOUNT) AS RATE_AMOUNT,
+    --E.UNIT,
+    E.MARK_UNIT,
+    TO_NUMBER(E.QTY) AS QTY,
+    --TO_NUMBER(E.UNIT_PRICE) AS UNIT_PRICE,
+    --TO_NUMBER(E.AMOUNT) AS AMOUNT ,
+    E.CURRENCY,
+    #{s_emp_code} AS REG_EMP,
+    #{s_emp_code} AS UPD_EMP,
+    sysdate AS REG_DATE,
+    sysdate AS UPD_DATE,
+    E.COST_CODE,
+    E.COST_NAME
+FROM(
+    SELECT 
+		D.BASE_YYYYMM, D.CONTRACT_CODE, D.VENDOR_CODE,
+		D.COST_CODE, D.COST_NAME, 
+		D.TEMP_SEQ ,
+		(SELECT NVL(MAX(SEQ),0) FROM TBL_CONSTRUCTION_CHK_RPT_DT WHERE REPORT_CODE = #{REPORT_CODE}) AS START_SEQ,
+		D.WORK_CONTENTS,
+		D.RATE_AMOUNT, D.CNT AS QTY,
+        D.MARK_UNIT,
+        'KRW' AS CURRENCY
+	FROM 
+	(
+		SELECT 
+			A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE,
+		    MAX(A.COST_CODE) AS COST_CODE,
+			MAX(A.COST_NAME) AS COST_NAME,
+			0 AS TEMP_SEQ,
+			MAX(A.WORK_CONTENTS) || ' 등 '  AS WORK_CONTENTS,
+			TO_CHAR(COUNT(*)) AS RATE_AMOUNT,
+            '건' AS MARK_UNIT,
+			TO_CHAR(COUNT(*)) AS CNT
+		FROM TBL_CONSTRUCTION_MONTHLY_RPT3 A
+		LEFT OUTER JOIN TBL_CONSTRUCTION_SUBC B
+		ON A.CONTRACT_CODE  = B.CONTRACT_CODE 
+		WHERE A.BASE_YYYYMM = #{BASE_YYYYMM}
+		AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+		AND A.VENDOR_CODE   = #{VENDOR_CODE}
+		GROUP BY A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.COST_CODE 
+	) D
+	ORDER BY D.COST_CODE, D.TEMP_SEQ
+)E
+</update>
+
+<update id="insert_construction_chk_rpt_dt2_mon">
+/* oracle.yp_zcs_cpt.insert_construction_chk_rpt_dt2_mon */
+INSERT INTO TBL_CONSTRUCTION_CHK_RPT_DT2(
+    REPORT_CODE,
+    SEQ,
+    COST_CODE,
+    COST_NAME,
+    WORK_CONTENTS,
+    YYYY,
+    MM,
+    DD,
+    MANHOUR,
+    --QTY,
+    REG_EMP,
+    UPD_EMP,
+    REG_DATE,
+    UPD_DATE,
+    WORK_START_TIME,
+    WORK_END_TIME,
+    ORDER_NUMBER
+)
+SELECT 
+    REPORT_CODE,
+    (SEQ + START_SEQ) AS SEQ,
+    COST_CODE,
+    COST_NAME,
+    WORK_CONTENTS,
+    YYYY,
+    MM,
+    DD,
+    MANHOUR,
+    --QTY,
+    #{s_emp_code} AS REG_EMP,
+    #{s_emp_code} AS UPD_EMP,
+    sysdate AS REG_DATE,
+    sysdate AS UPD_DATE,
+    WORK_START_TIME,
+    WORK_END_TIME,
+    ORDER_NUMBER
+FROM(
+    SELECT 
+        #{REPORT_CODE} AS REPORT_CODE,
+        BASE_YYYYMM,
+        CONTRACT_CODE,
+        VENDOR_CODE,
+        ROWNUM AS SEQ,
+        (SELECT NVL(MAX(SEQ),0) FROM TBL_CONSTRUCTION_CHK_RPT_DT2 WHERE REPORT_CODE = #{REPORT_CODE}) AS START_SEQ,
+        YYYY,
+        MM,
+        DD,
+        WORK_START_TIME,
+        WORK_END_TIME,
+        COST_CODE,
+        COST_NAME,
+        WORK_CONTENTS,
+        ORDER_NUMBER,
+        MANHOUR
+    FROM TBL_CONSTRUCTION_MONTHLY_RPT3
+    WHERE 1=1
+    AND BASE_YYYYMM   = #{BASE_YYYYMM}
+    AND CONTRACT_CODE = #{CONTRACT_CODE}
+    AND VENDOR_CODE   = #{VENDOR_CODE}
+)
+ORDER BY SEQ
+</update>
+
+<select id="select_inspection_mon_list2_using_report_code" resultType="HashMap">
+/* oracle.yp_zcs_cpt.select_inspection_mon_list2_using_report_code */
+SELECT 
+	B.REPORT_CODE,
+	B.SEQ,
+	B.CONTENTS AS WORK_CONTENTS,
+	CASE WHEN B.RATE_AMOUNT = '0' THEN ' ' ELSE B.RATE_AMOUNT END AS RATE_AMOUNT, 
+	B.COST_CODE,
+	B.COST_NAME,
+	B.UNIT,
+	B.MARK_UNIT,
+	B.QTY AS CNT,
+	B.UNIT_PRICE,
+	B.AMOUNT,
+	B.CURRENCY
+FROM(
+	SELECT 
+		A.REPORT_CODE,
+		A.SEQ,
+		A.CONTENTS,
+		A.RATE_AMOUNT || A.MARK_UNIT AS RATE_AMOUNT,
+		A.COST_CODE,
+		A.COST_NAME,
+		A.UNIT,
+		NVL(A.MARK_UNIT,' ') AS MARK_UNIT,
+		A.QTY,
+		A.UNIT_PRICE,
+		A.AMOUNT,
+		A.CURRENCY
+	FROM TBL_CONSTRUCTION_CHK_RPT_DT A
+	WHERE 1=1 
+	<if test='REPORT_CODE != null'>
+	AND REPORT_CODE = #{REPORT_CODE}
+	</if>
+) B
+ORDER BY SEQ 
+</select>
+
+<select id="select_monthly_rpt1_cnt" resultType="int">
+/* oracle.yp_zcs_cpt.select_monthly_rpt1_cnt */
+SELECT 
+	COUNT(*) AS CNT
+FROM TBL_CONSTRUCTION_MONTHLY_RPT1
+WHERE 1=1
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<if test='BASE_YYYYMM != null'>
+AND BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+</select>
+
+<select id="select_monthly_rpt2_cnt" resultType="int">
+/* oracle.yp_zcs_cpt.select_monthly_rpt2_cnt */
+SELECT 
+	COUNT(*) AS CNT
+FROM TBL_CONSTRUCTION_MONTHLY_RPT2
+WHERE 1=1
+<if test='VENDOR_CODE != null'>
+AND VENDOR_CODE = #{VENDOR_CODE}
+</if>
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+<if test='BASE_YYYYMM != null'>
+AND BASE_YYYYMM = #{BASE_YYYYMM}
+</if>
+</select>
+
+<select id="select_monthly_rpt1_section_dt" resultType="HashMap">
+/* oracle.yp_zcs_cpt.select_monthly_rpt1_section_dt */
+SELECT
+	X.SECTION_START_DT, X.SECTION_END_DT
+FROM (
+	SELECT
+		  ROW_NUMBER() OVER( ORDER BY A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.SEQ ) AS RN
+		, A.SECTION_START_DT
+		, A.SECTION_END_DT
+	FROM TBL_CONSTRUCTION_MONTHLY_RPT1 A
+	WHERE 1=1
+	AND A.BASE_YYYYMM = #{BASE_YYYYMM}
+	AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+	AND A.VENDOR_CODE = #{VENDOR_CODE}
+) X
+WHERE 1=1
+AND X.RN = 1
+</select>
+
+<select id="select_monthly_rpt2_section_dt" resultType="HashMap">
+/* oracle.yp_zcs_cpt.select_monthly_rpt2_section_dt */
+SELECT
+	X.SECTION_START_DT, X.SECTION_END_DT
+FROM (
+	SELECT
+		  ROW_NUMBER() OVER( ORDER BY A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.SEQ ) AS RN
+		, A.SECTION_START_DT
+		, A.SECTION_END_DT
+	FROM TBL_CONSTRUCTION_MONTHLY_RPT2 A
+	WHERE 1=1
+	AND A.BASE_YYYYMM = #{BASE_YYYYMM}
+	AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+	AND A.VENDOR_CODE = #{VENDOR_CODE}
+) X
+WHERE 1=1
+AND X.RN = 1
+</select>
+
+<select id="select_monthly_rpt3_section_dt" resultType="HashMap">
+/* oracle.yp_zcs_cpt.select_monthly_rpt3_section_dt */
+SELECT
+	X.SECTION_START_DT, X.SECTION_END_DT
+FROM (
+	SELECT
+		  ROW_NUMBER() OVER( ORDER BY A.BASE_YYYYMM, A.CONTRACT_CODE, A.VENDOR_CODE, A.SEQ ) AS RN
+		, A.SECTION_START_DT
+		, A.SECTION_END_DT
+	FROM TBL_CONSTRUCTION_MONTHLY_RPT3 A
+	WHERE 1=1
+	AND A.BASE_YYYYMM = #{BASE_YYYYMM}
+	AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+	AND A.VENDOR_CODE = #{VENDOR_CODE}
+) X
+WHERE 1=1
+AND X.RN = 1
+</select>
+
+</mapper>

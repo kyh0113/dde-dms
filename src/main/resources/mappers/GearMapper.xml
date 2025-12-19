@@ -1,0 +1,80 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" 
+"http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ypzinc.safety.gear.repository.IGearRepository">
+
+    <insert id="insertGear" parameterType="com.ypzinc.safety.gear.model.Gear">
+        INSERT INTO GEAR (
+            GEAR_CODE,
+            GEAR_NAME,
+            GEAR_STANDARD,
+            GEAR_TYPE,
+            USE_YN,
+            CURRENT_STOCK,
+            REG_DATE
+        ) VALUES (
+            #{gearCode},
+            #{gearName},
+            #{gearStandard, jdbcType=VARCHAR},
+            #{gearType},
+            #{useYn},
+            #{currentStock},
+            SYSDATE
+        )
+    </insert>
+    
+    <select id="selectGearList" resultType="com.ypzinc.safety.gear.model.Gear">
+        SELECT 
+            GEAR_CODE as gearCode,
+            GEAR_NAME as gearName,
+            GEAR_STANDARD as gearStandard,
+            GEAR_TYPE as gearType,
+            USE_YN as useYn,
+            CURRENT_STOCK as currentStock,
+            REG_DATE as regDate
+        FROM GEAR
+        ORDER BY REG_DATE DESC  
+    </select>
+    
+    <select id="selectGearSearch" parameterType="map" resultType="com.ypzinc.safety.gear.model.Gear">
+        SELECT 
+            GEAR_CODE as gearCode,
+            GEAR_NAME as gearName,
+            GEAR_STANDARD as gearStandard,
+            GEAR_TYPE as gearType,
+            USE_YN as useYn,
+            CURRENT_STOCK as currentStock,
+            REG_DATE as regDate
+        FROM GEAR
+        WHERE 1=1
+        <choose>
+            <when test="searchType == 'name'">
+                AND GEAR_NAME LIKE '%' || #{keyword} || '%'
+            </when>
+            <when test="searchType == 'code'">
+                AND GEAR_CODE LIKE '%' || #{keyword} || '%'
+            </when>
+        </choose>
+        ORDER BY REG_DATE DESC
+    </select>
+    
+    <update id="modifyGear" parameterType="com.ypzinc.safety.gear.model.Gear">
+        UPDATE GEAR SET
+            GEAR_NAME = #{gearName},
+            GEAR_STANDARD = #{gearStandard, jdbcType=VARCHAR},
+            GEAR_TYPE = #{gearType},
+            USE_YN = #{useYn},
+            CURRENT_STOCK = #{currentStock},
+            REG_DATE = SYSDATE
+        WHERE GEAR_CODE = #{gearCode}
+    </update>
+    
+    <delete id="removeByCodes" parameterType="java.util.List">
+        DELETE FROM GEAR WHERE GEAR_CODE IN
+        <foreach item="code" collection="list" open="(" separator="," close=")">
+            #{code}
+        </foreach>
+    </delete>
+
+</mapper>

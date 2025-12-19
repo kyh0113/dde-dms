@@ -1,0 +1,106 @@
+
+@charset "utf-8";
+/* CSS Document */
+
+html, body {height:100%; font-family: Arial,Verdana, serif;padding:0; margin:0; letter-spacing:0;}
+html {font-family: êµ´ë¦¼,Arial,Verdana, serif; letter-spacing:0; }
+header, footer, section, article, nav, aside, hgroup, address, time, blockquote {display: block;}
+body {width:100%; font-size:0.65em;}
+h1, h2, h3, h4, h5, h6 {}
+h1, h2, h3, h4, h5, h6, div, p, dl, dt, dd, ul, ol, li, form, fieldset, blockquote, address, table, thead, tbody, tfoot, tr, td, th, caption, menu {margin:0; padding:0;}
+ul, ol, menu {list-style:none;}
+img {border:0;}
+
+
+a, a:link, a:visited {color:#666; text-decoration:none;}
+a:hover, a:active, a:focus {color:#333; text-decoration:none;}
+
+fieldset {border:0;}
+legend {display:none;}
+input,select, textarea, form, fieldset, legend, button {outline: none;  font-family:ë§‘ì€ ê³ ë”•, malgun gothic, AppleGothicNeoSD, Apple SD ì‚°ëŒê³ ë”• Neo, Microsoft NeoGothic,Droid sans, Arial,Verdana, sans-serif;  font-weight:normal; color:#333; vertical-align:middle; margin:0; padding:0; box-sizing: border-box;}
+select * {vertical-align:middle;}
+select {font-family:ë§‘ì€ ê³ ë”•, malgun gothic, AppleGothicNeoSD, Apple SD ì‚°ëŒê³ ë”• Neo, Microsoft NeoGothic,Droid sans, Arial,Verdana, sans-serif; line-height:180%; vertical-align:middle; height:20px; padding:0; border-radius:0; border:1px solid #aaa}
+:root select { height:20px;padding:0; line-height:180%; vertical-align:middle; padding:0; border-radius:0; border:1px solid #aaa; box-sizing: border-box; }
+
+th img, td img {vertical-align:middle;}
+img, form, input, label, fieldset, span, button  * {vertical-align:middle; margin:0; padding:0;}
+em, address {font-style:normal;}
+div,p filedset {margin:0;padding:0;}
+button {background:transparent; overflow:visible;}
+table {width:100%; border-collapse:collapse; border:0; }
+table caption {display:none;}
+td, th  {}
+
+td {}
+/**:first-child+html td, *:first-child+html th  {line-height:16px;}*/
+embed, object {vertical-align:bottom}
+
+label {cursor:pointer}
+img, fieldset {border:0}
+option, x:-moz-any-link {padding-right:6px}
+option, x:-moz-any-link, x:default {padding-right:0}
+legend {position:absolute; top:0; left:0; width:0; height:0; overflow:hidden; visibility:hidden; font-size:0; line-height:0}
+
+
+.lme-header,
+.searchBox  {display:none;}
+
+
+.lme-wrap {margin:0 auto; width:100%; padding:0 0; }
+.lme-wrap h1 {text-align:center; font-size:16px;  color:#000; text-decoration:underline;}
+.lme-wrap .calendar {text-align:center; font-size:16px; color:#000}
+.lme-wrap .unit {text-align:right; font-size:10px; padding-bottom:3px;  padding-top:3px;}
+
+
+.basicTable {border:solid 1px #000; border-collapse: collapse;}
+.basicTable thead th {background:#fff; border:solid 1px #000; font-size:0.75em; padding:3px 3px; color:#000;}
+.basicTable thead td {font-size:0.75em; padding:3px 3px; color:#000;}
+.basicTable tbody th {background:#fff; border-right:solid 1px #000; font-weight:bold;  text-align:center; font-size:0.75em; padding:0 0; color:#000;}
+.basicTable tbody th.normal {font-weight:normal;  padding:0 0; }
+.basicTable tbody td {background:#fff; text-align:right; font-size:0.75em; padding:0 5px; color:#000;}
+
+.basicTable tbody th.sm {font-size:0.55em; font-weight:bold;}
+
+
+.basicTableGray {border:solid 1px #000; border-collapse: collapse; margin-bottom:-1px;}
+.basicTableGray thead th {background:#fff; border:solid 1px #000; font-size:0.75em; padding:3px 3px; color:#000;}
+.basicTableGray thead td {font-size:0.75em; padding:3px 3px; color:#000;}
+.basicTableGray tbody th {background:#fff; border-right:solid 1px #000; font-weight:bold;  text-align:center; font-size:0.75em; padding:0 0; color:#000;}
+.basicTableGray tbody th.normal {font-weight:normal;  padding:0 0; }
+.basicTableGray tbody td {background:#fff; text-align:right; font-size:0.75em; padding:0 5px; color:#000;}
+.basicTableGray tbody th.sm {font-size:0.55em; font-weight:bold;}
+
+
+.font10 {font-size:0.65em !important; font-size:6pt !important;}
+.font11 {font-size:0.65em !important;}
+.btn-print {display:none;}
+.marB30 {margin-bottom:30px;}
+
+tr.borderT th, 
+tr.borderT td {border-top:solid 1px #000; }
+
+tr.borderR th, 
+tr.borderR td {border-right:solid 1px #000; }
+
+
+.th {background:#fafafa;  text-align:center; font-size::0.85em;}
+
+.borderTWhite {border-top:solid 1px #fff !important; }
+.borderT {border-top:solid 1px #000; }
+.borderR {border-right:solid 1px #000; }
+.borderB {border-bottom:solid 1px #000; }
+.borderL {border-left:solid 1px #000; }
+.al {text-align:left !important;}
+.ac {text-align:center !important;}
+.ar {text-align:right !important;}
+
+.element-wrap {display:table; width:100%; }
+.element-wrap .element-name {display:table-cell;  text-align:left;}
+.element-wrap .element-value {display:table-cell; text-align:right;}
+
+.date-wrap {display:table; width:100%;}
+.date-wrap .date {display:table-cell; width:50%; text-align:left;}
+.date-wrap .month {display:table-cell; text-align:left;}
+
+.noData {padding:10px 30px 30px 30px; border-left:solid 1px #000;  border-right:solid 1px #000; border-bottom:solid 1px #000; box-sizing:border-box;}
+.noData>div{font-size: 1.8em;  text-align:center;   background: #fff;   font-weight:bold;    padding:40px 0px 40px 0px;    border:solid 1px #000;    margin-bottom: 10px;    }

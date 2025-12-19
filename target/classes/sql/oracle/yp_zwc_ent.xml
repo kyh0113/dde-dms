@@ -1,0 +1,443 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_zwc_ent">
+	
+	<select id="enterpriseListCnt" resultType="Double" parameterType="java.util.HashMap">
+		/* oracle.yp_zwc_ent.enterpriseListCnt */
+		SELECT COUNT(1) AS CNT
+		FROM(       
+			SELECT 
+			       ENT_CODE,
+			       ENT_TYPE,
+			       DECODE(ENT_TYPE, 'D', '협력업체', 'J', '공사업체', '')AS ENT_TYPE_NAME,
+			       ENT_NAME,
+			       ADMIN_ID,
+<!-- 			       ADMIN_PW, -->
+			       LICENSE_URL,
+			       STATUS,
+			       PHONE,
+			       NVL(EMAIL,'') AS EMAIL,
+			       TO_CHAR(REG_DATE, 'YYYY-MM-DD HH24:MI:SS') AS REG_DATE
+			FROM TBL_ENTERPRISE
+			WHERE 1=1
+			<if test="ENT_NAME != '' and ENT_NAME != null">
+				AND ENT_NAME LIKE  '%' || #{ENT_NAME} || '%'
+			</if>
+			<if test="ADMIN_ID != '' and ADMIN_ID != null">
+				AND ADMIN_ID LIKE  '%' || #{ADMIN_ID} || '%'
+			</if>
+			ORDER BY REG_DATE DESC
+		) TB
+	</select>
+	
+	<select id="enterpriseList" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+		/* oracle.yp_zwc_ent.enterpriseList */
+		SELECT *
+		FROM (
+			SELECT ROWNUM AS RNUM,
+			       TB.*
+			FROM(       
+				SELECT 
+				       ENT_CODE,
+				       ENT_TYPE,
+				       DECODE(ENT_TYPE, 'D', '협력업체', 'J', '공사업체', '')AS ENT_TYPE_NAME,
+				       ENT_NAME,
+				       ADMIN_ID,
+<!-- 				       ADMIN_PW, -->
+				       NVL(LICENSE_URL,'') as LICENSE_URL,
+				       STATUS,
+				       PHONE,
+				       NVL(EMAIL,'') AS EMAIL,
+				       WORKER,
+				       NVL((SELECT USER_NAME FROM GW_USER WHERE EMP_CD = A.WORKER),'') AS WORKER_NAME,
+				       NVL(TO_CHAR(REG_DATE, 'YYYY-MM-DD HH24:MI:SS'),'') AS REG_DATE,
+				       NVL(TO_CHAR(UPD_DATE, 'YYYY-MM-DD HH24:MI:SS'),'') AS UPD_DATE,
+				       A.VENDOR_CODE,
+				       A.ENTERPRISE_GUBUN,
+				       A.REPRESENTATIVE
+				FROM TBL_ENTERPRISE A
+				WHERE 1=1
+				<if test="ENT_NAME != '' and ENT_NAME != null">
+					AND ENT_NAME LIKE  '%' || #{ENT_NAME} || '%'
+				</if>
+				<if test="ADMIN_ID != '' and ADMIN_ID != null">
+					AND ADMIN_ID LIKE  '%' || #{ADMIN_ID} || '%'
+				</if>
+				ORDER BY REG_DATE DESC
+			) TB
+		) GRID
+		WHERE 1=1
+		<if test="paging != '' and paging != null">
+		AND GRID.RNUM BETWEEN #{start} AND #{end}
+		</if>
+	</select>
+	
+	<select id="retrieveEntCnt" parameterType="java.util.HashMap" resultType="java.lang.Integer">
+    	/* oracle.yp_zwc_ent.retrieveEntCnt */
+    	select count(*)
+		from tbl_enterprise
+		where 1=1
+		and (ent_name = #{ent_name} or admin_id = #{admin_id})
+		<if test="ent_code != '' and ent_code != null">
+		and ent_code != #{ent_code}
+		</if>
+	</select>
+	
+	
+	<insert id="createEnt" parameterType="java.util.HashMap">
+    	/* oracle.yp_zwc_ent.createEnt */
+    	insert into tbl_enterprise
+    	(ent_code
+    	,ent_type
+    	,ent_name
+    	,admin_id
+    	,admin_pw
+    	,license_url
+    	,worker
+    	,reg_date
+    	,status
+    	<if test="phone != '' and phone != null">,phone</if>
+    	<if test="email != '' and email != null">,email</if>
+		, VENDOR_CODE
+		, ENTERPRISE_GUBUN
+		, REPRESENTATIVE
+    	)values(
+<!--     	 (select LPAD(NVL(MAX(ent_code)+1,1),2,'0') from tbl_enterprise) -->
+         #{ent_code}
+    	,#{ent_type}
+    	,#{ent_name}
+    	,#{admin_id}, #{admin_id} /* 등록시 아이디와 동일한 비밀번호 사용 */
+<!--     	,#{admin_pw} -->
+    	,#{license_url}
+    	,#{emp_code}
+    	,sysdate
+    	,'W'
+    	<if test="phone != '' and phone != null">,#{phone}</if>
+    	<if test="email != '' and email != null">,#{email}</if>
+		, 'V' || #{SEQ}
+		, #{ENTERPRISE_GUBUN}
+		, #{REPRESENTATIVE}
+    	)
+    </insert>
+    
+<update id="updateEnt2" parameterType="java.util.HashMap">
+/* oracle.yp_zwc_ent.updateEnt2 - 기준정보 동기화 */
+UPDATE TBL_WORKING_MASTER SET
+	  ENTERPRISE_GUBUN = #{ENTERPRISE_GUBUN}
+	, REPRESENTATIVE = #{REPRESENTATIVE}
+	, UPD_EMP = #{s_emp_code}
+	, UPD_DATE = SYSDATE
+WHERE CODE = #{VENDOR_CODE}
+</update>
+
+<update id="updateEnt_reset_pwd" parameterType="java.util.HashMap">
+/* oracle.yp_zwc_ent.updateEnt_reset_pwd - 비밀번호 초기화 */
+UPDATE TBL_ENTERPRISE A SET
+	  ADMIN_PW = A.ADMIN_ID
+	, UPD_DATE = SYSDATE
+WHERE ENT_CODE = #{ENT_CODE}
+</update>
+
+<update id="update_pwd_reset" parameterType="java.util.HashMap">
+/* oracle.yp_zwc_ent.update_pwd_reset - 비밀번호 변경 */
+UPDATE TBL_ENTERPRISE A SET
+	  ADMIN_PW = #{ADMIN_PW}
+	, UPD_DATE = SYSDATE
+WHERE ADMIN_ID = #{ADMIN_ID}
+</update>
+    
+    <update id="updateEnt" parameterType="java.util.HashMap">
+    	/* oracle.yp_zwc_ent.updateEnt */
+    	update tbl_enterprise set
+    		 ent_type = #{ent_type}
+    		,ent_name = #{ent_name}
+    		,admin_id = #{admin_id}
+<!--     		,admin_pw = #{admin_pw} -->
+    		,worker   = #{emp_code}
+    		,upd_date = sysdate
+    		<if test="license_url != '' and license_url != null">,license_url = #{license_url}</if>
+    		<if test="phone != '' and phone != null">,phone = #{phone}</if>
+    		<if test="email != '' and email != null">,email = #{email}</if>
+			, ENTERPRISE_GUBUN = #{ENTERPRISE_GUBUN}
+			, REPRESENTATIVE = #{REPRESENTATIVE}
+    	where ent_code = #{ent_code}
+    </update>
+    
+    <select id="accesscontrolListCnt" resultType="Double" parameterType="java.util.HashMap">
+	/* oracle.yp_zwc_ent.accesscontrolListCnt */
+	SELECT COUNT(1) AS CNT
+	FROM(
+			SELECT   A.SEQ
+					,A.SUBC_CODE
+					,A.SUBC_NAME
+					,SUBSTR(A.JUMIN, 0, 6) AS JUMIN
+					,A.PHONE
+					,A.CELL_PHONE
+					,A.ADDR
+					,A.ZIP_CODE
+					,A.WORK_DSC
+					,A.VEHICLE_NAME
+					,A.VEHICLE_NO
+					,A.HIRED_DATE
+					,A.RESIGN_DATE
+					,A.RESIGN_REASON
+					,A.STATUS
+					,A.WORKER
+					,A.IMG_URL
+					,A.OATH_URL
+					,A.RESIDE_URL
+					,A.REG_DATE
+					,A.UPD_DATE
+					,B.ENT_CODE
+					,B.ENT_TYPE
+					,B.ENT_NAME
+			FROM TBL_ENTERPRISE_ACCESS_CONTROL A , TBL_ENTERPRISE B
+			WHERE A.ENT_CODE = B.ENT_CODE
+			<if test="ENT_NAME != '' and ENT_NAME != null">
+			AND B.ENT_NAME LIKE '%' || #{ENT_NAME} || '%'
+			</if>
+			<if test="SUBC_NAME != '' and SUBC_NAME != null">
+			AND A.SUBC_NAME LIKE '%' || #{SUBC_NAME} || '%'
+			</if>
+			<if test="SER_STATUS != '' and SER_STATUS != null">
+			AND A.STATUS = #{SER_STATUS}
+			</if>
+		) TB
+	</select> 
+	
+	<select id="accesscontrolList" resultType="java.util.HashMap" parameterType="java.util.HashMap">
+		/* oracle.yp_zwc_ent.accesscontrolList */
+		SELECT *
+		FROM (
+			SELECT ROWNUM AS RNUM,
+			       TB.*
+			FROM(       
+				SELECT A.SEQ 
+						,A.SUBC_CODE 
+						,A.SUBC_NAME 
+						,SUBSTR(A.JUMIN, 0, 6) AS JUMIN
+						,A.PHONE 
+						,A.CELL_PHONE
+						,A.ADDR 
+						,A.ZIP_CODE 
+						,A.WORK_DSC 
+						,A.VEHICLE_NAME 
+						,A.VEHICLE_NO 
+						,A.HIRED_DATE 
+						,A.RESIGN_DATE 
+						,A.RESIGN_REASON 
+						,A.STATUS 
+						,DECODE(A.STATUS, 'W', '출입신청', 'A', '출입승인', 'B', '반려', 'R', '출입종료', 'N', '출입금지', '') AS STATUS_NAME
+						,A.WORKER 
+						,A.IMG_URL 
+						,A.OATH_URL 
+						,A.RESIDE_URL 
+						,NVL(TO_CHAR(A.REG_DATE, 'YYYY/MM/DD'),'') AS REG_DATE
+				        ,NVL(TO_CHAR(A.UPD_DATE, 'YYYY/MM/DD'),'') AS UPD_DATE
+						,B.ENT_CODE 
+						,B.ENT_TYPE 
+						,DECODE(B.ENT_TYPE, 'D', '협력업체', 'J', '공사업체', '') AS ENT_TYPE_NAME
+						,B.ENT_NAME 
+				FROM TBL_ENTERPRISE_ACCESS_CONTROL A , TBL_ENTERPRISE B 
+				WHERE A.ENT_CODE = B.ENT_CODE 
+				<if test="ENT_NAME != '' and ENT_NAME != null">
+				AND B.ENT_NAME LIKE  '%' || #{ENT_NAME} || '%'
+				</if>
+				<if test="SUBC_NAME != '' and SUBC_NAME != null">
+				AND A.SUBC_NAME LIKE  '%' || #{SUBC_NAME} || '%'
+				</if>
+				<if test="SER_STATUS != '' and SER_STATUS != null">
+				AND A.STATUS = #{SER_STATUS}
+				</if>
+				ORDER BY A.SUBC_NAME ASC
+			) TB
+		) GRID
+		WHERE 1=1
+		<if test="paging != '' and paging != null">
+		AND GRID.RNUM BETWEEN #{start} AND #{end}
+		</if>
+	</select>
+	
+	<select id="enterpriseCodeList" parameterType="java.util.HashMap" resultType="java.util.HashMap">
+    	/* oracle.yp_zwc_ent.enterpriseCodeList */
+    	select ent_code, ent_name 
+    	from tbl_enterprise
+    	where 1=1
+		<if test="ser_ent_name != '' and ser_ent_name != null">
+		and ent_name = #{ser_ent_name}
+		</if>
+		<if test="admin_id != '' and admin_id != null">
+		and admin_id = #{ser_admin_id}
+		</if>	
+		<if test="ent_code != '' and ent_code != null">
+		and ent_code = #{ent_code}
+		</if>
+		order by ent_code desc
+    </select>
+    
+     <select id="retrieveSubcByCode" parameterType="String" resultType="java.lang.Integer">
+    	/* oracle.yp_zwc_ent.retrieveSubcByCode */
+    	select count(*) 
+    	from TBL_ENTERPRISE_ACCESS_CONTROL
+    	where SUBC_CODE = #{subc_code}
+    </select>
+    
+    <select id="retrieveEntDetail" parameterType="java.lang.String" resultType="java.util.HashMap">
+    	/* oracle.yp_zwc_ent.retrieveEntDetail */
+    	select * from tbl_enterprise
+    	where ent_code = #{code}
+    </select>
+    
+    <insert id="createSubcontract" parameterType="java.util.HashMap" useGeneratedKeys="true" keyColumn="subc_code" keyProperty="subc_code">
+    	/* oracle.yp_zwc_ent.createSubcontract */
+    	insert into TBL_ENTERPRISE_ACCESS_CONTROL
+    	( 
+	    	  SEQ
+			, SUBC_CODE 
+			, STATUS 
+			, REG_DATE
+			, SUBC_NAME
+			, JUMIN
+			, CELL_PHONE
+			, ADDR
+			, ZIP_CODE
+			, ENT_CODE
+			, HIRED_DATE
+			, WORKER
+			, IMG_URL
+			, OATH_URL
+			<if test="health_url != '' and health_url != null">, HEALTH_URL</if>
+			<if test="phone != '' and phone != null">, PHONE</if>
+			<if test="work_dsc != '' and work_dsc != null">, WORK_DSC</if>
+			<if test="vehicle_name != '' and vehicle_name != null">, VEHICLE_NAME</if>
+			<if test="vehicle_no != '' and vehicle_no != null">, VEHICLE_NO</if>
+			<if test="resign_date != '' and resign_date != null">, RESIGN_DATE</if>
+			<if test="reside_url != '' and reside_url != null">, RESIDE_URL</if>
+		)values(
+			 (SELECT NVL(MAX(seq+1),1)  FROM TBL_ENTERPRISE_ACCESS_CONTROL)
+<!-- 	    	,(SELECT #{subc_code} || LPAD((select count(*)+1 from TBL_ENTERPRISE_ACCESS_CONTROL where to_char(reg_date,'yy') = to_char(sysdate,'yy')), 3, '0') from dual) -->
+	    	,#{subc_code}
+	    	,'W'
+	    	,sysdate
+	    	,#{subc_name}
+			,#{jumin}
+			,#{cell_phone}
+			,#{addr}
+			,#{zip_code}
+			,#{ent_code}
+			,#{hired_date}
+			,#{emp_code}
+			,#{img_url}
+			,#{oath_url}
+			<if test="health_url != '' and health_url != null">,#{health_url}</if>
+			<if test="phone != '' and phone != null">,#{phone}</if>
+			<if test="work_dsc != '' and work_dsc != null">,#{work_dsc}</if>
+			<if test="vehicle_name != '' and vehicle_name != null">,#{vehicle_name}</if>
+			<if test="vehicle_no != '' and vehicle_no != null">,#{vehicle_no}</if>
+			<if test="resign_date != '' and resign_date != null">,#{resign_date}</if>
+			<if test="reside_url != '' and reside_url != null">,#{reside_url}</if>
+		)
+    </insert>
+    
+    <select id="noEntryCheck" parameterType="java.util.HashMap" resultType="Integer">
+		/* oracle.yp_zwc_ent.noEntryCheck */
+		SELECT COUNT(*) 
+		FROM TBL_ENTERPRISE_ACCESS_CONTROL
+		WHERE STATUS = 'N'
+		AND   SUBC_NAME||SUBSTR(JUMIN, 0, 6) = '${subc_name}${jumin}'
+    </select>
+    
+    <select id="accessControlDetail" parameterType="String" resultType="java.util.HashMap">
+		/* oracle.yp_zwc_ent.accessControlDetail */
+		select a.SEQ
+			,a.SUBC_CODE
+			,a.SUBC_NAME
+			,SUBSTR(a.JUMIN, 0, 6) AS JUMIN
+			,a.PHONE
+			,a.CELL_PHONE
+			,a.ADDR
+			,a.ZIP_CODE
+			,a.ENT_CODE
+			,a.WORK_DSC
+			,a.VEHICLE_NAME
+			,a.VEHICLE_NO
+			,a.HIRED_DATE
+			,a.RESIGN_DATE
+			,a.RESIGN_REASON
+			,a.STATUS
+			,a.WORKER
+			,a.IMG_URL
+			,a.OATH_URL
+			,a.HEALTH_URL
+			,a.RESIDE_URL
+			,a.REG_DATE
+			,a.UPD_DATE
+			,b.ENT_CODE
+			,b.ENT_TYPE
+			,b.ENT_NAME
+		from TBL_ENTERPRISE_ACCESS_CONTROL a , TBL_ENTERPRISE b
+		where a.ENT_CODE = b.ENT_CODE 
+		and   a.SEQ = #{seq}
+	</select>
+	
+	 <update id="updateAccessControl" parameterType="java.util.HashMap">
+    	/* oracle.yp_zwc_ent.updateAccessControl */
+    	update TBL_ENTERPRISE_ACCESS_CONTROL 
+    	set
+	    	  SUBC_NAME  = #{subc_name}
+	    	
+	    	<if test="chk_modify != null">, SUBC_CODE = #{subc_code}</if>  
+	    	  
+			, JUMIN      = #{jumin}
+			, CELL_PHONE = #{cell_phone}
+			, ADDR       = #{addr}
+			, ZIP_CODE   = #{zip_code}
+			, ENT_CODE   = #{ent_code}
+			, HIRED_DATE = #{hired_date}
+			, STATUS     = #{status}
+			, WORKER     = #{emp_code}
+			, IMG_URL  = #{img_url}
+			<if test="oath_url != '' and oath_url != null">, OATH_URL = #{oath_url}</if>
+			<if test="health_url != '' and health_url != null">, HEALTH_URL = #{health_url}</if>
+			<if test="phone != '' and phone != null">, PHONE = #{phone}</if>
+			<if test="work_dsc != '' and work_dsc != null">, WORK_DSC = #{work_dsc}</if>
+			<if test="vehicle_name != '' and vehicle_name != null">, VEHICLE_NAME = #{vehicle_name}</if>
+			<if test="vehicle_no != '' and vehicle_no != null">, VEHICLE_NO = #{vehicle_no}</if>
+			<if test="resign_date != '' and resign_date != null">, RESIGN_DATE = #{resign_date}</if>
+			<if test="reside_url != '' and reside_url != null">, RESIDE_URL = #{reside_url}</if>
+    		<if test="upd_date eq 'y'.toString()">, UPD_DATE = sysdate</if>
+    	WHERE 1=1
+    	AND   SUBC_CODE  = #{ori_subc_code}
+    </update>
+    
+    <delete id="deleteAccessControl" parameterType="java.util.HashMap">
+		/* oracle.yp_zwc_ent.deleteAccessControl */
+		DELETE FROM TBL_ENTERPRISE_ACCESS_CONTROL
+		WHERE SUBC_CODE = #{SUBC_CODE}
+	</delete>
+	
+	<delete id="deleteWorkerMapping" parameterType="java.util.HashMap">
+		/* oracle.yp_zwc_ent.deleteWorkerMapping */
+		DELETE FROM TBL_WORKING_SUBCWORKER_MAP
+		WHERE SUBC_CODE = #{SUBC_CODE}
+	</delete>
+	
+	<update id="updateWorkerMapping" parameterType="java.util.HashMap">
+		/* oracle.yp_zwc_ent.updateWorkerMapping */
+		UPDATE TBL_WORKING_SUBCWORKER_MAP
+		SET   SUBC_CODE = #{SUBC_CODE},
+		      UPD_EMP   = #{emp_code},
+		      UPD_DATE  = SYSDATE
+		WHERE SUBC_CODE = #{ORI_SUBC_CODE}
+	</update>
+	
+	<select id="cb_ent_list" resultType="HashMap">
+		/* oracle.yp_zwc_ent.working_monthly_report_test */
+		SELECT
+			ENT_NAME AS CB_CODE,
+			ENT_NAME || ' (' || DECODE(ENT_TYPE, 'D', '협력업체', 'J', '공사업체', '') || ')' AS CB_NAME
+		FROM TBL_ENTERPRISE A
+		WHERE 1=1
+		ORDER BY ENT_TYPE, ENT_NAME
+	</select>
+</mapper>

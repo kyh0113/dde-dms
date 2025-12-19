@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="mssql.Menu">
+
+	<select id="menuTree" resultType="HashMap">
+	/* mssql.Menu.menuTree */
+	WITH TBL_PARENT AS (
+	SELECT
+				   CAST( A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID as id
+	             , A.MENU_TITLE AS text
+	             , CASE A.URL WHEN '/' THEN 0 ELSE 1 END AS LAST_YN
+	             , A.URL AS URL
+	             , A.PARENT_ID as parent
+	             , ( SELECT MENU_TITLE
+	               FROM    COM_MENU
+	               WHERE   MENU_ID = A.PARENT_ID ) AS PARENT_TITLE
+	             , A.SORT
+	             , A.USE_YN
+	             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+	             , CAST( '　' AS VARCHAR(100)) AS LVL
+	             , CAST( RIGHT( '000000' + CONVERT( VARCHAR(6), A.SORT ), 6 ) AS VARCHAR(100) ) AS HIERARCHY
+	             , 1 AS LEVL
+	       FROM    COM_MENU A
+	       WHERE   A.PARENT_ID = 0
+	
+	UNION ALL
+	
+	SELECT 
+				   CAST( LVL + A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID as id
+	             , A.MENU_TITLE AS text
+	             , CASE A.URL WHEN '/' THEN 0 ELSE 1 END AS LAST_YN
+	             , A.URL AS URL
+	             , A.PARENT_ID as parent
+	
+	             , ( SELECT MENU_TITLE
+	               FROM    COM_MENU
+	               WHERE   MENU_ID = A.PARENT_ID ) AS PARENT_TITLE
+	             , A.SORT
+	             , A.USE_YN
+	             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+	             , CAST( '　' + LVL AS VARCHAR(100)) AS LVL
+	             , CAST( HIERARCHY + ';' + CAST( RIGHT( '000000' + CONVERT( VARCHAR(6), A.SORT ), 6 ) AS VARCHAR(100)) AS VARCHAR(100)) AS HIERARCHY
+	             , LEVL + 1 AS LEVL
+	       FROM    COM_MENU A
+	             , TBL_PARENT C
+	       WHERE   A.PARENT_ID = C.id
+	)
+	SELECT	
+			TITLE_VIEW as title_view,
+			id,
+			text,
+			LAST_YN as last_yn,
+	        LEVL as LEVL,
+	        URL as url,
+	        case when convert(varchar, parent) = '0' then '#' else convert(varchar, parent) end as parent,
+	        isnull(PARENT_TITLE, '#') as up_menu_name,
+	        SORT as sort,
+	        USE_YN as use_yn,
+			CASE WHEN cnt.upcnt IS NULL or cnt.upcnt = '' THEN 'N'
+			ELSE 'Y' END AS type
+	FROM TBL_PARENT 
+	left outer join (SELECT PARENT_ID,count(PARENT_ID) AS upcnt
+					 FROM COM_MENU
+					 WHERE 1 = 1
+					 AND USE_YN = 'Y'
+					 GROUP BY PARENT_ID
+	) AS cnt
+	ON TBL_PARENT.id = cnt.PARENT_ID
+	ORDER BY HIERARCHY 
+	</select>
+	
+	<select id="menuTree_sort" resultType="HashMap">
+	/* mssql.Menu.menuTree_sort */
+	WITH TBL_PARENT AS (
+	SELECT
+				   CAST( A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID as id
+	             , A.MENU_TITLE AS text
+	             , CASE A.URL WHEN '/' THEN 0 ELSE 1 END AS LAST_YN
+	             , A.URL AS URL
+	             , A.PARENT_ID as parent
+	             , ( SELECT MENU_TITLE
+	               FROM    COM_MENU
+	               WHERE   MENU_ID = A.PARENT_ID ) AS PARENT_TITLE
+	             , A.SORT
+	             , A.USE_YN
+	             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+	             , CAST( '　' AS VARCHAR(100)) AS LVL
+	             , CAST( RIGHT( '000000' + CONVERT( VARCHAR(6), A.SORT ), 6 ) AS VARCHAR(100) ) AS HIERARCHY
+	             , 1 AS LEVL
+	       FROM    COM_MENU A
+	       WHERE   A.PARENT_ID = 0
+	
+	UNION ALL
+	
+	SELECT 
+				   CAST( LVL + A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID as id
+	             , A.MENU_TITLE AS text
+	             , CASE A.URL WHEN '/' THEN 0 ELSE 1 END AS LAST_YN
+	             , A.URL AS URL
+	             , A.PARENT_ID as parent
+	
+	             , ( SELECT MENU_TITLE
+	               FROM    COM_MENU
+	               WHERE   MENU_ID = A.PARENT_ID ) AS PARENT_TITLE
+	             , A.SORT
+	             , A.USE_YN
+	             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+	             , CAST( '　' + LVL AS VARCHAR(100)) AS LVL
+	             , CAST( HIERARCHY + ';' + CAST( RIGHT( '000000' + CONVERT( VARCHAR(6), A.SORT ), 6 ) AS VARCHAR(100)) AS VARCHAR(100)) AS HIERARCHY
+	             , LEVL + 1 AS LEVL
+	       FROM    COM_MENU A
+	             , TBL_PARENT C
+	       WHERE   A.PARENT_ID = C.id
+	)
+	SELECT	
+			TITLE_VIEW as title_view,
+			id,
+			'[' + convert(varchar, SORT) + ']' + text as text,
+			text as text2,
+			LAST_YN as last_yn,
+	        LEVL as LEVL,
+	        URL as url,
+	        case when convert(varchar, parent) = '0' then '#' else convert(varchar, parent) end as parent,
+	        isnull(PARENT_TITLE, '#') as up_menu_name,
+	        SORT as sort,
+	        USE_YN as use_yn,
+			CASE WHEN cnt.upcnt IS NULL or cnt.upcnt = '' THEN 'N'
+			ELSE 'Y' END AS type
+	FROM TBL_PARENT 
+	left outer join (SELECT PARENT_ID,count(PARENT_ID) AS upcnt
+					 FROM COM_MENU
+					 WHERE 1 = 1
+					 AND USE_YN = 'Y'
+					 GROUP BY PARENT_ID
+	) AS cnt
+	ON TBL_PARENT.id = cnt.PARENT_ID
+	ORDER BY HIERARCHY 
+	</select>
+
+	<select id="getMenuList"  resultType="HashMap">
+	/* mssql.Menu.getMenuList*/
+	WITH TBL_PARENT AS (
+	SELECT
+				   CAST( A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID
+	             , A.MENU_TITLE AS MENU_TITLE
+	             , 0 AS LAST_YN
+	             , 1 AS MENU_LEVEL
+	             , A.URL AS MENU_URL
+	             , A.PARENT_ID
+	
+	             , ( SELECT MENU_TITLE
+	               FROM    COM_MENU
+	               WHERE   MENU_ID = A.PARENT_ID ) AS PARENT_TITLE
+	
+	             , A.SORT
+	             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+	             , CAST( '　' AS VARCHAR(100)) AS LVL
+	             , CAST( RIGHT( '000000' + CONVERT( VARCHAR(6), A.SORT ), 6 ) AS VARCHAR(100) ) AS HIERARCHY
+	             , B.READ_YN+'@'+B.RUN_YN+'@'+B.DEL_YN+'@'+B.EXCEL_YN AS BUTTON_AUTH
+	       FROM    COM_MENU A
+	             , ( SELECT MENU_ID
+	                     , READ_YN
+	                     , RUN_YN
+	                     , DEL_YN
+	                     , EXCEL_YN
+	               FROM    COM_AUTH_MENU
+	               WHERE   AUTH_ID IN ( SELECT ISNULL(S2.AUTH_ID,'101')
+	                       				FROM    COM_USER S1
+	                       				INNER JOIN COM_AUTH_USER S2
+	                       				ON S1.EMP_CODE = S2.USER_ID
+	                       				WHERE   S1.EMP_CODE = #{s_emp_code} ) 
+	              ) B
+	       WHERE   A.MENU_ID = B.MENU_ID
+	AND A.PARENT_ID = 0
+	
+	UNION ALL
+	
+	SELECT 
+				   CAST( LVL + A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID
+	             , A.MENU_TITLE AS MENU_TITLE
+	             , 0 AS LAST_YN
+	             , MENU_LEVEL + 1 AS MENU_LEVEL
+	             , A.URL AS MENU_URL
+	             , A.PARENT_ID
+	             , ( SELECT MENU_TITLE
+	               FROM    COM_MENU
+	               WHERE   MENU_ID = A.PARENT_ID ) AS PARENT_TITLE
+	             , A.SORT
+	             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+	             , CAST( '　' + LVL AS VARCHAR(100)) AS LVL
+	             , CAST( HIERARCHY + ';' + CAST( RIGHT( '000000' + CONVERT( VARCHAR(6), A.SORT ), 6 ) AS VARCHAR(100)) AS VARCHAR(100)) AS HIERARCHY
+	             , B.READ_YN+'@'+B.RUN_YN+'@'+B.DEL_YN+'@'+B.EXCEL_YN AS BUTTON_AUTH
+	       FROM    COM_MENU A
+	             , ( SELECT MENU_ID
+	                     , READ_YN
+	                     , RUN_YN
+	                     , DEL_YN
+	                     , EXCEL_YN
+	               FROM    COM_AUTH_MENU
+	               WHERE   AUTH_ID IN ( SELECT ISNULL(S2.AUTH_ID,'101')
+	                       				FROM    COM_USER S1
+	                       				INNER JOIN COM_AUTH_USER S2
+	                       				ON S1.EMP_CODE = S2.USER_ID
+	                       				WHERE   S1.EMP_CODE = #{s_emp_code} ) 
+					) B
+	             , TBL_PARENT C
+	       WHERE   A.MENU_ID   = B.MENU_ID
+	       AND     A.PARENT_ID = C.MENU_ID
+	)
+	SELECT
+			MENU_TITLE as menu_name,
+			MENU_ID as menu_id,
+			MENU_URL as menu_path,
+			MENU_LEVEL as menu_level,
+			TBL_PARENT.PARENT_ID as upmenu_id,
+			SORT as sort,
+			CASE WHEN cnt.upcnt IS NULL or cnt.upcnt = '' THEN 'N'
+			ELSE 'Y' END AS type,
+			HIERARCHY
+	FROM TBL_PARENT 
+	left outer join (SELECT PARENT_ID,count(PARENT_ID) AS upcnt
+					 FROM COM_MENU
+					 WHERE 1 = 1
+					 AND USE_YN = 'Y'
+					 GROUP BY PARENT_ID
+	) AS cnt
+	ON TBL_PARENT.MENU_ID = cnt.PARENT_ID
+	ORDER BY HIERARCHY 
+	</select>
+
+	<select id="breadcrumb" resultType="HashMap">
+	/* mssql.Menu.breadcrumb */	
+	SELECT 
+		FT.menu_id, 
+		FT.url, 
+		FT.menu_title as menu_name, 
+		ST.MENU_ID as up_menu_id, 
+		case when len(ST.url) = 1 then null else ST.url end as up_menu_path,
+		ST.menu_title as up_menu_name,
+		TT.menu_id as top_menu_id,
+		case when len(TT.url) = 1 then null else TT.url end as top_menu_path,
+		TT.menu_title as top_menu_name 
+	FROM COM_MENU AS FT 
+	INNER JOIN COM_MENU AS ST
+	ON FT.PARENT_ID = ST.MENU_ID
+	INNER JOIN COM_MENU AS TT
+	ON FT.PARENT_ID = TT.MENU_ID
+	where 1 = 1
+	<if test='menu_path != null and !menu_path.equals("")'>
+	AND FT.menu_id = (select top 1 menu_id from COM_MENU where url = #{menu_path})
+	</if>
+	<if test='menu_id != null and !menu_id.equals("")'>
+	AND FT.menu_id = #{menu_id}	
+	</if>
+	</select>
+	
+	<insert id="insertTopMenu">
+	/* mssql.Menu.insertTopMenu */
+	INSERT INTO COM_MENU 
+	(
+		  MENU_TITLE
+		, PARENT_ID
+		, URL
+		, SORT
+		, USE_YN
+		, REG_ID
+		, REG_DT
+		, MOD_ID
+		, MOD_DT
+	)
+	VALUES 
+	(
+		  #{topMenuAddModal_menu_name}
+		, 0
+		, #{topMenuAddModal_menu_url}
+		, #{topMenuAddModal_menu_sort}
+		, 'Y'
+		, #{s_emp_code}
+		, GETDATE()
+		, #{s_emp_code}
+		, GETDATE()
+	)
+	</insert>	
+	
+	<update id="updateMenu">
+	/* mssql.Menu.updateMenu */
+	UPDATE COM_MENU SET 
+		 MENU_TITLE = #{menu_name}
+		,URL        = #{menu_url}
+		,SORT       = #{menu_sort}
+		,USE_YN     = #{use_yn}
+		,MOD_ID     = #{s_emp_code}
+		,MOD_DT     = GETDATE()
+	WHERE MENU_ID   = #{menu_code}
+	</update>
+	
+	<insert id="insertSubMenu">
+	/* mssql.Menu.insertSubMenu */
+	INSERT INTO COM_MENU 
+	(
+		  MENU_TITLE
+		, PARENT_ID
+		, URL
+		, SORT
+		, USE_YN
+		, REG_ID
+		, REG_DT
+		, MOD_ID
+		, MOD_DT
+	)
+	VALUES 
+	( 
+		  #{menuAddModal_menu_name}
+		, #{menuAddModal_up_menu_code}
+		, #{menuAddModal_menu_url}
+		, CONVERT(INT, #{menuAddModal_menu_sort})
+		, 'Y'
+		, #{s_emp_code}
+		, GETDATE()
+		, #{s_emp_code}
+		, GETDATE()
+	)
+	</insert>
+
+	<update id="updateParentMenu">
+	/* mssql.Menu.updateParentMenu */
+	UPDATE COM_MENU SET 
+		  URL = '/'
+		, MOD_ID = #{s_emp_code}
+		, MOD_DT = GETDATE()
+	WHERE MENU_ID = #{menuAddModal_up_menu_code}
+	</update>
+	
+	<delete id="deleteMenu">
+	/* mssql.Menu.deleteMenu */
+	DELETE FROM COM_MENU
+	WHERE MENU_ID = #{menu_code} 
+	</delete>
+	
+	<delete id="deleteChildMenu">
+	/* mssql.Menu.deleteChildMenu */
+	WITH TBL_PARENT AS (
+	SELECT
+				   CAST( A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID
+	             , A.MENU_TITLE AS TITLE
+	             , CASE A.URL WHEN '/' THEN 0 ELSE 1 END AS LAST_YN
+	             , A.URL AS URL
+	             , A.PARENT_ID
+	             , ( SELECT MENU_TITLE
+	               FROM    COM_MENU
+	               WHERE   MENU_ID = A.PARENT_ID ) AS PARENT_TITLE
+	             , A.SORT
+	             , A.USE_YN
+	             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+	             , CAST( '　' AS VARCHAR(100)) AS LVL
+	             , CAST( RIGHT( '000000' + CONVERT( VARCHAR(6), A.SORT ), 6 ) AS VARCHAR(100) ) AS HIERARCHY
+	             , 1 AS LEVL
+	       FROM    COM_MENU A
+	       WHERE   A.PARENT_ID = #{menu_code}
+	
+	UNION ALL
+	
+	SELECT 
+				   CAST( LVL + A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID
+	             , A.MENU_TITLE AS TITLE
+	             , CASE A.URL WHEN '/' THEN 0 ELSE 1 END AS LAST_YN
+	             , A.URL AS URL
+	             , A.PARENT_ID
+	             , ( SELECT MENU_TITLE
+	               FROM    COM_MENU
+	               WHERE   MENU_ID = A.PARENT_ID ) AS PARENT_TITLE
+	             , A.SORT
+	             , A.USE_YN
+	             , CASE A.PARENT_ID WHEN 0 THEN A.MENU_ID ELSE A.PARENT_ID END as SORT2
+	             , CAST( '　' + LVL AS VARCHAR(100)) AS LVL
+	             , CAST( HIERARCHY + ';' + CAST( RIGHT( '000000' + CONVERT( VARCHAR(6), A.SORT ), 6 ) AS VARCHAR(100)) AS VARCHAR(100)) AS HIERARCHY
+	             , LEVL + 1 AS LEVL
+	       FROM    COM_MENU A
+	             , TBL_PARENT C
+	       WHERE   A.PARENT_ID = C.MENU_ID
+	)
+	DELETE FROM COM_MENU
+	WHERE MENU_ID IN (
+		SELECT	MENU_ID
+		FROM TBL_PARENT
+	) 
+		
+	</delete>
+	
+</mapper>

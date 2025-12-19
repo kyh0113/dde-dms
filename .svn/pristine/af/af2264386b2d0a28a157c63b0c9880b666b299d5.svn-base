@@ -1,0 +1,159 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_login">
+<select id="retrievePwdUser" parameterType="String" resultType="String">
+/* oracle.yp_login.retrievePwdUser */
+select sap_pwd from gw_user 
+where user_id = #{id} 
+and emp_status = 'W'
+and cmp_id = 'C100160809'
+</select>
+
+<select id="retrievePwdAff" parameterType="String" resultType="String">
+/* oracle.yp_login.retrievePwdAff */
+select password
+from tbl_user
+where id = #{id}
+and status = 'W'
+</select>
+
+<select id="retrievePwdEnt" parameterType="String" resultType="String">
+/* oracle.yp_login.retrievePwdEnt */
+select admin_pw
+from tbl_enterprise
+where admin_id = #{id}
+and status = 'W'
+</select>
+
+<select id="loginCheckEnt_reset" parameterType="String" resultType="integer">
+/* oracle.yp_login.loginCheckEnt_reset - 아이디, 비번 동일시 비번변경 유도 */
+SELECT
+	CASE WHEN B.ADMIN_ID = B.ADMIN_PW THEN 1 ELSE 0 END CNT
+FROM TBL_ENTERPRISE B
+WHERE 1=1
+AND B.ADMIN_ID = #{id}
+</select>
+
+<select id="retrieveUserInfo" parameterType="String" resultType="HashMap">
+/* oracle.yp_login.retrieveUserInfo */
+select
+	user_id,
+	EMP_CODE AS emp_cd,
+	user_name,
+	emp_status,
+	gubun
+from COM_USER_V_YP
+where user_id = #{id}
+and emp_status = 'W'
+</select>
+
+<select id="retrieveUserAuth_old" parameterType="String" resultType="HashMap">
+/* oracle.yp_login.retrieveUserAuth */
+select
+	seq,
+	menu,
+	auth
+from tbl_auth
+where user_id = #{id}
+</select>
+
+<select id="retrieveUserSysAuth" parameterType="String" resultType="HashMap">
+/* oracle.yp_login.retrieveUserSysAuth */
+SELECT
+	NVL(B.AUTH_ID, 'US') AS AUTH_ID
+FROM COM_USER_V_YP A
+LEFT OUTER JOIN COM_AUTH_USER B
+	ON A.EMP_CODE = B.USER_ID
+WHERE 1=1
+AND A.EMP_CODE = #{id}
+</select>
+
+<select id="retrieveUserAuth" parameterType="String" resultType="HashMap">
+/* oracle.yp_login.retrieveUserAuth */
+SELECT
+	MENU_CODE AS MENU_CODE,
+	NVL(B.DATA_AUTH_ID, 'US') AS DATA_AUTH_ID
+FROM COM_USER_V_YP A
+LEFT OUTER  JOIN COM_DATA_AUTH_USER B
+	ON A.EMP_CODE = B.DATA_USER_ID
+WHERE 1=1
+AND A.EMP_CODE = #{id}
+</select>
+
+<select id="retrieveUserPosition" parameterType="String" resultType="HashMap">
+/* oracle.yp_login.retrieveUserPosition */
+SELECT 
+	DEPT_NAME,
+	DEPT_CD,
+	OFC_NAME,
+	OFC_CD,
+	POS_NAME,
+	POS_CD
+FROM ORG_EMPLOYEE@GWDB E
+LEFT JOIN ORG_MY_JOB@GWDB MJ
+	ON E.EMP_ID = MJ.EMP_ID AND E.CMP_ID = MJ.CMP_ID
+LEFT JOIN ORG_POSITION@GWDB PO
+	ON E.POS_ID = PO.POS_ID
+LEFT JOIN ORG_DEPARTMENT@GWDB D
+	ON D.DEPT_ID = MJ.DEPT_ID
+LEFT JOIN ORG_OFFICE@GWDB OO
+	ON OO.OFC_ID = MJ.OFC_ID
+WHERE  E.CMP_ID =  'C100160809'
+AND E.EMP_STATUS != 'D'
+AND D.DEPT_STATUS != 'D'
+AND MJ.DEPT_ID != 'DELETE_' || E.CMP_ID
+AND MJ.DEPT_ID != 'DISASSIGN_' || E.CMP_ID
+AND E.EMP_ID IN (
+	SELECT OMJ.EMP_ID FROM ORG_MY_JOB@GWDB OMJ WHERE OMJ.DEPT_ID IN (
+		SELECT OD.DEPT_ID FROM ORG_DEPARTMENT@GWDB OD WHERE OD.DEPT_LOC LIKE '%'|| 'C100160809' ||'%' 
+	)
+)
+AND MJ.BASS_DEPT_YN = 'Y'
+AND E.USER_ID = #{id}
+</select>
+
+<select id="retrieveWorkInfo" parameterType="String" resultType="java.util.HashMap">
+/* oracle.yp_login.retrieveUserPosition */
+select
+	orgeh,
+	orgtx,
+	zclss,
+	zclst,
+	schkz,
+	jo_name
+from TBL_COMMON_EMP_WORK
+where pernr = #{emp_cd}
+</select>
+
+<select id="retrieveAffCorp" parameterType="String" resultType="java.util.HashMap">
+/* oracle.yp_login.retrieveAffCorp */
+select corp_code , corp_name 
+from TBL_AFFILIATE
+where corp_code = (select company from tbl_user where id = #{value})
+</select>
+
+<select id="retrieveEntCorp" parameterType="String" resultType="java.util.HashMap">
+/* oracle.yp_login.retrieveEntCorp */
+SELECT
+	  a.VENDOR_CODE AS ENT_VENDOR_CODE
+	, a.ENT_NAME AS ENT_VENDOR_NAME
+	, a.ENT_CODE AS ENT_CODE
+FROM TBL_ENTERPRISE a
+WHERE 1=1
+AND a.ADMIN_ID = #{value}
+</select>
+
+
+<select id="f_href_with_auth" resultType="Integer">
+/* oracle.yp_login.f_href_with_auth */
+SELECT
+	COUNT(*) AS CNT
+FROM COM_AUTH_MENU A
+INNER JOIN COM_MENU B
+	ON A.MENU_ID = B.MENU_ID
+WHERE 1=1
+AND A.AUTH_ID = #{s_authogrp_code}
+AND B.URL = #{URL}
+</select>
+
+</mapper>

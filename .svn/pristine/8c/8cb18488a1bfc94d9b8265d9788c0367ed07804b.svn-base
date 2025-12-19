@@ -1,0 +1,185 @@
+################################################
+# GLOBAL VARIABLE							   #
+################################################
+
+
+
+
+#################### FILE ######################
+#\uC5C5\uB85C\uB4DC \uAC00\uB2A5\uD55C \uC774\uBBF8\uC9C0\uD30C\uC77C \uD655\uC7A5\uC790
+file.permitExt_Image=.jpg.jpeg.bmp.png.gif
+#\uC5C5\uB85C\uB4DC \uAC00\uB2A5\uD55C \uD30C\uC78F \uD655\uC7A5\uC790
+file.permitExt_Common=.pdf.xls.xlsx.ppt.pptx.doc.docx.txt.hwp.jpg.jpeg.bmp.png.gif.mht.zip.tiff.htm.avi.wav.ozd.xlsm.ppsx.egg.7z.csv.xlsb.xps
+#\uC5C5\uB85C\uB4DC \uD30C\uC77C \uC6A9\uB7C9 \uC81C\uD55C(10 = 10MB)
+file.fileSizeLimits=200
+#\uCD1D \uC5C5\uB85C\uB4DC \uD30C\uC77C \uC6A9\uB7C9 \uC81C\uD55C(10 = 10MB)
+file.totalfileSizeLimits=500
+
+
+## @DEV
+#\uC77C\uBC18 \uC5C5\uB85C\uB4DC \uD30C\uC77C \uC800\uC7A5\uACBD\uB85C
+#file.commonDir=D:/vit_framework/commonfile/
+#\uD15C\uD50C\uB9BF \uD30C\uC77C \uC800\uC7A5\uACBD\uB85C
+#file.templateDir=D:/vit_framework/template/
+#\uC555\uCD95\uD30C\uC77C \uC800\uC7A5\uACBD\uB85C
+#file.zipfileDir=D:/vit_framework/commonfile/temp_zip/
+#\uC774\uBBF8\uC9C0\uD30C\uC77C \uC800\uC7A5\uACBD\uB85C
+#file.imgDir=D:/vit_framework/imgFile/
+#file.imgFile=file:///D:/vit_framework/imgFile/
+#Windows File Home
+#file.uploadDirResource=C:/uploadFiles/
+#Linux File Home
+#file.uploadDirResource=/usr/vit_framework/
+
+#\uC5D1\uC140\uD30C\uC77C \uC800\uC7A5\uACBD\uB85C
+#file.excelDir=D:/vit_framework/excelfile/
+#\uC378\uB124\uC77C\uD30C\uC77C \uC800\uC7A5\uACBD\uB85C
+#file.thumbnailDir=D:/vit_framework/imgFile/Thumbnail/
+#file.thumbnail280Dir=D:/vit_framework/imgFile/Thumbnail_280/
+
+## @PRD
+#\uC77C\uBC18 \uC5C5\uB85C\uB4DC \uD30C\uC77C \uC800\uC7A5\uACBD\uB85C
+file.commonDir=/usr/vit_framework/commonfile/
+#\uD15C\uD50C\uB9BF \uD30C\uC77C \uC800\uC7A5\uACBD\uB85C
+file.templateDir=/usr/vit_framework/template/
+#\uC555\uCD95\uD30C\uC77C \uC800\uC7A5\uACBD\uB85C
+file.zipfileDir=/usr/vit_framework/commonfile/temp_zip/
+#\uC774\uBBF8\uC9C0\uD30C\uC77C \uC800\uC7A5\uACBD\uB85C
+file.imgDir=/usr/vit_framework/imgFile/
+file.imgFile=/usr/vit_framework/imgFile/
+#\uD30C\uC77C \uD648 \uACBD\uB85C
+file.uploadDirResource=/usr/vit_framework/
+#\uC5D1\uC140\uD30C\uC77C \uC800\uC7A5\uACBD\uB85C
+file.excelDir=/usr/vit_framework/excelfile/
+#\uC378\uB124\uC77C\uD30C\uC77C \uC800\uC7A5\uACBD\uB85C
+file.thumbnailDir=/usr/vit_framework/imgFile/Thumbnail/
+file.thumbnail280Dir=/usr/vit_framework/imgFile/Thumbnail_280/
+
+#################### FILE ######################
+
+
+
+
+################### SESSION ####################
+# \uB85C\uADF8\uC544\uC6C3 \uBA54\uC2DC\uC9C0
+session.outMSG=\uc7a5\uc2dc\uac04 \ubbf8\uc0ac\uc6a9\uc73c\ub85c \uc778\ud574 \ub85c\uadf8\uc544\uc6c3 \ub429\ub2c8\ub2e4.
+#\uC138\uC158\uD0C0\uC784\uC544\uC6C3(1 = 1\uBD84)
+session.outTime=120
+################### SESSION ####################
+
+
+
+
+
+################### COMPANY ####################
+#\uD68C\uC0AC\uBA85
+company.name=\uC601\uD48D
+################### COMPANY ####################
+
+
+
+
+################### SYSTEM #####################
+#\uC561\uC158\uB85C\uADF8 \uC0AC\uC6A9\uC5EC\uBD80
+sys.action_log=N
+#\uAD00\uB9AC\uC790PC IP address(\uB2E4\uC218\uC77C\uACBD\uC6B0 \uCF64\uB9C8\uB85C\uAD6C\uBD84)
+sys.adminIP=0:0:0:0:0:0:0:1,127.0.0.1,10.10.9.180,175.214.111.77
+#\uB85C\uADF8\uC778ID \uCD5C\uC18C\uAE38\uC774
+sys.minIDLen=1
+#\uB85C\uADF8\uC778ID \uCD5C\uB300\uAE38\uC774
+sys.maxIDLen=20
+################### SYSTEM #####################
+
+
+
+
+################### DATABASE ###################
+
+# @DEV : YP.WEBPORTAL
+#db.vendor=oracle
+#db.driverClassName=oracle.jdbc.driver.OracleDriver
+#db.url=jdbc:oracle:thin:@211.35.173.46:1521:xe
+#db.username=webpt_cp
+#db.password=webpt_cp3370
+#db.maxActive=100
+#db.maxIdle=20
+
+# @PRD : YP.WEBPORTAL
+db.vendor=oracle
+db.driverClassName=oracle.jdbc.driver.OracleDriver
+db.url=jdbc:oracle:thin:@211.35.173.7:1521:orcl
+db.username=webpt
+db.password=Webpt3370
+db.maxActive=100
+db.maxIdle=20
+
+# NO TOUCH YP.BLEND
+db.vendor2=mssql
+db.driverClassName2=com.microsoft.sqlserver.jdbc.SQLServerDriver
+db.url2=jdbc:sqlserver://211.35.198.8:1433;DatabaseName=SCMETA
+db.username2=SA
+db.password2=Ypadmin3517
+db.maxActive2=100
+db.maxIdle2=20
+
+# NO TOUCH YP.CAS DB
+#db.vendor3=mssql
+#db.driverClassName3=com.microsoft.sqlserver.jdbc.SQLServerDriver
+#db.url3=jdbc:sqlserver://211.35.205.129:1433;DatabaseName=sukpo
+#db.username3=han_c
+#db.password3=123
+#db.maxActive3=100
+#db.maxIdle3=20
+
+
+# NO TOUCH YP.SW DB
+db.vendor3=mssql
+db.driverClassName3=com.microsoft.sqlserver.jdbc.SQLServerDriver
+db.url3=jdbc:sqlserver://211.35.203.19:1433;DatabaseName=AssA1019
+db.username3=sa
+db.password3=ss20000
+db.maxActive3=100
+db.maxIdle3=20
+
+# NO TOUCH YP.BI_NEW DB
+db.vendor4=oracle
+db.driverClassName4=oracle.jdbc.driver.OracleDriver
+db.url4=jdbc:oracle:thin:@211.35.173.23:1521:ypzbbi
+db.username4=ypzinc
+db.password4=ypzinc00#
+db.maxActive4=100
+db.maxIdle4=20
+
+################### DATABASE ###################
+
+
+################### GROUPWARE ##################
+
+## @DEV
+#gw.url=http://gwdev.ypzinc.co.kr
+
+## @PRD
+gw.url=http://ypgw.ypzinc.co.kr
+
+################### GROUPWARE ###################
+
+
+################### MAIL ########################
+
+## @DEV
+#mail.use=N
+
+## @PRD
+mail.use=Y
+
+################### MAIL ########################
+################### SAP CONNECTION IFNO(PRD) ########################
+sap.hostip=211.35.173.43
+sap.systemnumber=00
+sap.client=100
+sap.user=IFGW01
+sap.password=123456
+sap.lang=ko
+sap.poolCapacity=3
+sap.peakLimit=10
+################### SAP CONNECTION IFNO ######################## 

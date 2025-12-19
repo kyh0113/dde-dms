@@ -1,0 +1,611 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_zcs_ctr">
+
+<select id="select_pay_code_list" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.yp_zcs_ctr.select_pay_code_list */
+	SELECT
+		A.CODE       as master_code,
+		A.CODE_VALUE as detail_code,
+		A.CODE_NM    as detail_name,
+		A.NOTE       as detail_note,
+		A.USE_YN     as detail_use,
+		A.SORT_NO    as detail_sort,
+		B.CODE_NM    as master_name,
+		B.USE_YN     as master_use,
+		B.SORT_NO    as master_sort     
+    FROM COM_CODE_DETAIL A
+    LEFT OUTER JOIN COM_CODE_MASTER B
+	ON A.CODE = B.CODE
+	WHERE 1=1
+	and A.CODE = 'YP_PAY_GUBUN'
+	ORDER BY DETAIL_CODE asc
+</select>
+
+<select id="select_construction_subc_cnt" resultType="int">
+	/* oracle.yp_zcs_ctr.select_construction_subc_cnt */
+	SELECT
+    	count(*) as cnt
+	FROM TBL_CONSTRUCTION_SUBC
+	WHERE 1=1
+	AND SUBSTR(CONTRACT_CODE,1,6) = #{TEMP_CONTRACT_CODE}
+</select>
+
+<update id="merge_construction_subc">
+/* oracle.yp_zcs_ctr.merge_construction_subc */
+MERGE INTO TBL_CONSTRUCTION_SUBC A
+USING (
+	SELECT
+		#{CONTRACT_CODE} AS CONTRACT_CODE,
+	    #{PAY_STANDARD} AS PAY_STANDARD,
+	    #{CONTRACT_NAME} AS CONTRACT_NAME,
+	    #{CONTRACT_START_DATE} AS CONTRACT_START_DATE,
+	    #{CONTRACT_END_DATE} AS CONTRACT_END_DATE,
+	    #{VENDOR_CODE} AS VENDOR_CODE,
+	    #{WBS_CODE1} AS WBS_CODE1,
+	    #{WBS_CODE2} AS WBS_CODE2,
+	    #{WBS_CODE3} AS WBS_CODE3,
+	    #{WBS_CODE4} AS WBS_CODE4,
+	    #{WBS_CODE5} AS WBS_CODE5,
+	    #{WBS_CODE6} AS WBS_CODE6,
+	    #{EMPLOYMENT_COSTS} AS EMPLOYMENT_COSTS,
+	    #{WORK_START_TIME} AS WORK_START_TIME,
+	    #{WORK_END_TIME} AS WORK_END_TIME,
+	    #{EMPLOYMENT_COSTS_YEAR} AS EMPLOYMENT_COSTS_YEAR,
+	    #{EMPLOYMENT_COSTS_MONTH} AS EMPLOYMENT_COSTS_MONTH,
+	    #{CONTRACT_PEOPLE_CNT} AS CONTRACT_PEOPLE_CNT, /* 계약 인원 */
+	    #{DAILY_REQ_PEOPLE_CNT} AS DAILY_REQ_PEOPLE_CNT, /* 일일 필수 출근 인원 */
+	    #{s_emp_code} AS REG_EMP,
+	    #{s_emp_code} AS UPD_EMP,
+	    SYSDATE AS REG_DATE,
+	    SYSDATE AS UPD_DATE
+	FROM DUAL
+) B
+ON (
+		A.CONTRACT_CODE = B.CONTRACT_CODE
+)
+WHEN NOT MATCHED THEN
+INSERT(
+    CONTRACT_CODE,
+    PAY_STANDARD,
+    CONTRACT_NAME,
+    CONTRACT_START_DATE,
+    CONTRACT_END_DATE,
+    VENDOR_CODE,
+    WBS_CODE1,
+    WBS_CODE2,
+    WBS_CODE3,
+    WBS_CODE4,
+    WBS_CODE5,
+    WBS_CODE6,
+    EMPLOYMENT_COSTS,
+    WORK_START_TIME,
+    WORK_END_TIME,
+    EMPLOYMENT_COSTS_YEAR,
+    EMPLOYMENT_COSTS_MONTH,
+    CONTRACT_PEOPLE_CNT, /* 계약 인원 */
+    DAILY_REQ_PEOPLE_CNT, /* 일일 필수 출근 인원 */
+    REG_EMP,
+    UPD_EMP,
+    REG_DATE,
+    UPD_DATE
+) VALUES(
+    B.CONTRACT_CODE,
+    B.PAY_STANDARD,
+    B.CONTRACT_NAME,
+    B.CONTRACT_START_DATE,
+    B.CONTRACT_END_DATE,
+    B.VENDOR_CODE,
+    B.WBS_CODE1,
+    B.WBS_CODE2,
+    B.WBS_CODE3,
+    B.WBS_CODE4,
+    B.WBS_CODE5,
+    B.WBS_CODE6,
+    B.EMPLOYMENT_COSTS,
+    B.WORK_START_TIME,
+    B.WORK_END_TIME,
+    B.EMPLOYMENT_COSTS_YEAR,
+    B.EMPLOYMENT_COSTS_MONTH,
+    B.CONTRACT_PEOPLE_CNT, /* 계약 인원 */
+    B.DAILY_REQ_PEOPLE_CNT, /* 일일 필수 출근 인원 */
+    B.REG_EMP,
+    B.UPD_EMP,
+    B.REG_DATE,
+    B.UPD_DATE
+)
+WHEN MATCHED THEN
+UPDATE SET
+    PAY_STANDARD = B.PAY_STANDARD,
+    CONTRACT_NAME = B.CONTRACT_NAME,
+    CONTRACT_START_DATE = B.CONTRACT_START_DATE,
+    CONTRACT_END_DATE = B.CONTRACT_END_DATE,
+    VENDOR_CODE = B.VENDOR_CODE,
+    WBS_CODE1 = B.WBS_CODE1,
+    WBS_CODE2 = B.WBS_CODE2,
+    WBS_CODE3 = B.WBS_CODE3,
+    WBS_CODE4 = B.WBS_CODE4,
+    WBS_CODE5 = B.WBS_CODE5,
+    WBS_CODE6 = B.WBS_CODE6,
+    EMPLOYMENT_COSTS = B.EMPLOYMENT_COSTS,
+    WORK_START_TIME = B.WORK_START_TIME,
+    WORK_END_TIME = B.WORK_END_TIME,
+    EMPLOYMENT_COSTS_YEAR = B.EMPLOYMENT_COSTS_YEAR,
+    EMPLOYMENT_COSTS_MONTH = B.EMPLOYMENT_COSTS_MONTH,
+    CONTRACT_PEOPLE_CNT = B.CONTRACT_PEOPLE_CNT, /* 계약 인원 */
+    DAILY_REQ_PEOPLE_CNT = B.DAILY_REQ_PEOPLE_CNT, /* 일일 필수 출근 인원 */
+    UPD_EMP = B.UPD_EMP,
+    UPD_DATE = B.UPD_DATE
+</update>
+
+<update id="merge_construction_subc_cost">
+/* oracle.yp_zcs_ctr.merge_construction_subc_cost */
+MERGE INTO TBL_CONSTRUCTION_SUBC_COST A
+USING (
+	SELECT
+		#{CONTRACT_CODE} AS CONTRACT_CODE,
+	    #{SEQ} AS SEQ,
+	    #{CONTENTS} AS CONTENTS,
+	    #{MARK_UNIT} AS MARK_UNIT,
+	    REPLACE(#{RATE_AMOUNT}, ',', '') AS RATE_AMOUNT,
+	    #{UNIT} AS UNIT,
+	    #{s_emp_code} AS REG_EMP,
+	    #{s_emp_code} AS UPD_EMP,
+	    SYSDATE AS REG_DATE,
+	    SYSDATE AS UPD_DATE
+	FROM DUAL
+) B
+ON (
+		A.CONTRACT_CODE = B.CONTRACT_CODE
+	AND	A.SEQ = B.SEQ
+)
+WHEN NOT MATCHED THEN
+INSERT(
+    CONTRACT_CODE,
+    SEQ,
+    CONTENTS,
+    MARK_UNIT,
+    RATE_AMOUNT,
+    UNIT,
+    REG_EMP,
+    UPD_EMP,
+    REG_DATE,
+    UPD_DATE
+) VALUES(
+    B.CONTRACT_CODE,
+    (SELECT NVL(MAX(SEQ),0)+1 FROM TBL_CONSTRUCTION_SUBC_COST WHERE CONTRACT_CODE = #{CONTRACT_CODE}),--데이터가없으면 0 데이터가 있으면 최대값 +1
+    B.CONTENTS,
+    B.MARK_UNIT,
+    B.RATE_AMOUNT,
+    B.UNIT,
+    B.REG_EMP,
+    B.UPD_EMP,
+    B.REG_DATE,
+    B.UPD_DATE
+)
+WHEN MATCHED THEN
+UPDATE SET
+    CONTENTS = B.CONTENTS,
+    MARK_UNIT = B.MARK_UNIT,
+    RATE_AMOUNT = B.RATE_AMOUNT,
+    UNIT = B.UNIT,
+    REG_EMP = B.REG_EMP,
+    REG_DATE = B.REG_DATE
+</update>
+
+<update id="merge_construction_subc_emp_cost">
+/* oracle.yp_zcs_ctr.merge_construction_subc_emp_cost */
+MERGE INTO TBL_CONSTRUCTION_SUBC_EMP_COST A
+USING (
+	SELECT
+		#{CONTRACT_CODE} AS CONTRACT_CODE,
+	    #{SEQ} AS SEQ,
+	    #{CONTENTS} AS CONTENTS,
+	    #{MARK_UNIT} AS MARK_UNIT,
+	    REPLACE(#{AMOUNT}, ',', '') AS AMOUNT,
+	    #{UNIT} AS UNIT,
+	    #{s_emp_code} AS REG_EMP,
+	    #{s_emp_code} AS UPD_EMP,
+	    SYSDATE AS REG_DATE,
+	    SYSDATE AS UPD_DATE
+	FROM DUAL
+) B
+ON (
+		A.CONTRACT_CODE = B.CONTRACT_CODE
+	AND	A.SEQ = B.SEQ
+)
+WHEN NOT MATCHED THEN
+INSERT(
+    CONTRACT_CODE,
+    SEQ,
+    CONTENTS,
+    MARK_UNIT,
+    AMOUNT,
+    UNIT,
+    REG_EMP,
+    UPD_EMP,
+    REG_DATE,
+    UPD_DATE
+) VALUES(
+    B.CONTRACT_CODE,
+    (SELECT NVL(MAX(SEQ),0)+1 FROM TBL_CONSTRUCTION_SUBC_EMP_COST WHERE CONTRACT_CODE = #{CONTRACT_CODE}),--데이터가없으면 0 데이터가 있으면 최대값 +1
+    B.CONTENTS,
+    B.MARK_UNIT,
+    B.AMOUNT,
+    B.UNIT,
+    B.REG_EMP,
+    B.UPD_EMP,
+    B.REG_DATE,
+    B.UPD_DATE
+)
+WHEN MATCHED THEN
+UPDATE SET
+    CONTENTS = B.CONTENTS,
+    MARK_UNIT = B.MARK_UNIT,
+    AMOUNT = B.AMOUNT,
+    UNIT = B.UNIT,
+    REG_EMP = B.REG_EMP,
+    REG_DATE = B.REG_DATE
+</update>
+
+<select id="select_construction_subc_cost_cnt" resultType="Double">
+/* oracle.yp_zcs_ctr.select_construction_subc_cost_cnt */
+SELECT
+    count(*) as cnt
+FROM TBL_CONSTRUCTION_SUBC_COST
+WHERE 1=1
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+</select>
+
+<select id="select_construction_subc_cost" resultType="HashMap">
+/* oracle.yp_zcs_ctr.select_construction_subc_cost */
+SELECT
+	CONTRACT_CODE,
+	SEQ,
+	ROW_NUMBER() OVER(PARTITION BY CONTRACT_CODE ORDER BY SEQ) AS RN,
+	CONTENTS,
+	MARK_UNIT,
+<!-- 	RATE_AMOUNT, -->
+	RTRIM(TO_CHAR(RATE_AMOUNT, 'FM9,999,999,999,999,999,999,990.999'), '.') AS RATE_AMOUNT,
+	UNIT
+FROM TBL_CONSTRUCTION_SUBC_COST
+WHERE 1=1
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+ORDER BY SEQ
+</select>
+
+<update id="delete_construction_subc">
+/* oracle.yp_zcs_ctr.delete_construction_subc */
+DELETE FROM TBL_CONSTRUCTION_SUBC
+WHERE 1=1
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</update>
+
+<update id="delete_construction_subc_cost">
+/* oracle.yp_zcs_ctr.delete_construction_subc_cost */
+DELETE FROM TBL_CONSTRUCTION_SUBC_COST
+WHERE 1=1
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+<if test='SEQ != null'>
+AND SEQ = #{SEQ}
+</if>
+</update>
+
+<select id="select_construction_subc_emp_cost_cnt" resultType="Double">
+/* oracle.yp_zcs_ctr.select_construction_subc_emp_cost_cnt */
+SELECT
+    count(*) as cnt
+FROM TBL_CONSTRUCTION_SUBC_EMP_COST
+WHERE 1=1
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+</select>
+
+<select id="select_construction_subc_emp_cost" resultType="HashMap">
+/* oracle.yp_zcs_ctr.select_construction_subc_emp_cost */
+SELECT
+    CONTRACT_CODE,
+    SEQ,
+    CONTENTS,
+    MARK_UNIT,
+<!--     AMOUNT, -->
+	RTRIM(TO_CHAR(AMOUNT, 'FM9,999,999,999,999,999,999,990.999'), '.') AS AMOUNT,
+    UNIT
+FROM TBL_CONSTRUCTION_SUBC_EMP_COST
+WHERE 1=1
+<if test='CONTRACT_CODE != null'>
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+</if>
+ORDER BY SEQ
+</select>
+
+<update id="delete_construction_subc_emp_cost">
+/* oracle.yp_zcs_ctr.delete_construction_subc_emp_cost */
+DELETE FROM TBL_CONSTRUCTION_SUBC_EMP_COST
+WHERE 1=1
+AND CONTRACT_CODE = #{CONTRACT_CODE}
+<if test='SEQ != null'>
+AND SEQ = #{SEQ}
+</if>
+</update>
+
+<select id="select_grid_construction_subc_cnt" resultType="Double">
+	/* oracle.yp_zcs_ctr.select_grid_construction_subc_cnt */
+	SELECT 
+	    COUNT(*) AS cnt
+	FROM TBL_CONSTRUCTION_SUBC A
+	LEFT OUTER JOIN COM_CODE_DETAIL B
+	ON A.PAY_STANDARD = B.CODE_VALUE 
+	AND B.CODE = 'YP_PAY_GUBUN'
+	WHERE 1=1
+<!-- 	AND (CONTRACT_START_DATE <![CDATA[>=]]> #{CONTRACT_START_DATE} OR CONTRACT_END_DATE <![CDATA[<=]]> #{CONTRACT_END_DATE}) -->
+	<if test="CONTRACT_START_DATE != null">
+	AND A.CONTRACT_START_DATE <![CDATA[>=]]> #{CONTRACT_START_DATE}
+	</if> 
+	<if test="CONTRACT_END_DATE != null">
+	AND A.CONTRACT_END_DATE <![CDATA[<=]]> #{CONTRACT_END_DATE}
+	</if>
+	<if test='PAY_STANDARD != null'>
+	AND PAY_STANDARD = #{PAY_STANDARD}
+	</if>
+	<if test='WBS_CODE != null'>
+	AND (
+		   WBS_CODE1 LIKE  '%' || #{WBS_CODE} || '%'
+		OR WBS_CODE2 LIKE  '%' || #{WBS_CODE} || '%'
+		OR WBS_CODE3 LIKE  '%' || #{WBS_CODE} || '%'
+		OR WBS_CODE4 LIKE  '%' || #{WBS_CODE} || '%'
+		OR WBS_CODE5 LIKE  '%' || #{WBS_CODE} || '%'
+		OR WBS_CODE6 LIKE  '%' || #{WBS_CODE} || '%'
+		)
+	</if>
+	<if test='CONTRACT_CODE != null'>
+	AND CONTRACT_CODE LIKE  '%' || #{CONTRACT_CODE} || '%'
+	</if>
+	<if test='CONTRACT_NAME != null'>
+	AND CONTRACT_NAME LIKE  '%' || #{CONTRACT_NAME} || '%'
+	</if>
+	<if test='VENDOR_CODE != null'>
+	AND VENDOR_CODE LIKE  '%' || #{VENDOR_CODE} || '%'
+	</if>
+</select>
+
+<select id="select_grid_construction_subc" resultType="HashMap">
+	/* oracle.yp_zcs_ctr.select_grid_construction_subc */
+	SELECT 
+	    CONTRACT_CODE,
+	    PAY_STANDARD,
+	    B.CODE_NM as PAY_STANDARD_NAME,
+	    CONTRACT_NAME,
+	    -- CONTRACT_START_DATE,
+	    -- CONTRACT_END_DATE,
+	    TO_CHAR( TO_DATE( CONTRACT_START_DATE, 'YYYYMMDD' ), 'YYYY/MM/DD' ) AS CONTRACT_START_DATE,
+	    TO_CHAR( TO_DATE( CONTRACT_END_DATE, 'YYYYMMDD' ), 'YYYY/MM/DD' ) AS CONTRACT_END_DATE,
+	    CONTRACT_PEOPLE_CNT AS CONTRACT_PEOPLE_CNT, /* 계약 인원 */
+	    DAILY_REQ_PEOPLE_CNT AS DAILY_REQ_PEOPLE_CNT, /* 일일 필수 출근 인원 */
+	    VENDOR_CODE,
+	    C.CODE_NAME AS VENDOR_NAME,
+	    WBS_CODE1,
+	    WBS_CODE2,
+	    WBS_CODE3,
+	    WBS_CODE4,
+	    WBS_CODE5,
+	    WBS_CODE6,
+	    WBS_CODE1 || CASE WHEN WBS_CODE2 IS NULL THEN '' ELSE ', ' || WBS_CODE2 END 
+        || CASE WHEN WBS_CODE3 IS NULL THEN '' ELSE ', ' || WBS_CODE3 END
+        || CASE WHEN WBS_CODE4 IS NULL THEN '' ELSE ', ' || WBS_CODE4 END
+        || CASE WHEN WBS_CODE5 IS NULL THEN '' ELSE ', ' || WBS_CODE5 END
+        || CASE WHEN WBS_CODE6 IS NULL THEN '' ELSE ', ' || WBS_CODE6 END as WBS_CODE,
+	    EMPLOYMENT_COSTS,
+	    WORK_START_TIME,
+	    WORK_END_TIME,
+	    EMPLOYMENT_COSTS_YEAR,
+	    EMPLOYMENT_COSTS_MONTH
+	FROM TBL_CONSTRUCTION_SUBC A
+	LEFT OUTER JOIN COM_CODE_DETAIL B
+	ON A.PAY_STANDARD = B.CODE_VALUE 
+	AND B.CODE = 'YP_PAY_GUBUN'
+	LEFT OUTER JOIN TBL_WORKING_MASTER C
+    ON A.VENDOR_CODE = C.CODE
+	WHERE 1=1
+	<if test="CONTRACT_START_DATE != null">
+	AND A.CONTRACT_START_DATE <![CDATA[>=]]> #{CONTRACT_START_DATE}
+	</if> 
+	<if test="CONTRACT_END_DATE != null">
+	AND A.CONTRACT_END_DATE <![CDATA[<=]]> #{CONTRACT_END_DATE}
+	</if>
+	<if test='PAY_STANDARD != null'>
+	AND PAY_STANDARD = #{PAY_STANDARD}
+	</if>
+	<if test='WBS_CODE != null'>
+	AND (
+		   WBS_CODE1 LIKE  '%' || #{WBS_CODE} || '%'
+		OR WBS_CODE2 LIKE  '%' || #{WBS_CODE} || '%'
+		OR WBS_CODE3 LIKE  '%' || #{WBS_CODE} || '%'
+		OR WBS_CODE4 LIKE  '%' || #{WBS_CODE} || '%'
+		OR WBS_CODE5 LIKE  '%' || #{WBS_CODE} || '%'
+		OR WBS_CODE6 LIKE  '%' || #{WBS_CODE} || '%'
+		)
+	</if>
+	<if test='CONTRACT_CODE != null'>
+	AND CONTRACT_CODE LIKE  '%' || #{CONTRACT_CODE} || '%'
+	</if>
+	<if test='CONTRACT_NAME != null'>
+	AND CONTRACT_NAME LIKE  '%' || #{CONTRACT_NAME} || '%'
+	</if>
+	<if test='VENDOR_CODE != null'>
+	AND VENDOR_CODE LIKE  '%' || #{VENDOR_CODE} || '%'
+	</if>
+</select>
+
+<select id="select_construction_subc" resultType="HashMap">
+	/* oracle.yp_zcs_ctr.select_construction_subc */
+	SELECT 
+		PAY_STANDARD,
+		F_GETCODENAME('YP_PAY_GUBUN', PAY_STANDARD) AS PAY_STANDARD_NAME, -- 지급구분
+	    CONTRACT_CODE,
+	    CONTRACT_NAME,
+	    CONTRACT_START_DATE,
+	    CONTRACT_END_DATE,
+	    VENDOR_CODE,
+	    CONTRACT_PEOPLE_CNT, /* 계약 인원 */
+	    DAILY_REQ_PEOPLE_CNT, /* 일일 필수 출근 인원 */
+	    B.SAP_CODE,
+	    B.CODE_NAME AS VENDOR_NAME,
+	    WBS_CODE1,
+	    WBS_CODE2,
+	    WBS_CODE3,
+	    WBS_CODE4,
+	    WBS_CODE5,
+	    WBS_CODE6,
+	    EMPLOYMENT_COSTS,
+	    WORK_START_TIME,
+	    WORK_END_TIME,
+	    EMPLOYMENT_COSTS_YEAR,
+	    EMPLOYMENT_COSTS_MONTH
+	FROM TBL_CONSTRUCTION_SUBC A
+	LEFT OUTER JOIN TBL_WORKING_MASTER B
+    ON A.VENDOR_CODE = B.CODE
+	WHERE 1=1
+	<if test='PAY_STANDARD != null'>
+	AND PAY_STANDARD = #{PAY_STANDARD}
+	</if>
+	<if test='search_type == "CONTRACT_NAME"'>
+	AND CONTRACT_NAME LIKE '%' ||  #{search_text} || '%'
+	</if>
+	<if test='search_type == "CONTRACT_CODE"'>
+	AND CONTRACT_CODE LIKE '%' ||  #{search_text} || '%'
+	</if>
+	<if test='search_type == "VENDOR_CODE"'>
+	AND SAP_CODE LIKE '%' ||  #{search_text} || '%'
+	</if>
+	<if test='SAP_CODE != null'>
+	AND SAP_CODE = #{SAP_CODE}
+	</if>
+</select>
+
+<select id="select_construction_subc_list" resultType="java.util.LinkedHashMap">
+	/* oracle.yp_zcs_ctr.select_construction_subc_list */
+	SELECT 
+		PAY_STANDARD,
+	    CONTRACT_CODE,
+	    CONTRACT_NAME,
+	    -- CONTRACT_START_DATE,
+	    -- CONTRACT_END_DATE,
+	    TO_CHAR( TO_DATE( CONTRACT_START_DATE, 'YYYYMMDD' ), 'YYYY/MM/DD' ) AS CONTRACT_START_DATE,
+	    TO_CHAR( TO_DATE( CONTRACT_END_DATE, 'YYYYMMDD' ), 'YYYY/MM/DD' ) AS CONTRACT_END_DATE,
+	    CONTRACT_PEOPLE_CNT AS CONTRACT_PEOPLE_CNT, /* 계약 인원 */
+	    DAILY_REQ_PEOPLE_CNT AS DAILY_REQ_PEOPLE_CNT, /* 일일 필수 출근 인원 */
+	    VENDOR_CODE,
+	    B.SAP_CODE,
+	    B.CODE_NAME AS VENDOR_NAME,
+	    WBS_CODE1,
+	    WBS_CODE2,
+	    WBS_CODE3,
+	    WBS_CODE4,
+	    WBS_CODE5,
+	    WBS_CODE6,
+	    EMPLOYMENT_COSTS,
+	    WORK_START_TIME,
+	    WORK_END_TIME,
+	    EMPLOYMENT_COSTS_YEAR,
+	    EMPLOYMENT_COSTS_MONTH
+	FROM TBL_CONSTRUCTION_SUBC A
+	LEFT OUTER JOIN TBL_WORKING_MASTER B
+    ON A.VENDOR_CODE = B.CODE
+	WHERE 1=1
+	<if test='CONTRACT_CODE != null'>
+	AND A.CONTRACT_CODE = #{CONTRACT_CODE}
+	</if>
+</select>
+
+<select id="select_contstruction_subc_cost" resultType="HashMap">
+	/* oracle.yp_zcs_ctr.select_contstruction_subc_cost */
+	SELECT 
+	    CONTRACT_CODE,
+		SEQ,
+		CONTENTS,
+		MARK_UNIT,
+		RATE_AMOUNT,
+		UNIT
+	FROM TBL_CONSTRUCTION_SUBC_COST
+	WHERE 1=1
+	<if test='CONTRACT_CODE != null'>
+	AND CONTRACT_CODE = #{CONTRACT_CODE}
+	</if>
+</select>
+
+<select id="select_contstruction_subc_emp_cost" resultType="HashMap">
+	/* oracle.yp_zcs_ctr.select_contstruction_subc_emp_cost */
+	SELECT 
+	    CONTRACT_CODE,
+		SEQ,
+		CONTENTS,
+		MARK_UNIT,
+		AMOUNT,
+		UNIT
+	FROM TBL_CONSTRUCTION_SUBC_EMP_COST
+	WHERE 1=1
+	<if test='CONTRACT_CODE != null'>
+	AND CONTRACT_CODE = #{CONTRACT_CODE}
+	</if>
+</select>
+
+<select id="select_working_master_v" resultType="HashMap">
+/* oracle.yp_zcs_ctr.select_working_master_v */
+SELECT
+    CODE,
+    SAP_CODE,
+    CODE_NAME AS CODE_NAME
+FROM TBL_WORKING_MASTER
+WHERE 1=1
+AND CODE LIKE 'V%'
+AND USE_YN = 'Y'
+AND ENTERPRISE_GUBUN IN ('2','3')
+<if test='search_type == "VENDOR_NAME"'>
+AND CODE_NAME LIKE '%' ||  #{search_text} || '%'
+</if>
+<if test='search_type == "SAP_CODE"'>
+AND SAP_CODE LIKE '%' ||  #{search_text} || '%'
+</if>
+ORDER BY TO_NUMBER(REGEXP_REPLACE(CODE, '[^0-9]'))
+</select>
+
+<select id="select_exist_monthly_rpt" resultType="int">
+/* oracle.yp_zcs_ctr.select_exist_monthly_rpt */
+SELECT 
+    COUNT(A.CONTRACT_CODE) as cnt
+FROM(
+    SELECT 
+        CONTRACT_CODE
+    FROM TBL_CONSTRUCTION_MONTHLY_RPT1
+    WHERE 1=1
+    <if test='CONTRACT_CODE != null'>
+	AND CONTRACT_CODE = #{CONTRACT_CODE}
+	</if>
+    
+    UNION ALL
+    SELECT 
+        CONTRACT_CODE
+    FROM TBL_CONSTRUCTION_MONTHLY_RPT2
+    WHERE 1=1
+    <if test='CONTRACT_CODE != null'>
+	AND CONTRACT_CODE = #{CONTRACT_CODE}
+	</if>
+    
+    UNION ALL
+    SELECT 
+        CONTRACT_CODE
+    FROM TBL_CONSTRUCTION_MONTHLY_RPT3
+    WHERE 1=1
+    <if test='CONTRACT_CODE != null'>
+	AND CONTRACT_CODE = #{CONTRACT_CODE}
+	</if>
+) A
+</select>
+
+</mapper>

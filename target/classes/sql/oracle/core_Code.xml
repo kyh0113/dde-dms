@@ -1,0 +1,325 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.Code">
+	
+	<select id="getCommonCode" resultType="HashMap">
+	/* 공통코드조회 - oracle.Common.getCommonCode : [${p_code}] */	
+	SELECT  CODE_VALUE AS VALUE,
+			CODE_NM AS NAME
+	FROM    COM_CODE_DETAIL A
+	WHERE   USE_YN = 'Y'
+	AND     CODE = #{p_code}
+	ORDER BY SORT_NO ASC
+	</select>
+	
+	<select id="getCodeMasterList" resultType="HashMap">
+	/* oracle.Code.getCodeMasterList */		
+			SELECT  CODE AS VALUE, 
+					CODE || ' ' || CODE_NM   AS CODE_NAME,
+					CODE_NM AS NAME,
+					NOTE AS MASTER_NOTE,
+					SORT_NO AS SORT_NO
+			FROM 	COM_CODE_MASTER
+			WHERE 	USE_YN = 'Y'
+			ORDER BY SORT_NO ASC
+	</select>
+
+	<select id="getCodeMasterYN" resultType="HashMap">
+	/* oracle.Code.getCodeMasterYN */
+			SELECT  CODE_VALUE AS VALUE,
+					CODE_NM   AS NAME
+			FROM    COM_CODE_DETAIL A
+			WHERE   USE_YN = 'Y'
+			AND     CODE =  #{code}
+			ORDER BY SORT_NO ASC
+	</select>
+
+	<!-- 코드관리 -->
+	<select id="getCodeListCnt" resultType="Double">
+	/* oracle.Code.getCodeListCnt */
+		SELECT COUNT(*) AS CNT
+    	FROM(        
+    			SELECT
+    				ROW_NUMBER() OVER( ORDER BY master_sort ASC) RNUM,	
+	    			Z.*
+    			FROM (
+    				SELECT
+           				A.CODE AS    master_code,
+           				A.CODE_NM AS master_name,
+           				A.SORT_NO AS master_sort,
+           				A.USE_YN AS  master_use,
+           				A.NOTE   AS  master_note       
+	        		FROM COM_CODE_MASTER A                 
+	        		WHERE 1=1    
+	        		<if test="selectCodeMaster != null">
+					AND A.CODE = '${selectCodeMaster}'
+					</if> 
+					<if test="selectCodeMasterYN != null">
+					AND A.USE_YN = '${selectCodeMasterYN}'
+					</if> 
+				) Z
+        	)GRID 
+	</select>
+	
+	<select id="getCodeList" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.Code.getCodeList */
+		SELECT GRID.* 
+    	FROM(        
+    			SELECT
+    				ROW_NUMBER() OVER( ORDER BY master_sort ASC) RNUM,	
+	    			Z.*
+    			FROM (
+    				SELECT
+           				A.CODE    AS master_code,
+           				A.CODE_NM AS master_name,
+           				A.SORT_NO AS master_sort,
+           				A.USE_YN  AS master_use,
+           				A.NOTE   AS  master_note        
+	        		FROM COM_CODE_MASTER A                 
+	        		WHERE 1=1    
+	        		<if test="selectCodeMaster != null">
+					AND A.CODE = '${selectCodeMaster}'
+					</if> 
+					<if test="selectCodeMasterYN != null">
+					AND A.USE_YN = '${selectCodeMasterYN}'
+					</if> 
+				) Z
+        	)GRID 
+    	WHERE 1 = 1
+        AND   GRID.RNUM BETWEEN  #{start} AND #{end}
+	</select>
+
+	<!-- 코드관리 셀클릭 -->
+	<select id="selectgetCodeListCnt" resultType="Double">
+	/* oracle.Code.selectgetCodeListCnt */
+		SELECT	count(*) as CNT
+    	FROM(        
+   			SELECT
+   				ROW_NUMBER() OVER( ORDER BY detail_sort asc) RNUM,	
+    			Z.*
+   			FROM (
+   				SELECT
+					A.CODE       as master_code,
+					A.CODE_VALUE as detail_code,
+					A.CODE_NM    as detail_name,
+					A.NOTE       as detail_note,
+					A.USE_YN     as detail_use,
+					A.SORT_NO    as detail_sort,
+					B.CODE_NM    as master_name,
+					B.USE_YN     as master_use,
+					B.SORT_NO    as master_sort     
+        		FROM COM_CODE_DETAIL A
+        		LEFT OUTER JOIN COM_CODE_MASTER B
+				ON A.CODE = B.CODE
+				WHERE 1=1
+				<if test="select_detail_code != null">
+					and A.CODE = #{select_detail_code}
+				</if>	
+			) Z
+       	)GRID 
+	</select>
+	
+	<select id="selectgetCodeList" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.Code.selectgetCodeList */
+		SELECT	GRID.* 
+    	FROM(        
+   			SELECT
+   				ROW_NUMBER() OVER( ORDER BY detail_sort asc) RNUM,	
+    			Z.*
+   			FROM (
+   				SELECT
+					A.CODE       as master_code,
+					A.CODE_VALUE as detail_code,
+					A.CODE_NM    as detail_name,
+					A.NOTE       as detail_note,
+					A.USE_YN     as detail_use,
+					A.SORT_NO    as detail_sort,
+					B.CODE_NM    as master_name,
+					B.USE_YN     as master_use,
+					B.SORT_NO    as master_sort     
+        		FROM COM_CODE_DETAIL A
+        		LEFT OUTER JOIN COM_CODE_MASTER B
+				ON A.CODE = B.CODE
+				WHERE 1=1
+				<if test="select_detail_code != null">
+					and A.CODE = #{select_detail_code}
+				</if>	
+			) Z
+       	)GRID 
+    	WHERE 1 = 1
+        AND   GRID.RNUM BETWEEN  #{start} AND #{end}
+	</select>
+	
+	<select id="getCodeMasterSelect" resultType="HashMap">
+	/* oracle.Code.getCodeMasterSelect */
+		SELECT 		CODE 			AS M_MASTER_CODE
+					,CODE_NM 		AS M_MASTER_NAME
+					,NOTE 		    AS M_MASTER_NOTE
+					,SORT_NO 	    AS M_MASTER_SORT
+					,USE_YN 	    AS M_RADIO_USE_YN
+		FROM 		COM_CODE_MASTER
+		WHERE 		CODE = '${MASTER_CODE}'
+		ORDER BY 	SORT_NO ASC
+	</select>
+	
+
+	
+	<update id="setCodeMasterMerge">
+	/* oracle.Code.setCodeMasterMerge */
+		MERGE INTO COM_CODE_MASTER A USING ( SELECT '${m_master_code}' AS CODE FROM DUAL) B ON (A.CODE = B.CODE )
+		WHEN MATCHED THEN 
+			 UPDATE SET	
+			 A.CODE_NM			= '${m_master_name}'
+			 ,A.NOTE			= '${m_master_note}'
+			 ,A.USE_YN			= '${m_master_use}'
+			 ,A.MOD_ID			= '${s_emp_code}'
+			 ,A.MOD_DT			=  SYSTIMESTAMP
+			 ,A.SORT_NO		    = '${m_master_sort}'
+		WHEN NOT MATCHED THEN
+			 INSERT (CODE, CODE_NM, NOTE, USE_YN, SORT_NO, REG_ID, REG_DT, MOD_ID, MOD_DT) 
+			 VALUES('${m_master_code}','${m_master_name}','${m_master_note}','${m_master_use}','${m_master_sort}','${s_emp_code}',SYSTIMESTAMP,'${s_emp_code}',SYSTIMESTAMP)
+	</update>
+	
+	<select id="getCodeDetailList" resultType="HashMap">
+	/* oracle.Code.getCodeDetailList */
+			SELECT  	B.CODE_VALUE AS VALUE,
+						B.CODE_NM AS NAME
+			FROM    	COM_CODE_MASTER A
+			        	INNER JOIN COM_CODE_DETAIL B 
+			ON 			A.CODE = B.CODE
+			WHERE   	A.USE_YN = 'Y'	
+			<if test="master_code != null">
+			AND 		A.CODE = '${master_code}'
+			</if>	
+		    ORDER BY	B.SORT_NO
+	</select>	
+	
+	<select id="getCodeDetailSelect" resultType="HashMap">
+	/* oracle.Code.getCodeDetailSelect */
+			SELECT  	A.CODE AS SELECT_MASTER_CODE
+						,A.CODE AS MASTER_CODE	
+						,A.CODE_NM AS MASTER_NAME
+						,B.CODE_VALUE AS DETAIL_CODE
+						,B.CODE_VALUE AS SELECT_DETAIL_CODE
+						,B.CODE_NM AS DETAIL_NAME
+						,B.SORT_NO AS DETAIL_SORT
+						,B.NOTE AS DETAIL_NOTE
+						,B.USE_YN AS RADIO_USE_YN
+			FROM    	COM_CODE_MASTER A
+			        	INNER JOIN COM_CODE_DETAIL B 
+			ON          A.CODE = B.CODE
+			WHERE   	A.USE_YN = 'Y'
+		    AND 		A.CODE = '${MASTER_CODE}'
+		    AND			B.CODE_VALUE = '${DETAIL_CODE}'
+		    ORDER BY	B.SORT_NO
+	</select>	
+	
+	<select id="selectMasterCode" resultType="HashMap">
+	/* oracle.Code.selectMasterCode */
+			SELECT
+				CODE
+				, CODE_NM
+				, SORT_NO
+				, NOTE
+				, USE_YN
+			FROM COM_CODE_MASTER
+			WHERE 1=1
+		    AND CODE = #{master_code}
+	</select>	
+	
+	<select id="selectDetailCode" resultType="HashMap">
+	/* oracle.Code.selectDetailCode */
+			SELECT
+				A.CODE AS CODE
+				, A.CODE_NM AS CODE_NM
+				, A.CODE_VALUE AS CODE_VALUE
+				, A.SORT_NO AS SORT_NO
+				, A.NOTE AS NOTE
+				, A.USE_YN AS USE_YN
+				, B.CODE_NM AS CODE_NM_MASTER
+			FROM COM_CODE_DETAIL A
+			LEFT OUTER JOIN COM_CODE_MASTER B
+			ON A.CODE = B.CODE
+			WHERE 1=1
+		    AND A.CODE = #{master_code}
+		    AND A.CODE_VALUE = #{detail_code}
+	</select>	
+	
+	<update id="setCodeDetailMerge">
+	/* oracle.Code.setCodeDetailMerge */
+	MERGE INTO COM_CODE_DETAIL A
+	USING (
+	    SELECT  #{m_d_master_code} AS CODE
+	          , #{m_detail_code} AS CODE_VALUE
+	    FROM DUAL
+	) B
+	ON (
+			A.CODE = B.CODE
+		AND A.CODE_VALUE = B.CODE_VALUE
+	)
+	WHEN NOT MATCHED THEN
+		INSERT (
+			  CODE
+			, CODE_VALUE
+			, CODE_NM
+			, NOTE
+			, USE_YN
+			, SORT_NO
+			, REG_ID
+			, REG_DT
+			, MOD_ID
+			, MOD_DT
+		) VALUES (
+			  #{m_d_master_code}
+			, #{m_detail_code}
+			, #{m_detail_name}
+			, #{m_detail_note}
+			, #{m_detail_use}
+			, #{m_detail_sort}
+			, #{s_emp_code}
+			, SYSTIMESTAMP
+			, #{s_emp_code}
+			, SYSTIMESTAMP
+	             )
+	WHEN MATCHED THEN
+		UPDATE SET
+			  A.CODE_NM  = #{m_detail_name}
+			, A.NOTE     = #{m_detail_note}
+			, A.USE_YN   = #{m_detail_use}
+			, A.MOD_ID   = #{s_emp_code}
+			, A.MOD_DT   = SYSTIMESTAMP
+			, A.SORT_NO  = #{m_detail_sort}
+	</update>		
+	
+	<delete id="deleteDetailCode">
+	/* oracle.Code.deleteDetailCode */
+		DELETE COM_CODE_DETAIL
+		WHERE 1=1
+		AND CODE       = #{master_code}
+		AND CODE_VALUE = #{detail_code}
+	</delete>
+	
+	<delete id="deleteMasterCode1">
+	/* oracle.Code.deleteMasterCode1 */
+		DELETE COM_CODE_DETAIL
+		WHERE 1=1
+		AND CODE = #{master_code}
+	</delete>
+	
+	<delete id="deleteMasterCode2">
+	/* oracle.Code.deleteMasterCode2 */
+		DELETE COM_CODE_MASTER
+		WHERE 1=1
+		AND CODE = #{master_code}
+	</delete>
+	
+	<select  id="select_code_list" resultType="HashMap">
+	/* oracle.Code.select_code_list */
+		SELECT KEY, VALUE FROM TBL_CODE_LIST
+		WHERE TYPE = #{type}
+			AND TYPE_LEVEL = #{type_level}
+			<if test="upper_key != null">AND UPPER_KEY = #{upper_key}</if>
+			<if test="upper_val != null">AND UPPER_VALUE = #{upper_val}</if>
+		ORDER BY ORDER_NO ASC
+	</select>
+</mapper>

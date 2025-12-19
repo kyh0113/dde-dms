@@ -1,0 +1,659 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.Auth">
+
+	<select id="authListCnt" resultType="Double">
+	/* oracle.Auth.authListCnt */
+	SELECT	count(*) as CNT 
+	FROM (
+		SELECT	ROW_NUMBER() OVER( ORDER BY A.AUTH_ID asc) RNUM,
+				A.AUTH_ID as auth_id, 
+				A.AUTH_TITLE as auth_title,
+				A.INIT_PAGE as init_page
+		FROM COM_AUTH A
+		WHERE 1 = 1
+		 
+		) GRID
+	WHERE 1 = 1
+	<if test='auth_name != null and !auth_name.equals("")'>
+	AND GRID.AUTH_TITLE LIKE '%${auth_name}%'
+	</if>
+	</select>
+		
+	<select id="authList" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.Auth.authList */
+	SELECT	GRID.* 
+	FROM (
+		SELECT	ROW_NUMBER() OVER( ORDER BY A.AUTH_ID asc) RNUM,
+				A.AUTH_ID as auth_id, 
+				case A.AUTH_ID
+					when 'SA' then 1
+					when 'MA' then 2
+					when 'IM' then 3
+					when 'TM' then 4
+					when 'WM' then 5
+					when 'CM' then 6
+					when 'SM' then 7
+					when 'US' then 8
+					else 99
+				end as srt,
+				A.AUTH_TITLE as auth_title,
+				A.INIT_PAGE as init_page
+		FROM COM_AUTH A
+		WHERE 1 = 1
+		 
+		) GRID
+	WHERE 1 = 1
+	<if test='auth_name != null and !auth_name.equals("")'>
+	AND GRID.AUTH_TITLE LIKE '%${auth_name}%'
+	</if>
+	order by GRID.srt
+	</select>
+
+	<update id="mergeAuth">
+	/* oracle.Auth.mergeAuth */
+	MERGE INTO COM_AUTH A
+	USING (
+	    SELECT #{authModal_auth_code} AS AUTH_ID FROM DUAL
+	) B
+	ON (A.AUTH_ID = B.AUTH_ID)
+	WHEN NOT MATCHED THEN
+		INSERT (
+			  AUTH_ID
+			, AUTH_TITLE
+			, INIT_PAGE
+			, USE_YN
+			, REG_ID
+			, REG_DT
+			, MOD_ID
+			, MOD_DT
+		) VALUES (
+			  #{authModal_auth_code}
+			, #{authModal_auth_name}
+			, #{authModal_auth_url}
+			, 'Y'
+			, #{s_emp_code}
+			, SYSTIMESTAMP
+			, #{s_emp_code}
+			, SYSTIMESTAMP
+	             )
+	WHEN MATCHED THEN
+		UPDATE SET
+			  AUTH_TITLE = #{authModal_auth_name}
+			, INIT_PAGE  = #{authModal_auth_url}
+			, MOD_ID     = #{s_emp_code}
+			, MOD_DT     = SYSTIMESTAMP
+	</update>
+
+	<select id="authEmpListCnt" resultType="double">
+		/* oracle.Auth.authEmpListCnt */
+		SELECT	count(*) as CNT
+		FROM (
+			SELECT
+				ROW_NUMBER() OVER( ORDER BY emp_code asc) RNUM
+				, A.auth_id
+				, B.auth_title as auth_name
+				, C.EMP_CODE AS emp_code
+				, C.USER_NAME AS emp_name
+			FROM COM_AUTH_USER A
+			INNER JOIN COM_AUTH B
+				ON A.AUTH_ID = B.AUTH_ID
+<!-- 			INNER JOIN COM_USER C -->
+			INNER JOIN COM_USER_V_YP C
+				ON A.USER_ID = C.EMP_CODE
+				AND C.EMP_CODE IS NOT NULL
+			WHERE 1 = 1
+			AND A.AUTH_ID = #{auth_id}
+			) GRID
+		WHERE 1 = 1
+		AND GRID.RNUM BETWEEN #{start} AND #{end}
+	</select>
+	
+	<select id="authEmpList" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+		/* oracle.Auth.authEmpList */
+		SELECT	GRID.* 
+		FROM (
+			SELECT
+				ROW_NUMBER() OVER( ORDER BY emp_code asc) RNUM
+				, A.auth_id
+				, B.auth_title as auth_name
+				, C.EMP_CODE AS emp_code
+				, C.USER_NAME AS emp_name
+			FROM COM_AUTH_USER A
+			INNER JOIN COM_AUTH B
+				ON A.AUTH_ID = B.AUTH_ID
+<!-- 			INNER JOIN COM_USER C -->
+			INNER JOIN COM_USER_V_YP C
+				ON A.USER_ID = C.EMP_CODE
+				AND C.EMP_CODE IS NOT NULL
+			WHERE 1 = 1
+			AND A.AUTH_ID = #{auth_id}
+			) GRID
+		WHERE 1 = 1
+		AND GRID.RNUM BETWEEN #{start} AND #{end}
+	</select>
+
+	<select id="authMenuListCnt" resultType="double">
+	/* oracle.Auth.authMenuListCnt */
+	SELECT 
+		COUNT(*)+1 AS CNT
+	FROM COM_AUTH_MENU A, COM_MENU B
+	WHERE A.MENU_ID = B.MENU_ID 
+	AND   A.AUTH_ID = #{auth_id}
+	</select>
+
+	<select id="authMenuList" resultType="HashMap">
+	/* oracle.Auth.authMenuList */
+	WITH TBL_PARENT (TITLE_VIEW, MENU_ID, TITLE, URL, PARENT_ID, PARENT_TITLE, SORT, USE_YN, LVL, HIERARCHY, HIERARCHY2, LEVL)
+    AS (
+	SELECT
+				   CAST( A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID
+	             , A.MENU_TITLE AS TITLE
+	             , A.URL AS URL
+	             , A.PARENT_ID
+	             , (SELECT S.MENU_TITLE FROM COM_MENU S WHERE 1=1 AND S.MENU_ID = A.MENU_ID) AS PARENT_TITLE
+	             , A.SORT
+	             , A.USE_YN
+	             , CAST( '　' AS VARCHAR(100)) AS LVL
+	             , substr( '000000' || to_char(A.SORT),-6 ) AS HIERARCHY
+	             , substr( '000000' || to_char(A.MENU_ID),-6 ) AS HIERARCHY2
+	             , 1 AS LEVL
+	       FROM    COM_MENU A
+	       WHERE   A.PARENT_ID = 0
+	UNION ALL
+	SELECT 
+				   CAST( LVL || A.MENU_TITLE AS VARCHAR(100) ) AS TITLE_VIEW
+	             , A.MENU_ID
+	             , A.MENU_TITLE AS TITLE
+	             , A.URL AS URL
+	             , A.PARENT_ID
+	             , (SELECT S.MENU_TITLE FROM COM_MENU S WHERE 1=1 AND S.MENU_ID = A.MENU_ID) AS PARENT_TITLE
+	             , A.SORT
+	             , A.USE_YN
+	             , CAST( '　' || LVL AS VARCHAR(100)) AS LVL
+                 , HIERARCHY || ';' || substr( '000000' || to_char(A.SORT),-6 ) AS HIERARCHY
+                 , HIERARCHY || ';' || substr( '000000' || to_char(A.MENU_ID),-6 ) AS HIERARCHY2
+	             , LEVL + 1 AS LEVL
+	       FROM    COM_MENU A
+	             , TBL_PARENT C
+	       WHERE   A.PARENT_ID = C.MENU_ID
+	)
+	SELECT	#{auth_id} AS AUTH_ID,
+			A.MENU_ID,
+			A.TITLE_VIEW,
+			A.TITLE,
+			CASE WHEN A.PARENT_ID = 0 OR A.URL = '/' THEN 0
+		         ELSE 1 END AS "$$treeLevel",
+	        F_PARENT(A.MENU_ID) AS CHECK_PARENT_ID,
+	        F_CHILD(A.MENU_ID) AS CHECK_CHILD_ID,
+			A.LEVL,
+	        A.URL,
+	        A.PARENT_ID,
+	        A.PARENT_TITLE,
+	        A.SORT,
+	        nvl(A.USE_YN, 'N') AS USE_YN,
+	        CASE WHEN B.MENU_ID IS NULL THEN 'N' ELSE 'Y' END AS ENBL_YN,
+	        nvl(B.BUTTON_AUTH_SEARCH, 'N') AS BUTTON_AUTH_SEARCH,
+	        nvl(B.BUTTON_AUTH_EXEC, 'N') AS BUTTON_AUTH_EXEC,
+	        nvl(B.BUTTON_AUTH_DELETE, 'N') AS BUTTON_AUTH_DELETE,
+	        nvl(B.BUTTON_AUTH_EXCEL, 'N') AS BUTTON_AUTH_EXCEL,
+			HIERARCHY,
+			HIERARCHY2
+	FROM TBL_PARENT A
+	LEFT OUTER JOIN (
+		SELECT	MENU_ID,
+				READ_YN AS BUTTON_AUTH_SEARCH,
+				RUN_YN AS BUTTON_AUTH_EXEC,
+				DEL_YN AS BUTTON_AUTH_DELETE,
+				EXCEL_YN AS BUTTON_AUTH_EXCEL
+		FROM COM_AUTH_MENU
+		WHERE AUTH_ID = #{auth_id}
+	) B
+	ON A.MENU_ID = B.MENU_ID
+	WHERE 1 = 1
+	AND A.USE_YN = 'Y'
+	ORDER BY HIERARCHY
+	</select>
+
+	<delete id="deleteAuthMenu">
+	/* oracle.Auth.deleteAuthMenu */
+	DELETE COM_AUTH_MENU
+	WHERE AUTH_ID = #{auth_id}
+	</delete>
+	
+	<insert id="insertAuthMenu">
+	/* oracle.Auth.insertAuthMenu */
+	INSERT INTO COM_AUTH_MENU
+	(
+		 AUTH_ID
+		,MENU_ID
+		,READ_YN
+		,RUN_YN
+		,DEL_YN
+		,EXCEL_YN
+		,REG_ID
+		,REG_DT
+		,MOD_ID
+		,MOD_DT
+	) VALUES ( 
+		 #{auth_id}
+		,#{menu_id}
+		,#{btn_search}
+		,#{btn_exec}
+		,#{btn_delete}
+		,#{btn_excel}
+		,#{s_emp_code}
+		,SYSTIMESTAMP
+		,#{s_emp_code}
+		,SYSTIMESTAMP
+	)
+	</insert>	
+	
+	<delete id="deleteAuth">
+	/* oracle.Auth.deleteAuth */
+	DELETE COM_AUTH
+	WHERE AUTH_ID = #{auth_id}
+	</delete>
+	
+	<delete id="deleteAuth_menu">
+	/* oracle.Auth.deleteAuth_menu */
+	DELETE COM_AUTH_MENU
+	WHERE AUTH_ID = #{auth_id}
+	</delete>
+	
+	<delete id="deleteAuth_user">
+	/* oracle.Auth.deleteAuth_user */
+	DELETE COM_AUTH_USER
+	WHERE AUTH_ID = #{auth_id}
+	</delete>
+	
+	<select id="selectUserCnt" resultType="Double">
+	/* oracle.Auth.selectUserCnt */
+	SELECT count(*) as CNT
+	FROM(
+		SELECT  
+<!-- 				A.EMP_CODE      as user_id,  -->
+<!-- 				A.EMP_NAME      as user_name,  -->
+<!-- 				A.AUTHOGRP_CODE as auth_id, -->
+<!-- 				B.AUTH_TITLE    as auth_name -->
+				A.EMP_CODE      as user_id, 
+				A.USER_NAME      as user_name, 
+				C.AUTH_ID as now_auth_id,
+				B.AUTH_TITLE    as now_auth_name
+<!-- 		FROM    COM_USER A -->
+<!-- 		LEFT OUTER JOIN COM_AUTH B -->
+<!-- 		ON A.AUTHOGRP_CODE = B.AUTH_ID -->
+		FROM    COM_USER_V_YP A
+		LEFT OUTER JOIN COM_AUTH_USER C
+			ON A.EMP_CODE = C.USER_ID
+		LEFT OUTER JOIN COM_AUTH B
+			ON C.AUTH_ID = B.AUTH_ID
+		WHERE 1=1
+		AND A.EMP_CODE IS NOT NULL
+	) GRID
+	WHERE 1 = 1	
+	<if test='user_name != null and !user_name.equals("")'>
+	AND GRID.USER_NAME LIKE '%${user_name}%'
+	</if>
+	</select>
+	
+	<select id="selectUserList" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+	/* oracle.Auth.selectUserList */
+	SELECT GRID.*
+	FROM(
+		SELECT  
+<!-- 				A.EMP_CODE      as user_id,  -->
+<!-- 				A.EMP_NAME      as user_name,  -->
+<!-- 				A.AUTHOGRP_CODE as now_auth_id, -->
+<!-- 				B.AUTH_TITLE    as now_auth_name, -->
+				A.EMP_CODE      as user_id, 
+				A.USER_NAME      as user_name, 
+				C.AUTH_ID as now_auth_id,
+				B.AUTH_TITLE    as now_auth_name,
+				#{s_emp_code}   as s_emp_code,
+				#{auth_id}      as auth_id
+<!-- 		FROM    COM_USER A -->
+<!-- 		LEFT OUTER JOIN COM_AUTH B -->
+<!-- 		ON A.AUTHOGRP_CODE = B.AUTH_ID -->
+		FROM    COM_USER_V_YP A
+		LEFT OUTER JOIN COM_AUTH_USER C
+			ON A.EMP_CODE = C.USER_ID
+		LEFT OUTER JOIN COM_AUTH B
+			ON C.AUTH_ID = B.AUTH_ID
+		WHERE 1=1
+		AND A.EMP_CODE IS NOT NULL
+	) GRID
+	WHERE 1 = 1	
+	<if test='user_name != null and !user_name.equals("")'>
+	AND GRID.USER_NAME LIKE '%${user_name}%'
+	</if>
+	ORDER BY GRID.USER_NAME ASC		
+	</select>
+	
+	<delete id="deleteAuthUser">
+	/* oracle.Auth.deleteAuthUser */
+	DELETE COM_AUTH_USER
+	WHERE USER_ID = #{user_id}
+	AND   AUTH_ID = #{now_auth_id}
+	</delete>
+	
+	<update id="createEnt2">
+	/* oracle.yp_zwc_ent.createEnt - 기준정보 동기화 */
+	MERGE INTO TBL_WORKING_MASTER A
+	USING (
+		SELECT
+			  'V' || #{SEQ} AS CODE
+			, LPAD(#{SEQ}, 2, '0') AS SEQ
+			, '-' AS BASE_YYYY
+			, #{ent_name} AS CODE_NAME
+			, #{ent_code} AS SAP_CODE
+			, #{REPRESENTATIVE} AS REPRESENTATIVE
+			, 'Y' AS USE_YN
+			, #{ENTERPRISE_GUBUN} AS ENTERPRISE_GUBUN
+			, #{s_emp_code} AS REG_EMP
+			, SYSDATE AS REG_DATE
+			, #{s_emp_code} AS UPD_EMP
+			, SYSDATE AS UPD_DATE
+		FROM DUAL
+	) B
+	ON (
+			A.CODE = B.CODE
+	)
+	WHEN NOT MATCHED THEN
+	INSERT (
+		CODE,
+		SEQ,
+		BASE_YYYY,
+		CODE_NAME,
+		SAP_CODE,
+		REPRESENTATIVE,
+		USE_YN,
+		ENTERPRISE_GUBUN,
+		REG_EMP,
+		REG_DATE
+	) VALUES (
+		B.CODE,
+		B.SEQ,
+		B.BASE_YYYY,
+		B.CODE_NAME,
+		B.SAP_CODE,
+		B.REPRESENTATIVE,
+		B.USE_YN,
+		B.ENTERPRISE_GUBUN,
+		B.REG_EMP,
+		B.REG_DATE
+	)
+	WHEN MATCHED THEN
+	UPDATE SET
+		ENTERPRISE_GUBUN = B.ENTERPRISE_GUBUN,
+		REPRESENTATIVE = B.REPRESENTATIVE,
+		UPD_EMP = B.UPD_EMP,
+		UPD_DATE = B.UPD_DATE
+	</update>
+	
+	<insert id="insertAuthUser">
+	/* oracle.Auth.insertAuthUser */
+	INSERT INTO COM_AUTH_USER
+	VALUES(
+		  #{auth_id}
+		, #{user_id}
+		, #{s_emp_code}
+		, SYSTIMESTAMP
+		, #{s_emp_code}
+		, SYSTIMESTAMP
+	)
+	</insert>
+	
+	<insert id="insertAuthUser_history">
+	/* oracle.Auth.insertAuthUser_history */
+	INSERT INTO COM_AUTH_USER_HIS
+	VALUES(
+		  #{user_id}
+		, #{auth_id}
+		, #{now_auth_id}
+		, #{s_emp_code}
+		, SYSTIMESTAMP
+		, #{s_emp_code}
+		, SYSTIMESTAMP
+	)
+	</insert>
+	
+	<update id="updateAuthUser">
+	/* oracle.Auth.updateAuthUser */
+	UPDATE COM_USER
+	SET    AUTHOGRP_CODE = #{auth_id},
+	       MOD_EMP_CODE  = #{s_emp_code},
+	       MOD_DATE      = to_char(sysdate, 'YYYYMMDD')
+	WHERE  EMP_CODE      = #{user_id}
+	</update>
+	
+	<!-- 데이터 권한관리 -->
+	<select id="data_authEmpListCnt" resultType="double">
+/* oracle.Auth.data_authEmpListCnt */
+SELECT	count(*) as CNT
+FROM (
+	SELECT
+		ROW_NUMBER() OVER( ORDER BY emp_code asc) RNUM
+		, a.menu_code
+		, F_GETCODENAME('YP_DATA_AUTH', a.MENU_CODE) AS MENU_NAME
+		, A.data_auth_id
+		, B.auth_title as auth_name
+		, C.EMP_CODE AS emp_code
+		, C.USER_NAME AS emp_name
+	FROM COM_DATA_AUTH_USER A
+	INNER JOIN COM_AUTH B
+		ON A.DATA_AUTH_ID = B.AUTH_ID
+	INNER JOIN COM_USER_V_YP C
+		ON A.DATA_USER_ID = C.EMP_CODE
+		AND C.EMP_CODE IS NOT NULL
+	WHERE 1 = 1
+	AND A.DATA_AUTH_ID = #{auth_id}
+	AND A.MENU_CODE = #{menu_code}
+	) GRID
+WHERE 1 = 1
+AND GRID.RNUM BETWEEN #{start} AND #{end}
+	</select>
+	
+	<select id="data_authEmpList" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.Auth.data_authEmpList */
+SELECT
+	ROW_NUMBER() OVER( ORDER BY GRID.emp_code asc) RN,
+	GRID.* 
+FROM (
+	SELECT
+		ROW_NUMBER() OVER( ORDER BY emp_code asc) RNUM
+		, a.menu_code
+		, F_GETCODENAME('YP_DATA_AUTH', a.MENU_CODE) AS MENU_NAME
+		, A.data_auth_id
+		, B.auth_title as auth_name
+		, C.EMP_CODE AS emp_code
+		, C.USER_NAME AS emp_name
+	FROM COM_DATA_AUTH_USER A
+	INNER JOIN COM_AUTH B
+		ON A.DATA_AUTH_ID = B.AUTH_ID
+	INNER JOIN COM_USER_V_YP C
+		ON A.DATA_USER_ID = C.EMP_CODE
+		AND C.EMP_CODE IS NOT NULL
+	WHERE 1 = 1
+	AND A.DATA_AUTH_ID = #{auth_id}
+	AND A.MENU_CODE = #{menu_code}
+	) GRID
+WHERE 1 = 1
+AND GRID.RNUM BETWEEN #{start} AND #{end}
+	</select>
+	
+	<select id="data_selectUserListCnt" resultType="Double">
+/* oracle.Auth.data_selectUserListCnt */
+SELECT count(*) as CNT
+FROM(
+	SELECT
+		A.EMP_CODE      as user_id, 
+		A.USER_NAME      as user_name,
+		C.DATA_AUTH_ID as now_auth_id,
+		B.AUTH_TITLE    as now_auth_name, 
+		C.MENU_CODE AS now_menu_code,
+		F_GETCODENAME('YP_DATA_AUTH', C.MENU_CODE) AS now_menu_name,
+		#{s_emp_code}   as s_emp_code,
+		#{auth_id}      as auth_id,
+		#{menu_code}      as menu_code
+	FROM COM_USER_V_YP A
+	LEFT OUTER JOIN COM_DATA_AUTH_USER C
+		ON A.EMP_CODE = C.DATA_USER_ID
+		AND c.DATA_AUTH_ID = #{auth_id}
+		AND C.MENU_CODE = #{menu_code}
+	LEFT OUTER JOIN COM_AUTH B
+		ON C.DATA_AUTH_ID = B.AUTH_ID
+	WHERE 1=1
+	AND A.EMP_CODE IS NOT NULL
+) GRID
+WHERE 1 = 1
+<if test='user_name != null and !user_name.equals("")'>
+AND GRID.USER_NAME LIKE '%${user_name}%'
+</if>
+	</select>
+	
+	<select id="data_selectUserList" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.Auth.data_selectUserList */
+SELECT GRID.*
+FROM(
+	SELECT
+		A.EMP_CODE      as user_id, 
+		A.USER_NAME      as user_name,
+		C.DATA_AUTH_ID as now_auth_id,
+		B.AUTH_TITLE    as now_auth_name, 
+		C.MENU_CODE AS now_menu_code,
+		F_GETCODENAME('YP_DATA_AUTH', C.MENU_CODE) AS now_menu_name,
+		#{s_emp_code}   as s_emp_code,
+		#{auth_id}      as auth_id,
+		#{menu_code}      as menu_code
+	FROM COM_USER_V_YP A
+	LEFT OUTER JOIN COM_DATA_AUTH_USER C
+		ON A.EMP_CODE = C.DATA_USER_ID
+<!-- 		AND C.DATA_AUTH_ID = #{auth_id} -->
+		AND C.MENU_CODE = #{menu_code}
+	LEFT OUTER JOIN COM_AUTH B
+		ON C.DATA_AUTH_ID = B.AUTH_ID
+	WHERE 1=1
+	AND A.EMP_CODE IS NOT NULL
+) GRID
+WHERE 1 = 1
+<if test='user_name != null and !user_name.equals("")'>
+AND GRID.USER_NAME LIKE '%${user_name}%'
+</if>
+ORDER BY GRID.USER_NAME ASC
+	</select>
+	
+	<delete id="deleteDataAuthUser">
+/* oracle.Auth.deleteDataAuthUser */
+DELETE COM_DATA_AUTH_USER
+WHERE DATA_USER_ID = #{user_id}
+AND DATA_AUTH_ID = #{now_auth_id}
+AND MENU_CODE = #{now_menu_code}
+	</delete>
+	
+	<insert id="insertDataAuthUser">
+/* oracle.Auth.insertDataAuthUser */
+INSERT INTO COM_DATA_AUTH_USER
+VALUES(
+	  #{menu_code}
+	, #{auth_id}
+	, #{user_id}
+	, #{s_emp_code}
+	, SYSTIMESTAMP
+	, #{s_emp_code}
+	, SYSTIMESTAMP
+)
+	</insert>
+	
+	<insert id="insertDataAuthUser_history">
+/* oracle.Auth.insertDataAuthUser_history */
+INSERT INTO COM_DATA_AUTH_USER_HIS (
+	MENU_CODE,
+	OLD_MENU_CODE,
+	USER_ID,
+	DATA_AUTH_ID,
+	OLD_DATA_AUTH_ID,
+	REG_ID,
+	RED_DT,
+	MOD_ID,
+	MOD_DT
+)
+VALUES(
+	  #{menu_code}
+	, #{now_menu_code}
+	, #{user_id}
+	, #{auth_id}
+	, #{now_auth_id}
+	, #{s_emp_code}
+	, SYSTIMESTAMP
+	, #{s_emp_code}
+	, SYSTIMESTAMP
+)
+	</insert>
+
+	<select id="authDataListCnt" resultType="Double">
+	/* oracle.Auth.authDataListCnt */
+SELECT
+	count(*) as CNT 
+FROM (
+	SELECT
+		B.CODE_VALUE AS menu_code,
+		B.CODE_NM AS menu_name,A.AUTH_ID as auth_id, 
+		case A.AUTH_ID
+			when 'SA' then 1
+			when 'MA' then 2
+			when 'IM' then 3
+			when 'TM' then 4
+			when 'WM' then 5
+			when 'CM' then 6
+			when 'SM' then 7
+			when 'US' then 8
+			else 99
+		end as srt,
+		A.AUTH_TITLE as auth_title,
+		A.INIT_PAGE as init_page
+	FROM COM_AUTH A
+	INNER JOIN COM_CODE_DETAIL B
+		ON B.CODE = 'YP_DATA_AUTH'
+	WHERE 1 = 1
+	) GRID
+WHERE 1 = 1
+<if test='auth_name != null and !auth_name.equals("")'>
+AND GRID.AUTH_TITLE LIKE '%${auth_name}%'
+</if>
+	</select>
+		
+	<select id="authDataList" resultType="com.vicurus.it.core.common.util.LowerKeyMap">
+/* oracle.Auth.authDataList */
+SELECT
+	ROW_NUMBER() OVER( ORDER BY GRID.srt, GRID.menu_code) RNUM,
+	GRID.* 
+FROM (
+	SELECT
+		B.CODE_VALUE AS menu_code,
+		B.CODE_NM AS menu_name,A.AUTH_ID as auth_id, 
+		case A.AUTH_ID
+			when 'SA' then 1
+			when 'MA' then 2
+			when 'IM' then 3
+			when 'TM' then 4
+			when 'WM' then 5
+			when 'CM' then 6
+			when 'SM' then 7
+			when 'US' then 8
+			else 99
+		end as srt,
+		A.AUTH_TITLE as auth_title,
+		A.INIT_PAGE as init_page
+	FROM COM_AUTH A
+	INNER JOIN COM_CODE_DETAIL B
+		ON B.CODE = 'YP_DATA_AUTH'
+	WHERE 1 = 1
+	) GRID
+WHERE 1 = 1
+<if test='auth_name != null and !auth_name.equals("")'>
+AND GRID.AUTH_TITLE LIKE '%${auth_name}%'
+</if>
+	</select>
+</mapper>

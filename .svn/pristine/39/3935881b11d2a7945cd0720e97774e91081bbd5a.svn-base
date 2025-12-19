@@ -1,0 +1,832 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.yp_zmm_aw">
+
+	<select id="select_zmm_weight_data_list_cnt" resultType="double">
+		/* oracle.yp_zmm_aw.select_zmm_weight_data_list_cnt */
+		SELECT COUNT(*) AS CNT
+		FROM TBL_WEIGHT_DATA
+		WHERE TO_DATE(DATE1,'YYYY/MM/DD HH24:MI:SS') BETWEEN TO_DATE(#{sdate},'YYYY/MM/DD HH24:MI:SS') AND TO_DATE(#{edate},'YYYY/MM/DD HH24:MI:SS')
+			<if test='srch_p_name != null'>AND P_NAME LIKE '%'||#{srch_p_name}||'%'</if>
+			<if test='srch_p_detail_code  != null'>AND P_DETAIL_CODE_SAP = #{srch_p_detail_code}</if>
+			<if test='srch_ent_code != null'>AND ENT_CODE = #{srch_ent_code}</if>
+			<if test='srch_daily_confirm != null'>
+				<if test='srch_daily_confirm == "Y"'>AND DAILY_CLOSING = #{srch_daily_confirm}</if>
+				<if test='srch_daily_confirm == "N"'>AND DAILY_CLOSING IS NULL</if>
+			</if>
+			<if test='srch_monthly_confirm != null'>
+				<if test='srch_monthly_confirm == "Y"'>AND MONTHLY_CLOSING = #{srch_monthly_confirm}</if>
+				<if test='srch_monthly_confirm == "N"'>AND MONTHLY_CLOSING IS NULL</if>
+			</if>
+	</select>		
+		
+	<select id="select_zmm_weight_data_list" resultType="java.util.HashMap">
+		/* oracle.yp_zmm_aw.select_zmm_weight_data_list */
+		SELECT SEQ
+			,TRUCK_NO
+			,P_NAME
+			,P_CODE
+			,P_DETAIL_NAME
+			,P_DETAIL_CODE
+			,TYPE
+			,WASTE_TYPE
+			,WEIGHT1
+			,SUBSTR(DATE1,11) AS DATE1
+			,WEIGHT2
+			,SUBSTR(DATE2,11) AS DATE2
+			,LOADING_PLACE
+			,STACKING_PLACE
+			,ENT
+			,ENT_CODE
+			,CASE WHEN DAILY_CLOSING='Y' THEN '마감' ELSE '' END AS DAILY_CLOSING
+			,CASE WHEN MONTHLY_CLOSING='Y' THEN '마감' ELSE '' END AS MONTHLY_CLOSING
+			,BIGO
+			,REG_DATE
+			,REG_WORKER
+			,TO_CHAR(UPD_DATE,'YYYY/MM/DD HH24:MI:SS') AS UPD_DATE
+			,UPD_WORKER
+			,UPD_CNT
+			,P_DETAIL_CODE_SAP
+			,FINAL_WEIGHT
+			,SUBSTR(DATE1,1,10) AS SDATE
+		FROM TBL_WEIGHT_DATA
+		WHERE TO_DATE(DATE1,'YYYY/MM/DD HH24:MI:SS') BETWEEN TO_DATE(#{sdate},'YYYY/MM/DD HH24:MI:SS') AND TO_DATE(#{edate},'YYYY/MM/DD HH24:MI:SS')
+			<if test='srch_p_name != null'>AND P_NAME LIKE '%'||#{srch_p_name}||'%'</if>
+			<if test='srch_p_detail_code  != null'>AND P_DETAIL_CODE_SAP = #{srch_p_detail_code}</if>
+			<if test='srch_ent_code  != null'>AND ENT_CODE = #{srch_ent_code}</if>
+			<if test='srch_daily_confirm != null'>
+				<if test='srch_daily_confirm == "Y"'>AND DAILY_CLOSING = #{srch_daily_confirm}</if>
+				<if test='srch_daily_confirm == "N"'>AND DAILY_CLOSING IS NULL</if>
+			</if>
+			<if test='srch_monthly_confirm != null'>
+				<if test='srch_monthly_confirm == "Y"'>AND MONTHLY_CLOSING = #{srch_monthly_confirm}</if>
+				<if test='srch_monthly_confirm == "N"'>AND MONTHLY_CLOSING IS NULL</if>
+			</if>
+		ORDER BY DATE1 DESC
+	</select>
+	
+	<!-- 
+		YPWEBPOTAL-16 차량계량 정산 > 전자결재 상태값 변경 오류 및 전표번호 리턴 오류
+		 - 업데이트를 위한 CALC_CODE 키값 parameter 전달
+		 - FI_DOC_NO(전표번호) 업데이트를 위한 신규 메서드 추가 
+	 -->
+	<update id="zmm_weight_fidocno_update" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm_aw.zmm_weight_fidocno_update */
+		UPDATE 
+		    TBL_WEIGHT_CALC
+		SET
+		    FI_DOC_NO = #{FI_DOC_NO}
+		WHERE 
+		    CALC_CODE = #{CALC_CODE}
+	</update>
+	
+	<update id="zmm_weight_save" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm_aw.zmm_weight_save */
+		UPDATE TBL_WEIGHT_DATA
+		SET TRUCK_NO = #{TRUCK_NO}
+			,P_NAME = #{P_NAME}
+			,P_CODE = #{P_CODE}
+			,P_DETAIL_NAME = #{P_DETAIL_NAME}
+			,P_DETAIL_CODE = #{P_DETAIL_CODE}
+			,P_DETAIL_CODE_SAP = #{P_DETAIL_CODE_SAP}
+			,TYPE = #{TYPE}
+			,WASTE_TYPE = #{WASTE_TYPE}
+			,WEIGHT1 = #{WEIGHT1}
+			,WEIGHT2 = #{WEIGHT2}
+			,FINAL_WEIGHT = #{FINAL_WEIGHT}
+			,LOADING_PLACE = #{LOADING_PLACE}
+			,STACKING_PLACE = #{STACKING_PLACE}
+			,ENT = #{ENT}
+			,ENT_CODE = #{ENT_CODE}
+			,BIGO = #{BIGO}
+			,UPD_DATE = SYSDATE
+			,UPD_WORKER = #{s_emp_code}
+			,UPD_CNT = (SELECT UPD_CNT FROM TBL_WEIGHT_DATA WHERE SEQ = #{SEQ}) + 1
+		WHERE SEQ = #{SEQ}
+	</update>
+
+	<update id="zmm_weight_update_dclosing" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm_aw.zmm_weight_update_dclosing */
+		UPDATE TBL_WEIGHT_DATA
+		SET DAILY_CLOSING = 'Y'
+		WHERE SEQ IN 
+			<foreach collection="SEQS" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+	</update>
+	
+	<update id="zmm_weight_update_mclosing" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm_aw.zmm_weight_update_mclosing */
+		UPDATE TBL_WEIGHT_DATA
+		SET MONTHLY_CLOSING = 'Y'
+			,M_CLS_DATE = SYSDATE
+		WHERE DAILY_CLOSING = 'Y'
+			AND SEQ IN 
+			<foreach collection="SEQS" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+	</update>
+	
+	<delete id="zmm_weight_delete" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm_aw.zmm_weight_delete */
+		DELETE TBL_WEIGHT_DATA
+		WHERE SEQ IN 
+			<foreach collection="SEQS" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+	</delete>
+	
+	<select id="select_zmm_weight_cont_list_cnt" resultType="double">
+		/* oracle.yp_zmm_aw.select_zmm_weight_cont_list_cnt */
+		SELECT COUNT(*) AS CNT
+		FROM TBL_WEIGHT_CONT_MASTER
+		WHERE TO_DATE(CONT_SDATE,'YYYY/MM/DD HH24:MI:SS') BETWEEN TO_DATE(#{sdate},'YYYY/MM/DD HH24:MI:SS') AND TO_DATE(#{edate},'YYYY/MM/DD HH24:MI:SS')
+			<if test='srch_ent_code  != null'>AND ENT_CODE = #{srch_ent_code }</if>
+	</select>		
+		
+	<!-- 
+	2022.08.03 JhOh
+	YPWEBPOTAL-17 차량계량마스터 수정 시 오류
+	 - TBL_WEIGHT_CONT_MASTER_SEQ 키값 추가
+	 -->
+	<select id="select_zmm_weight_cont_list" resultType="java.util.HashMap">
+		/* oracle.yp_zmm_aw.select_zmm_weight_cont_list */
+		SELECT
+			TBL_WEIGHT_CONT_MASTER_SEQ AS SEQ
+			,CONT_CODE
+			,CONT_NO
+			,ENT
+			,ENT_CODE
+			,CONT_SDATE
+			,CONT_EDATE
+			,FINAL_PAYDATE
+			,TO_CHAR(REG_DATE,'YYYY/MM/DD') AS REG_DATE
+			,REG_WORKER
+			,TO_CHAR(UPD_DATE,'YYYY/MM/DD') AS UPD_DATE 
+			,UPD_WORKER
+			,CONT_FILE_URL
+			,CONT_FILE_NAME
+		FROM 
+			TBL_WEIGHT_CONT_MASTER
+		WHERE 
+			TO_DATE(CONT_SDATE,'YYYY/MM/DD') BETWEEN TO_DATE(#{sdate},'YYYY/MM/DD') AND TO_DATE(#{edate},'YYYY/MM/DD')
+			<if test='srch_ent_code  != null'>AND ENT_CODE = #{srch_ent_code }</if>
+	</select>
+	
+	<select id="zmm_weight_cont_code_max" resultType="Integer">
+		/* oracle.yp_zmm_aw.zmm_weight_cont_code_max */
+		SELECT NVL(MAX(CONT_CODE),0)
+		FROM TBL_WEIGHT_CONT_MASTER
+		WHERE CONT_CODE LIKE #{YYYY}||'%'
+	</select>
+	
+	<!-- 
+	2022.08.03 JhOh
+	YPWEBPOTAL-17 차량계량마스터 수정 시 오류
+	 - <update> 구문 <insert> 로 수정
+	 - TBL_WEIGHT_CONT_MASTER_SEQ 및 SEQ_TBL_WEIGHT_CONT_MASTER.nextval 추가
+	 -->
+	<insert id="zmm_weight_cont_create_master" parameterType="java.util.HashMap">
+		/* oracle.yp_zmm_aw.zmm_weight_cont_create_master */
+		INSERT INTO TBL_WEIGHT_CONT_MASTER
+		(
+			TBL_WEIGHT_CONT_MASTER_SEQ,
+			CONT_CODE,
+			ENT,
+			ENT_CODE,
+			CONT_SDATE,
+			CONT_EDATE,
+			FINAL_PAYDATE,
+			REG_DATE,
+			REG_WORKER,
+			CONT_FILE_URL,
+			CONT_FILE_NAME,
+			CONT_NO,
+			EFFECTIVE_DATE
+		)VALUES(
+			#{master_seq}
+			,#{cont_code}
+			,#{ent}
+			,#{ent_code}
+			,#{cont_sdate}
+			,#{cont_edate}
+			,#{final_paydate}
+			,sysdate
+			,#{s_emp_code}
+			,#{file_url}
+			,#{file_name}
+			,#{cont_no}
+			,#{effective_date}
+		)
+	</insert>
+	
+	<update id="zmm_weight_cont_update_master" parameterType="java.util.HashMap">
+		/* 안씀 */
+		UPDATE TBL_WEIGHT_CONT_MASTER
+		SET CONT_SDATE = #{cont_sdate},
+			  CONT_EDATE = #{cont_edate},
+			  FINAL_PAYDATE = #{final_paydate},
+			  UPD_DATE = SYSDATE,
+			  UPD_WORKER = #{s_emp_code},
+			  CONT_FILE_URL = #{file_url},
+			  CONT_FILE_NAME = #{file_name},
+			  CONT_NO = (SELECT MAX(CONT_NO) FROM TBL_WEIGHT_CONT_MASTER 
+			  			WHERE CONT_CODE = #{cont_code} AND ENT_CODE = #{ent_code}),
+			  EFFECTIVE_DATE = #{effective_date}
+		WHERE CONT_CODE = #{cont_code}
+			AND ENT_CODE = #{ent_code}
+			AND CONT_NO = #{cont_no}
+	</update>
+	
+	<select id="zmm_weight_cont_seq_no" resultType="String">
+		/* oracle.zmm_weight_cont_seq_no */
+		SELECT SEQ_TBL_WEIGHT_CONT_MASTER.nextval FROM DUAL
+	</select>
+	
+	<!-- 
+	2022.08.03 JhOh
+	YPWEBPOTAL-17 차량계량마스터 수정 시 오류
+	  - CONT_NO 의 MAX 값을 가져오기 위한 typecast TO_NUMBER() 함수 이용
+	  - 9 다음값이 10 인데 DB에서 9로 인식해서 MAX 값을 가져와서 TO_NUMBER로 숫자로 변환후 MAX 도출
+	 -->
+	<select id="zmm_weight_cont_no" resultType="Integer">
+		/* oracle.yp_zmm_aw.zmm_weight_cont_no */
+		SELECT MAX(TO_NUMBER(CONT_NO)) <!-- MAX(CONT_NO) --> 
+		FROM TBL_WEIGHT_CONT_MASTER 
+		WHERE CONT_CODE = #{cont_code} 
+			AND ENT_CODE = #{ent_code}
+	</select>
+	
+	<!-- 
+	2022.08.03 JhOh
+	YPWEBPOTAL-17 차량계량마스터 수정 시 오류
+	 - <update> 구문 <insert> 로 수정
+	 - TBL_WEIGHT_CONT_MASTER_SEQ 및 SEQ_TBL_WEIGHT_CONT_MASTER.nextval 추가
+	 -->
+	<insert id="zmm_weight_cont_create_product" parameterType="java.util.List">
+		/* oracle.yp_zmm_aw.zmm_weight_cont_create_product */
+		INSERT INTO TBL_WEIGHT_CONT_PRODUCT
+			(	
+				TBL_WEIGHT_CONT_MASTER_SEQ,
+				CONT_CODE,
+				CONT_NO,
+				ENT_CODE,
+				P_NAME,
+				P_DETAIL_CODE,
+				P_DETAIL_NAME,
+				WEIGHT_UNIT,
+				CONT_AMOUNT,
+				MONETARY_UNIT,
+				SDATE,
+				EDATE,
+				BIGO
+			)VALUES(
+				#{MASTER_SEQ_FK}
+				,#{CONT_CODE}
+				,#{CONT_NO}
+				,#{ENT_CODE}
+				,#{P_NAME,jdbcType=VARCHAR}
+				,#{P_DETAIL_CODE,jdbcType=VARCHAR}
+				,#{P_DETAIL_NAME,jdbcType=VARCHAR}
+				,#{WEIGHT_UNIT}
+				,#{CONT_AMOUNT}
+				,#{MONETARY_UNIT}
+				,#{SDATE,jdbcType=VARCHAR}
+				,#{EDATE,jdbcType=VARCHAR}
+				,#{BIGO}
+			)
+	</insert>
+	
+	<update id="zmm_weight_cont_update_product" parameterType="java.util.List">
+		/* 안씀 */
+		UPDATE TBL_WEIGHT_CONT_PRODUCT
+		SET P_NAME = #{P_NAME,jdbcType=VARCHAR},
+				  P_DETAIL_CODE = #{P_DETAIL_CODE},
+				  P_DETAIL_NAME = #{P_DETAIL_NAME,jdbcType=VARCHAR},
+				  WEIGHT_UNIT = #{WEIGHT_UNIT},
+				  CONT_AMOUNT = #{CONT_AMOUNT},
+				  MONETARY_UNIT = #{MONETARY_UNIT},
+				  BIGO = #{BIGO}
+		WHERE CONT_CODE = #{CONT_CODE}
+			AND ENT_CODE = #{ENT_CODE}
+			AND CONT_NO = #{CONT_NO}
+	</update>
+	
+	<!-- 
+	2022.08.03 JhOh
+	YPWEBPOTAL-17 차량계량마스터 수정 시 오류
+	 - <update> 구문 <insert> 로 수정
+	 - TBL_WEIGHT_CONT_PRODUCT_SEQ 및 SEQ_TBL_WEIGHT_CONT_PRODUCT.nextval 추가
+	 -->
+	<select id="zmm_weight_cont_detail" resultType="java.util.HashMap">
+		/* oracle.yp_zmm_aw.zmm_weight_cont_detail */
+		SELECT
+			CONT_CODE
+			,CONT_NO
+			,ENT
+			,ENT_CODE
+			,CONT_SDATE
+			,CONT_EDATE
+			,FINAL_PAYDATE
+			,EFFECTIVE_DATE
+			,REG_DATE
+			,REG_WORKER
+			,UPD_DATE
+			,UPD_WORKER
+			,CONT_FILE_URL
+			,CONT_FILE_NAME
+			<!-- 
+			 2022.06.15
+			 YPDIGITAL-5
+			 차량계량관리 테스트 - 오류건
+			 파일 다운로드 기능 변경 수정의건
+			 다운로드 파일을 원래 파일이름으로 출력하기 위해 아래의 ORI_CONT_FILE_NAME 추가
+			 -->
+    		,SUBSTR(CONT_FILE_NAME, INSTR(CONT_FILE_NAME, '_')+1) AS ORI_CONT_FILE_NAME
+		FROM TBL_WEIGHT_CONT_MASTER
+		WHERE
+			1=1
+			AND CONT_CODE = #{CONT_CODE}
+			AND ENT_CODE = #{ENT_CODE}
+			AND CONT_NO = #{CONT_NO}
+	</select>
+	
+	<select id="zmm_weight_cont_product_cnt" resultType="double">
+		/* oracle.yp_zmm_aw.zmm_weight_cont_product_cnt */
+		SELECT COUNT(*) AS CNT
+		FROM TBL_WEIGHT_CONT_PRODUCT
+		WHERE CONT_CODE = #{CONT_CODE}
+			AND ENT_CODE = #{ENT_CODE}
+			AND CONT_NO = #{CONT_NO}
+	</select>
+	
+	<select id="zmm_weight_cont_product" resultType="java.util.HashMap">
+		/* oracle.yp_zmm_aw.zmm_weight_cont_product */
+		SELECT CONT_CODE,
+		  P_CODE,
+		  P_NAME,
+		  P_DETAIL_CODE,
+		  P_DETAIL_NAME,
+		  WEIGHT_UNIT,
+		  CONT_AMOUNT,
+		  MONETARY_UNIT,
+		  SDATE,
+		  EDATE,
+		  BIGO
+		FROM TBL_WEIGHT_CONT_PRODUCT
+		WHERE CONT_CODE = #{CONT_CODE}
+			AND ENT_CODE = #{ENT_CODE}
+			AND CONT_NO = #{CONT_NO}
+	</select>
+	
+	<!-- 
+	2022.08.03 JhOh
+	YPWEBPOTAL-17 차량계량마스터 수정 시 오류
+	 - 삭제 where 조건절 TBL_WEIGHT_CONT_MASTER_SEQ(FK)로 변경
+	 -->
+	<delete id="zmm_weight_cont_delete_master">
+		/* oracle.yp_zmm_aw.zmm_weight_cont_delete_master */
+		DELETE FROM TBL_WEIGHT_CONT_MASTER
+		WHERE 
+			TBL_WEIGHT_CONT_MASTER_SEQ = #{seq}
+			<!-- 
+			AND CONT_CODE = #{cont_code}
+			AND ENT_CODE = #{ent_code}
+			AND CONT_NO = #{cont_no}
+			 -->
+	</delete>
+	
+	<!-- 
+	2022.08.03 JhOh
+	YPWEBPOTAL-17 차량계량마스터 수정 시 오류
+	 - 삭제 where 조건절 TBL_WEIGHT_CONT_MASTER_SEQ(FK)로 변경
+	 -->
+	<delete id="zmm_weight_cont_delete_product">
+		/* oracle.yp_zmm_aw.zmm_weight_cont_delete_product */
+		DELETE FROM TBL_WEIGHT_CONT_PRODUCT
+		WHERE
+			TBL_WEIGHT_CONT_MASTER_SEQ = #{seq}
+			<!-- 
+			AND CONT_CODE = #{cont_code}
+			AND ENT_CODE = #{ent_code}
+			AND CONT_NO = #{cont_no}
+			 -->
+	</delete>
+	
+	<select id="zmm_weight_calc_list_cnt" resultType="double">
+		/* oracle.yp_zmm_aw.zmm_weight_calc_list_cnt */
+		
+		SELECT 
+		  COUNT(*) AS CNT 
+		FROM 
+		  (
+		    SELECT 
+		      P_NAME, 
+		      P_DETAIL_NAME, 
+		      P_DETAIL_CODE_SAP, 
+		      ENT_CODE, 
+		      ENT, 
+		      SUM_W, 
+		      TO_NUMBER('') AS COM_W, 
+		      TO_NUMBER('') AS CALC_W, 
+		      '' AS EDOC_NO, 
+		      '' AS FI_DOC_NO, 
+		      '' AS BIGO, 
+		      '' AS CALC_CODE, 
+		      '' AS EDOC_STATUS, 
+		      TO_CHAR(SYSDATE, 'YYYY/MM/DD') AS CALC_DATE 
+		    FROM 
+		      (
+		        SELECT 
+		          P_NAME, 
+		          P_DETAIL_NAME, 
+		          P_DETAIL_CODE_SAP, 
+		          ENT_CODE, 
+		          ENT, 
+		          SUM(FINAL_WEIGHT) AS SUM_W 
+		        FROM 
+		          TBL_WEIGHT_DATA 
+		        WHERE CALC_CODE IS NULL AND MONTHLY_CLOSING = 'Y' 
+		          AND M_CLS_DATE BETWEEN TO_DATE(#{sdate},'YYYY/MM/DD HH24:MI:SS') AND TO_DATE(#{edate},'YYYY/MM/DD HH24:MI:SS') 
+		          <!-- 
+					     2022-08-10 JhOh
+						YPWEBPOTAL-18 차량계량 정산 > 조회 시 검색 필터 개발
+						- srch_p_name 필드 추가
+						- srch_ent_code 필드 맵핑명 변경
+						- srch_p_detail_code 필드 맵핑명 변경
+					-->
+				  <if test="srch_p_name != null">AND P_NAME LIKE '%'||#{srch_p_name}||'%'</if>
+		          <if test="srch_p_detail_code != null">AND P_DETAIL_CODE_SAP = #{srch_p_detail_code}</if> 
+		          <if test="srch_ent_code != null">AND ENT_CODE = #{srch_ent_code}</if>  
+		        GROUP BY 
+		          P_NAME, 
+		          P_DETAIL_NAME, 
+		          P_DETAIL_CODE_SAP, 
+		          ENT_CODE, 
+		          ENT
+		      ) 
+		      <!-- 2022.10.26 kjy 조회 조건 월마감일 기준으로 변경 -->
+		      
+		    UNION ALL
+		    SELECT 
+		      S.P_NAME, 
+		      S.P_DETAIL_NAME, 
+		      S.P_DETAIL_CODE_SAP, 
+		      S.ENT_CODE, 
+		      S.ENT, 
+		      C.SUM_W, 
+		      C.COM_W, 
+		      C.CALC_W, 
+		      C.EDOC_NO, 
+		      C.FI_DOC_NO, 
+		      C.BIGO, 
+		      C.CALC_CODE, 
+		      C.EDOC_STATUS, 
+		      C.CALC_DATE 
+		    FROM 
+		      TBL_WEIGHT_CALC C, 
+		      (
+		        SELECT 
+		          P_NAME, 
+		          P_CODE, 
+		          P_DETAIL_NAME, 
+		          P_DETAIL_CODE_SAP, 
+		          ENT_CODE, 
+		          ENT, 
+		          CALC_CODE, 
+		          SUM(FINAL_WEIGHT) AS SUM_W 
+		        FROM 
+		          TBL_WEIGHT_DATA 
+		        WHERE CALC_CODE IS NOT NULL AND
+		           MONTHLY_CLOSING = 'Y' 
+		          AND M_CLS_DATE BETWEEN TO_DATE(#{sdate},'YYYY/MM/DD HH24:MI:SS') AND TO_DATE(#{edate},'YYYY/MM/DD HH24:MI:SS')
+				  <if test="srch_p_name != null">AND P_NAME LIKE '%'||#{srch_p_name}||'%'</if>
+		          <if test="srch_p_detail_code != null">AND P_DETAIL_CODE_SAP = #{srch_p_detail_code}</if> 
+		          <if test="srch_ent_code != null">AND ENT_CODE = #{srch_ent_code}</if>
+		        GROUP BY 
+		          P_NAME, 
+		          P_DETAIL_NAME, 
+		          P_DETAIL_CODE_SAP, 
+		          ENT_CODE, 
+		          ENT, 
+		          CALC_CODE, 
+		          P_CODE
+		      ) S 
+		    WHERE 
+		      C.CALC_CODE = S.CALC_CODE
+		     
+		  )
+		  
+	</select>
+	
+	<select id="zmm_weight_calc_list" resultType="java.util.HashMap">
+		/* oracle.yp_zmm_aw.zmm_weight_calc_list */
+		SELECT 
+				P_NAME
+        		,P_DETAIL_NAME
+				,P_DETAIL_CODE_SAP
+				,ENT_CODE
+				,ENT
+				,SUM_W
+				,TO_NUMBER('') AS COM_W
+				,TO_NUMBER('') AS CALC_W
+				,'' AS EDOC_NO
+				,'' AS FI_DOC_NO
+				,'' AS BIGO
+				,'' AS CALC_CODE
+				,'' AS EDOC_STATUS
+				,TO_CHAR(SYSDATE,'YYYY/MM/DD')	AS CALC_DATE
+			FROM (SELECT P_NAME ,P_DETAIL_NAME ,P_DETAIL_CODE_SAP
+				,ENT_CODE ,ENT
+				,SUM(FINAL_WEIGHT) AS SUM_W
+				 FROM TBL_WEIGHT_DATA
+				 WHERE CALC_CODE IS NULL AND MONTHLY_CLOSING = 'Y'
+				      AND M_CLS_DATE BETWEEN TO_DATE(#{sdate},'YYYY/MM/DD HH24:MI:SS') AND TO_DATE(#{edate},'YYYY/MM/DD HH24:MI:SS')
+				    	<!-- 
+						     2022-08-10 JhOh
+							YPWEBPOTAL-18 차량계량 정산 > 조회 시 검색 필터 개발
+							- srch_p_name 필드 추가
+							- srch_ent_code 필드 맵핑명 변경
+							- srch_p_detail_code 필드 맵핑명 변경
+						-->
+					  <if test="srch_p_name != null">AND P_NAME LIKE '%'||#{srch_p_name}||'%'</if>
+				      <if test="srch_p_detail_code != null">AND P_DETAIL_CODE_SAP = #{srch_p_detail_code}</if> 
+					  <if test="srch_ent_code != null">AND ENT_CODE = #{srch_ent_code}</if>  
+				GROUP BY  P_NAME ,P_DETAIL_NAME ,P_DETAIL_CODE_SAP ,ENT_CODE ,ENT)
+			<!-- 2022.10.26 kjy 조회 조건 월마감일 기준으로 변경 	-->
+			 UNION  ALL
+			 
+			 SELECT  S.P_NAME
+        		,S.P_DETAIL_NAME
+				,S.P_DETAIL_CODE_SAP
+				,S.ENT_CODE
+				,S.ENT
+				,C.SUM_W
+				,C.COM_W
+				,C.CALC_W
+				,C.EDOC_NO
+				,C.FI_DOC_NO
+				,C.BIGO
+				,C.CALC_CODE
+				,C.EDOC_STATUS
+				,C.CALC_DATE
+			FROM  TBL_WEIGHT_CALC C ,
+				 (SELECT P_NAME ,P_DETAIL_NAME ,P_DETAIL_CODE_SAP
+				,ENT_CODE ,ENT
+				,CALC_CODE,SUM(FINAL_WEIGHT) AS SUM_W
+				 FROM TBL_WEIGHT_DATA
+				 WHERE CALC_CODE IS NOT NULL AND
+				      MONTHLY_CLOSING = 'Y'
+				      AND M_CLS_DATE BETWEEN TO_DATE(#{sdate},'YYYY/MM/DD HH24:MI:SS') AND TO_DATE(#{edate},'YYYY/MM/DD HH24:MI:SS')
+					  <if test="srch_p_name != null">AND P_NAME LIKE '%'||#{srch_p_name}||'%'</if>
+				      <if test="srch_p_detail_code != null">AND P_DETAIL_CODE_SAP = #{srch_p_detail_code}</if> 
+					  <if test="srch_ent_code != null">AND ENT_CODE = #{srch_ent_code}</if>  
+				GROUP BY  P_NAME ,P_DETAIL_NAME ,P_DETAIL_CODE_SAP ,ENT_CODE ,ENT,CALC_CODE) S
+			WHERE C.CALC_CODE = S.CALC_CODE 
+			
+	</select>
+	
+	<select id="calc_detail_list" resultType="java.util.HashMap">
+		/* oracle.yp_zmm_aw.calc_detail_list */
+		SELECT  DATE1
+				,TRUCK_NO
+				,P_NAME
+				,P_DETAIL_NAME
+				,P_DETAIL_CODE_SAP
+				,ENT
+				,FINAL_WEIGHT
+			FROM TBL_WEIGHT_DATA
+			WHERE CALC_CODE IS NULL AND MONTHLY_CLOSING = 'Y'
+			      AND M_CLS_DATE BETWEEN TO_DATE(#{sdate},'YYYY/MM/DD HH24:MI:SS') AND TO_DATE(#{edate},'YYYY/MM/DD HH24:MI:SS')
+			      AND P_DETAIL_CODE_SAP = #{P_DETAIL_CODE_SAP}
+				  <if test="ENT_CODE != null">AND ENT_CODE = #{ENT_CODE}</if>
+				  <if test="ENT_CODE == null">AND ENT_CODE IS NULL</if>
+				  <!-- 2022.10.26 kjy 조회 조건 월마감일 기준으로 변경 -->
+			 	  
+			UNION ALL
+			 
+			SELECT  DATE1
+				,TRUCK_NO
+				,P_NAME
+				,P_DETAIL_NAME
+				,P_DETAIL_CODE_SAP
+				,ENT
+				,FINAL_WEIGHT
+			FROM TBL_WEIGHT_DATA
+			WHERE CALC_CODE = #{CALC_CODE}  AND
+			 	  MONTHLY_CLOSING = 'Y'
+			      AND M_CLS_DATE BETWEEN TO_DATE(#{sdate},'YYYY/MM/DD HH24:MI:SS') AND TO_DATE(#{edate},'YYYY/MM/DD HH24:MI:SS')
+			        
+	</select>
+	
+	<select id="zmm_weight_calc_chk" resultType="Integer">
+		/* oracle.yp_zmm_aw.zmm_weight_calc_chk */
+		SELECT COUNT(*) FROM TBL_WEIGHT_CALC
+		WHERE CALC_CODE = #{CALC_CODE}
+	</select>
+	
+<!-- 저장버튼 이벤트:현재 삭제	 -->
+<!-- 	<update id="zmm_weight_calc_update"> -->
+<!-- 		/* oracle.yp_zmm_aw.zmm_weight_calc_update */ -->
+<!-- 		UPDATE TBL_WEIGHT_CALC -->
+<!-- 		SET COM_W = #{COM_W} -->
+<!-- 			,CALC_W = TO_NUMBER(CALC_W) + TO_NUMBER(#{COM_W}) -->
+<!-- 		WHERE CALC_CODE = #{CALC_CODE} -->
+<!-- 	</update> -->
+	
+	<select id="zmm_weight_calc_code_max" resultType="String">
+		SELECT TO_CHAR(NVL(MAX(CALC_CODE),0))
+		FROM TBL_WEIGHT_CALC
+		WHERE CALC_CODE LIKE #{DATE}||'%'
+	</select>
+	<!-- 
+	2022.08.03 JhOh
+	YPWEBPOTAL-17 차량계량마스터 수정 시 오류
+	 - <update> 구문 <insert> 로 수정
+	 -->
+	<insert id="zmm_weight_calc_insert">
+		/* oracle.yp_zmm_aw.zmm_weight_calc_insert */
+		INSERT INTO TBL_WEIGHT_CALC
+		(	CALC_CODE
+			,SUM_W
+			,COM_W
+			,CALC_W
+			,BIGO
+			,CALC_DATE
+		)VALUES(
+			#{CALC_CODE}
+			,#{SUM_W}
+			,0
+			,TO_NUMBER(#{SUM_W}) + 0
+<!-- 			,#{COM_W} -->
+<!-- 			,TO_NUMBER(#{SUM_W}) + TO_NUMBER(#{COM_W}) -->
+			,#{BI_GO}
+			,#{CALC_DATE}
+		)
+	</insert>
+	
+	<update id="zmm_weight_data_update">
+		/* oracle.yp_zmm_aw.zmm_weight_data_update */
+		UPDATE TBL_WEIGHT_DATA
+		SET CALC_CODE = #{CALC_CODE}
+			,UPD_CNT = UPD_CNT +1
+			,UPD_DATE = SYSDATE
+		WHERE MONTHLY_CLOSING = 'Y'
+		      AND M_CLS_DATE BETWEEN TO_DATE(#{sdate},'YYYY/MM/DD HH24:MI:SS') AND TO_DATE(#{edate},'YYYY/MM/DD HH24:MI:SS')
+		      AND P_DETAIL_NAME = #{P_DETAIL_NAME}
+			  <if test="ENT != null">AND ENT = #{ENT}</if>
+		 	  <if test="TYPE != null">AND TYPE = #{TYPE}</if>
+		 	  <if test="WASTE_TYPE != null">AND WASTE_TYPE = #{WASTE_TYPE}</if>
+	</update>
+	
+	<select id="zmm_weight_calc_edoc_list" resultType="java.util.HashMap">
+	 	/* oracle.yp_zmm_aw.zmm_weight_calc_edoc_list */
+	 	SELECT S.P_NAME
+	 		,S.P_DETAIL_NAME
+		 	--,S.P_DETAIL_CODE
+			--,S.ENT_CODE
+			,NVL(S.ENT,' ') AS ENT
+			--,S.TYPE_CODE
+			--,NVL(S.TYPE,' ') AS TYPE
+			--,S.WASTE_TYPE_CODE
+			--,NVL(S.WASTE_TYPE,' ') AS WASTE_TYPE
+			,TO_CHAR(NVL(C.SUM_W, 0), 'FM9,999,999,999,999,999,999,999,999') AS SUM_W
+			,TO_CHAR(NVL(C.COM_W, 0), 'FM9,999,999,999,999,999,999,999,999') AS COM_W
+			,TO_CHAR(NVL(C.CALC_W, 0), 'FM9,999,999,999,999,999,999,999,999') AS CALC_W
+			--,C.EDOC_NO
+			--,C.FI_DOC_NO
+			--,C.SO_NO 
+			--,C.BIGO
+		FROM  TBL_WEIGHT_CALC C 
+		LEFT JOIN (SELECT DISTINCT P_NAME, P_DETAIL_NAME ,ENT ,TYPE ,WASTE_TYPE ,CALC_CODE
+					FROM TBL_WEIGHT_DATA) S
+		ON C.CALC_CODE = S.CALC_CODE
+		WHERE C.CALC_CODE IN 
+				<foreach collection="CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+	</select>
+	
+	<select id="zmm_weight_edoc_calc_detail_list" resultType="java.util.HashMap">
+		/* oracle.yp_zmm_aw.zmm_weight_edoc_calc_detail_list */
+		SELECT  DATE1
+				,TRUCK_NO
+				,P_NAME
+				,P_DETAIL_NAME
+				,ENT
+				,TYPE
+				,WASTE_TYPE
+				,FINAL_WEIGHT
+				,CALC_CODE
+		FROM TBL_WEIGHT_DATA
+		WHERE CALC_CODE IN <foreach collection="CODES" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+		ORDER BY CALC_CODE
+	</select>
+	
+	<insert id="zmm_weight_edoc_if_insert">
+		/* oracle.yp_zmm_aw.zmm_weight_edoc_if_insert */
+		INSERT INTO TBL_WEIGHT_EDOC_IF
+		(SEQ
+			,EDOC_NO
+			,EDOC_STATUS
+			,REG_DATE
+			,REG_WORKER
+		)VALUES(
+			(SELECT NVL((MAX(SEQ))+1,0) FROM TBL_WEIGHT_EDOC_IF)
+			,#{EDOC_NO}
+			,#{EDOC_STATUS}
+			,SYSDATE
+			,#{WORKER}
+		)
+	</insert>
+	
+	<update id="zmm_weight_edoc_if_update">
+		/* oracle.yp_zmm_aw.zmm_weight_edoc_if_update */
+		UPDATE TBL_WEIGHT_EDOC_IF
+		SET EDOC_STATUS = #{EDOC_STATUS},
+			  UPD_DATE = SYSDATE,
+			  UPD_WORKER = #{WORKER}
+		WHERE EDOC_NO = #{EDOC_NO}
+	</update>
+	
+	<update id="zmm_weight_calc_update">
+		/* oracle.yp_zmm_aw.zmm_weight_calc_update */
+		UPDATE TBL_WEIGHT_CALC
+		SET EDOC_NO = #{EDOC_NO}
+			,EDOC_STATUS = #{EDOC_STATUS}
+		WHERE CALC_CODE IN <foreach collection="CALC_CODE" item="item"  open="(" close=")" separator=",">#{item}</foreach>
+	</update>
+	
+	<select id="zmm_weight_calc_payment" resultType="java.util.HashMap">
+		/* oracle.yp_zmm_aw.zmm_weight_calc_payment */
+		SELECT 
+			WEIGHT_UNIT, 
+			CONT_AMOUNT
+		FROM 
+			TBL_WEIGHT_CONT_PRODUCT B
+		  	LEFT JOIN TBL_WEIGHT_CONT_MASTER A
+		  	ON A.CONT_CODE = B.CONT_CODE
+		       AND A.CONT_NO = B.CONT_NO
+		WHERE  
+			A.ENT_CODE = #{ENT_CODE}
+		    AND B.P_DETAIL_CODE = #{P_DETAIL_CODE_SAP}
+		    AND A.CONT_NO = (SELECT MAX(CONT_NO) FROM TBL_WEIGHT_CONT_MASTER WHERE EFFECTIVE_DATE <![CDATA[<=]]> #{CALC_DATE})
+	</select>
+	
+	<update id="zmm_weight_so_update">
+		/* oracle.yp_zmm_aw.zmm_weight_so_update */
+		UPDATE TBL_WEIGHT_CALC
+		SET SALES_ODER = #{SO_NO}
+		WHERE CALC_CODE = #{CALC_CODE}
+	</update>
+	
+	
+		<!-- 
+		YPWEBPOTAL-27 ENT_CODE 코드 앞의 0삭제 건
+		배치 > TBL_WEIGHT_DATA 의 ENT_CODE 필드의 코드 변경
+		10자리일경우에 6자리로 변경하는데 앞에 0이 포함되어있을경우에만 해당한다.
+	 -->
+	<update id="updateWeightTableEntCodeFieldData" parameterType="java.util.HashMap">
+		UPDATE 
+		    TBL_WEIGHT_DATA A
+		SET
+		    ENT_CODE = (
+		        SELECT
+		            to_number(B.ENT_CODE) AS ENT_CODE
+		        FROM TBL_WEIGHT_DATA B
+		        WHERE 
+		            1=1
+		            AND A.SEQ = B.SEQ
+		            AND INSTR(B.ENT_CODE, '0000') > 0
+		            AND CALC_CODE IS NULL
+		    )
+		WHERE 
+		    A.SEQ IN (SELECT B.SEQ FROM TBL_WEIGHT_DATA B)
+		    AND INSTR(ENT_CODE, '0000') > 0
+		    AND CALC_CODE IS NULL
+	</update>
+	
+	<!-- 	CAS : MSSQL -->
+	<!-- 2022-06-10 smh 에러 오타 수정 -->
+	<select id="zmm_weight_p_detail_code_list" resultType="java.util.HashMap">
+		/* oralce(mssql).yp_zmm_aw.zmm_weight_p_detail_code_list */
+		SELECT PARA AS MAKTX
+			,SAP_CODE AS MATNR
+			,SAP_NAME
+		FROM DETAILS_PRODUCT_NAME
+		WHERE 1=1
+			<if test="search_type eq 'I_MAKTX'">AND PARA LIKE '%'+#{search_text}+'%'</if>
+			<if test="search_type eq 'I_MATNR'">AND SAP_CODE LIKE '%'+#{search_text}+'%'</if>
+	</select>
+	
+	<select id="zmm_weight_p_name_cas" resultType="java.util.HashMap">
+		/* oralce(mssql).yp_zmm_aw.zmm_weight_p_name_cas */
+		SELECT DISTINCT PRODUCT_NAME, DETAILS_PRODUCT_NAME
+		FROM TREE
+		WHERE SAP_MAT_CODE = #{P_DETAIL_CODE}
+	</select>
+	
+	<select id="zmm_weight_p_name_list" resultType="java.util.HashMap">
+		/* oralce(mssql).yp_zmm_aw.zmm_weight_p_name */
+		SELECT CODE, PARA 
+		FROM PRODUCT_NAME
+		WHERE 1=1
+			<if test="search_text != null">AND PARA LIKE '%'+#{search_text}+'%'</if>
+	</select>
+	
+	
+	
+	
+</mapper>

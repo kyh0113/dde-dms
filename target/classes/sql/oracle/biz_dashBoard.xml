@@ -1,0 +1,39 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+<mapper namespace="oracle.biz_dashBoard">
+
+
+	<select id="grid_modalAccountCnt" resultType="double">
+		/* oracle.biz_dashBoard.grid_modalAccountCnt */
+		SELECT 4 AS CNT
+	</select>
+	
+	<select id="grid_modalAccountList" resultType="HashMap">
+		/* oracle.biz_dashBoard.grid_modalAccountList */
+		SELECT  'sample1' as column1,
+			    'data1' as column2,
+			    'a' as column3,
+			    '1' as column4
+		FROM DUAL	    
+		UNION ALL
+		SELECT  'sample2' as column1,
+			    'data2'   as column2,
+			    'b'       as column3,
+			    '2'       as column4
+		FROM DUAL	    
+		UNION ALL
+		SELECT  'sample3' as column1,
+			    'data3'   as column2,
+			    'c'       as column3,
+			    '3'       as column4
+		FROM DUAL	    
+		UNION ALL
+		SELECT  'sample4' as column1,
+			    'data4'   as column2,
+			    'd'       as column3,
+			    '4'       as column4	
+		FROM DUAL	    	    		    	    
+	</select>
+
+
+</mapper>
