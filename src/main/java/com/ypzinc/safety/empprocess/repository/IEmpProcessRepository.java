@@ -18,4 +18,7 @@ public interface IEmpProcessRepository {
     // 3. [공통] 부서별 공정 코드 목록 조회 (드롭다운용)
     // TBL_PROCESS_CODE 테이블 조회
     List<ProcessCode> selectProcessCodeList();
+    
+    void mergeEmpProcessFromGW();
+    void deleteRetiredEmp();
 }

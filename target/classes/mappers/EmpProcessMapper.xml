@@ -3,6 +3,188 @@
 
 <mapper namespace="com.ypzinc.safety.empprocess.repository.IEmpProcessRepository">
 
+
+	<select id="selectEmpProcessList" parameterType="map" resultType="com.ypzinc.safety.empprocess.model.EmpProcess">
+    	SELECT 
+        	A.EMP_NAME     AS userName,
+        	A.MOBILE       AS cellPhone,  
+        	A.DEPT_NAME    AS deptName,
+        	A.USR_ID       AS usrId,
+        	-- 저장된 값이 없으면(NULL이면) '없음'으로 표시
+        	NVL(B.PROCESS_NAME, '없음') AS processNm 
+    	FROM 
+        	NAON.V_USER_LIST@GW_LINK A
+    	LEFT JOIN 
+        	TBL_EMP_PROCESS B ON A.USR_ID = B.USR_ID
+    	JOIN 
+        	NAON.ORG_DEPARTMENT@GW_LINK D ON A.DEPT_ID = D.DEPT_ID
+    	<where>
+        	AND D.DEPT_LOC LIKE '%D887240305%'
+        	<if test="deptName != null and deptName != ''">
+            	AND A.DEPT_NAME = #{deptName}
+        	</if>
+        	<if test="keyword != null and keyword != ''">
+            	AND A.EMP_NAME LIKE '%' || #{keyword} || '%'
+        	</if>
+    	</where>
+    	ORDER BY A.DEPT_NAME, A.EMP_NAME
+	</select>
+
+    
+
+    <select id="selectProcessCodeList" resultType="com.ypzinc.safety.empprocess.model.ProcessCode">
+        SELECT 
+            C.DEPT_NAME AS deptName,
+            C.PROCESS_NAME AS processName,
+            C.SORT_ORDER,
+            (SELECT COUNT(*) 
+             FROM NAON.V_USER_LIST@GW_LINK U
+             JOIN NAON.ORG_DEPARTMENT@GW_LINK D ON U.DEPT_ID = D.DEPT_ID
+             WHERE U.DEPT_NAME = C.DEPT_NAME
+               AND D.DEPT_LOC LIKE '%D887240305%') AS empCount
+        FROM TBL_PROCESS_CODE C
+        ORDER BY C.DEPT_NAME, C.SORT_ORDER
+    </select>
+    
+    
+    
+    
+    <update id="saveEmpProcess" parameterType="com.ypzinc.safety.empprocess.model.EmpProcess">
+    	MERGE INTO TBL_EMP_PROCESS T
+    	USING (
+        	-- 여기서 USR_ID를 기반으로 원본 테이블 정보를 조회해 옵니다.
+        	SELECT 
+            	USR_ID, 
+            	EMP_NAME, 
+            	DEPT_NAME, 
+            	MOBILE 
+       	 	FROM NAON.V_USER_LIST@GW_LINK 
+        	WHERE USR_ID = #{usrId}
+    	) S
+    	ON (T.USR_ID = S.USR_ID)
+    	WHEN MATCHED THEN
+        	UPDATE SET 
+            	PROCESS_NAME = #{processNm, jdbcType=VARCHAR},
+            	EMP_NAME     = S.EMP_NAME,
+            	DEPT_NAME    = S.DEPT_NAME,
+            	MOBILE       = S.MOBILE
+    	WHEN NOT MATCHED THEN
+        	INSERT (USR_ID, EMP_NAME, DEPT_NAME, PROCESS_NAME, MOBILE)
+        	VALUES (
+            	S.USR_ID, 
+            	S.EMP_NAME, 
+            	S.DEPT_NAME, 
+            	#{processNm, jdbcType=VARCHAR}, 
+            	S.MOBILE
+        	)
+	</update>
+
+
+	<update id="mergeEmpProcessFromGW">
+    	MERGE INTO TBL_EMP_PROCESS T
+    	USING (
+        	SELECT 
+            	U.USR_ID, 
+            	U.EMP_NAME, 
+            	U.DEPT_NAME, 
+            	U.MOBILE 
+        	FROM NAON.V_USER_LIST@GW_LINK U
+        	JOIN NAON.ORG_DEPARTMENT@GW_LINK D ON U.DEPT_ID = D.DEPT_ID
+        	WHERE D.DEPT_LOC LIKE '%D887240305%'
+    	) S
+    	ON (T.USR_ID = S.USR_ID)
+    	WHEN MATCHED THEN
+        	UPDATE SET 
+            	T.EMP_NAME = S.EMP_NAME, 
+            	T.DEPT_NAME = S.DEPT_NAME, 
+            	T.MOBILE = S.MOBILE
+    	WHEN NOT MATCHED THEN
+       	 	INSERT (USR_ID, EMP_NAME, DEPT_NAME, MOBILE, PROCESS_NAME)
+        	VALUES (S.USR_ID, S.EMP_NAME, S.DEPT_NAME, S.MOBILE, '없음')
+	</update>
+
+	<delete id="deleteRetiredEmp">
+    	DELETE FROM TBL_EMP_PROCESS
+    	WHERE USR_ID NOT IN (
+        	SELECT U.USR_ID 
+        	FROM NAON.V_USER_LIST@GW_LINK U
+        	JOIN NAON.ORG_DEPARTMENT@GW_LINK D ON U.DEPT_ID = D.DEPT_ID
+        	WHERE D.DEPT_LOC LIKE '%D887240305%'
+    	)
+	</delete>
+
+
+
+
+
+</mapper>
+
+
+<!-- <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ypzinc.safety.empprocess.repository.IEmpProcessRepository">
+
+    <select id="selectEmpProcessList" parameterType="map" resultType="com.ypzinc.safety.empprocess.model.EmpProcess">
+        SELECT 
+            A.EMP_NAME    AS userName,
+            A.MOBILE       AS cellPhone,
+            A.DEPT_NAME   AS deptName,
+            A.USR_ID      AS usrId,
+            B.PROCESS_NAME AS processNm  FROM 
+            NAON.V_USER_LIST@GW_LINK A
+        LEFT JOIN 
+            TBL_EMP_PROCESS B ON A.USR_ID = B.USR_ID
+        JOIN 
+            NAON.ORG_DEPARTMENT@GW_LINK D ON A.DEPT_ID = D.DEPT_ID
+        <where>
+            AND D.DEPT_LOC LIKE '%D887240305%'
+            <if test="deptName != null and deptName != ''">
+                AND A.DEPT_NAME = #{deptName}
+            </if>
+            <if test="keyword != null and keyword != ''">
+                AND A.EMP_NAME LIKE '%' || #{keyword} || '%'
+            </if>
+        </where>
+        ORDER BY A.DEPT_NAME, A.EMP_NAME
+    </select>
+
+    <select id="selectProcessCodeList" parameterType="string" resultType="com.ypzinc.safety.empprocess.model.ProcessCode">
+        SELECT 
+            DEPT_NAME AS deptName,
+            PROCESS_NAME AS processName
+        FROM TBL_PROCESS_CODE
+        <where>
+            <if test="deptName != null and deptName != ''">
+                AND DEPT_NAME = #{deptName}
+            </if>
+        </where>
+        ORDER BY DEPT_NAME, SORT_ORDER
+    </select>
+
+    <update id="saveEmpProcess" parameterType="com.ypzinc.safety.empprocess.model.EmpProcess">
+        MERGE INTO TBL_EMP_PROCESS T
+        USING DUAL
+           ON (T.USR_ID = #{usrId})
+        WHEN MATCHED THEN
+            UPDATE SET 
+                PROCESS_NAME = #{processNm}, EMP_NAME = #{userName},
+                DEPT_NAME = #{deptName},
+                MOBILE = #{cellPhone}
+        WHEN NOT MATCHED THEN
+            INSERT (USR_ID, EMP_NAME, DEPT_NAME, PROCESS_NAME, MOBILE)
+            VALUES (#{usrId}, #{userName}, #{deptName}, #{processNm}, #{cellPhone})
+    </update>
+
+</mapper>
+ -->
+
+
+<!-- <?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN" "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<mapper namespace="com.ypzinc.safety.empprocess.repository.IEmpProcessRepository">
+
     <select id="selectEmpProcessList" parameterType="map" resultType="com.ypzinc.safety.empprocess.model.EmpProcess">
         SELECT 
             A.EMP_NAME    AS userName,
@@ -53,4 +235,9 @@
             VALUES (#{usrId}, #{processNm}, SYSDATE)
     </update>
 
-</mapper>
+</mapper>  -->
+
+
+
+
+
